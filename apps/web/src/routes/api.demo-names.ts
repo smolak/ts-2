@@ -6,6 +6,6 @@ export const ServerRoute = createServerFileRoute("/api/demo-names").methods({
 			headers: {
 				"Content-Type": "application/json",
 			},
-		})
+		});
 	},
 });
