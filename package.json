@@ -1,0 +1,21 @@
+{
+  "name": "ts-2",
+  "private": true,
+  "scripts": {
+    "build": "turbo run build",
+    "dev": "turbo run dev",
+    "check-types": "turbo run check-types",
+    "format": "biome format",
+    "lint": "biome lint",
+    "check": "biome check"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "2.2.4",
+    "turbo": "^2.5.6",
+    "typescript": "5.9.2"
+  },
+  "packageManager": "pnpm@9.0.0",
+  "engines": {
+    "node": ">=18"
+  }
+}
