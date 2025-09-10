@@ -1,14 +1,13 @@
 import "@/polyfill";
 
-import { OpenAPIHandler } from "@orpc/openapi/fetch";
-import { ZodToJsonSchemaConverter } from "@orpc/zod/zod4";
 import { experimental_SmartCoercionPlugin as SmartCoercionPlugin } from "@orpc/json-schema";
-import { createServerFileRoute } from "@tanstack/react-start/server";
-import { onError } from "@orpc/server";
+import { OpenAPIHandler } from "@orpc/openapi/fetch";
 import { OpenAPIReferencePlugin } from "@orpc/openapi/plugins";
-
-import { TodoSchema } from "@/orpc/schema";
+import { onError } from "@orpc/server";
+import { ZodToJsonSchemaConverter } from "@orpc/zod/zod4";
+import { createServerFileRoute } from "@tanstack/react-start/server";
 import router from "@/orpc/router";
+import { TodoSchema } from "@/orpc/schema";
 
 const handler = new OpenAPIHandler(router, {
 	interceptors: [
