@@ -35,7 +35,11 @@ export default function generator(plop: PlopTypes.NodePlopAPI): void {
       }
     ],
     actions: function (data) {
-      const actions: PlopTypes.ActionConfig[] = [];
+      if (!data) {
+        return [];
+      }
+      
+      const actions: any[] = [];
       const packageName = `@repo/${data.name}`;
       const workspacePath = data.type === 'app' ? 'apps' : 'packages';
       
