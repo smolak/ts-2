@@ -1,13 +1,15 @@
 packages:
-  - "apps/*"
-  - "packages/*"
+  - apps/*
+  - packages/*
+
 catalog:
-  "@types/node": ^22.18.1
-  "@types/react": ^19.1.12
-  "@types/react-dom": ^19.1.9
-  "react-dom": ^19.1.1
-  "react": ^19.1.1
-  "typescript": 5.9.2
-  "vitest-mock-extended": ^3.1.0
-  "vitest": ^3.2.4
-  "zod": ^4.1.7
+  '@types/node': ^22.18.1
+  '@types/react': ^19.1.12
+  '@types/react-dom': ^19.1.9
+  react: ^19.1.1
+  react-dom: ^19.1.1
+  tailwindcss: ^4.1.13
+  typescript: 5.9.2
+  vitest: ^3.2.4
+  vitest-mock-extended: ^3.1.0
+  zod: ^4.1.7

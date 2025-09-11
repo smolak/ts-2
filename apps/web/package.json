@@ -30,7 +30,7 @@
     "@tanstack/router-plugin": "^1.131.36",
     "react": "catalog:",
     "react-dom": "catalog:",
-    "tailwindcss": "^4.1.13",
+    "tailwindcss": "catalog:",
     "vite-tsconfig-paths": "^5.1.4",
     "zod": "catalog:"
   },
