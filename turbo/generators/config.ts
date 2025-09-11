@@ -70,6 +70,17 @@ export default function generator(plop: PlopTypes.NodePlopAPI): void {
         });
       }
 
+      // Create src folder with index file
+      actions.push({
+        type: 'add',
+        path: `${workspacePath}/{{kebabCase name}}/src/index.ts`,
+        templateFile: 'plop-templates/index.ts.hbs',
+        data: {
+          packageName: packageName,
+          displayName: data.name
+        }
+      });
+
       return actions;
     }
   });
