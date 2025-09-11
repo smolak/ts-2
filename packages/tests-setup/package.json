@@ -11,9 +11,11 @@
   "exports": {
     "./*": "./src/*"
   },
+  "types": "./src/index.ts",
   "devDependencies": {
     "@repo/typescript-config": "workspace:*",
     "jest-extended": "^6.0.0",
-    "typescript": "catalog:"
+    "typescript": "catalog:",
+    "vitest": "catalog:"
   }
 }

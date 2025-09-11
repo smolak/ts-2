@@ -5,9 +5,8 @@
       "@repo/*": ["./src/*"]
     },
     "baseUrl": ".",
-    "outDir": "dist",
-    "types": ["vitest/globals"]
+    "outDir": "dist"
   },
-  "include": ["src/**/*", "../tests-setup/src/vitest-jest-extended.d.ts"],
+  "include": ["src/**/*"],
   "exclude": ["node_modules", "dist"]
 }

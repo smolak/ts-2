@@ -2,11 +2,12 @@
   "extends": "@repo/typescript-config/base.json",
   "compilerOptions": {
     "paths": {
-      "@repo{{packageName}}/*": ["./src/*"]
+      "{{packageName}}/*": ["./src/*"]
     },
     "baseUrl": ".",
-    "outDir": "dist"
+    "outDir": "dist"{{#if isTestPackage}},
+    "types": ["vitest/globals"]{{/if}}
   },
-  "include": ["src/**/*"],
+  "include": ["src/**/*"{{#if isTestPackage}}, "../tests-setup/src/vitest-jest-extended.d.ts"{{/if}}],
   "exclude": ["node_modules", "dist"]
 }

@@ -32,6 +32,12 @@ export default function generator(plop: PlopTypes.NodePlopAPI): void {
           { name: 'App', value: 'app' }
         ],
         default: 'package'
+      },
+      {
+        type: 'confirm',
+        name: 'hasTests',
+        message: 'Will this workspace include tests?',
+        default: true
       }
     ],
     actions: function (data) {
@@ -50,7 +56,8 @@ export default function generator(plop: PlopTypes.NodePlopAPI): void {
         templateFile: 'plop-templates/package.json.hbs',
         data: {
           packageName: packageName,
-          type: data.type
+          type: data.type,
+          isTestPackage: data.hasTests || false
         }
       });
 
@@ -65,12 +72,22 @@ export default function generator(plop: PlopTypes.NodePlopAPI): void {
         }
       });
 
-      // Create tsconfig.json for packages
-      if (data.type === 'package') {
+      // Create tsconfig.json for both packages and apps
+      actions.push({
+        type: 'add',
+        path: `${workspacePath}/{{kebabCase name}}/tsconfig.json`,
+        templateFile: 'plop-templates/tsconfig.json.hbs',
+        data: {
+          isTestPackage: data.hasTests || false
+        }
+      });
+
+      // Create vitest.config.ts for packages with tests
+      if (data.hasTests) {
         actions.push({
           type: 'add',
-          path: `${workspacePath}/{{kebabCase name}}/tsconfig.json`,
-          templateFile: 'plop-templates/tsconfig.json.hbs'
+          path: `${workspacePath}/{{kebabCase name}}/vitest.config.ts`,
+          templateFile: 'plop-templates/vitest.config.ts.hbs'
         });
       }
 

@@ -5,7 +5,7 @@
   "scripts": {
     "dev": "echo 'Add dev script here'",
     "build": "echo 'Add build script here'",
-    "test": "echo 'Add test script here'",
+    "test": "{{#if isTestPackage}}vitest run{{else}}echo 'Add test script here'{{/if}}",
     "lint": "echo 'Add lint script here'"
   }{{#if (eq type "package")}},
   "exports": {
@@ -13,6 +13,7 @@
   },
   "devDependencies": {
     "@repo/typescript-config": "workspace:*",
-    "typescript": "catalog:"
+    "typescript": "catalog:"{{#if isTestPackage}},
+    "vitest": "catalog:"{{/if}}
   }{{/if}}
 }
