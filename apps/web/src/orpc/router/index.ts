@@ -1,6 +1,8 @@
 import { addTodo, listTodos } from "./todos";
 
 export default {
-  listTodos,
-  addTodo,
+  todos: {
+    list: listTodos,
+    add: addTodo,
+  },
 };

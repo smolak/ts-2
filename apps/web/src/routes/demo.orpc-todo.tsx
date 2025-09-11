@@ -8,7 +8,7 @@ export const Route = createFileRoute("/demo/orpc-todo")({
   component: ORPCTodos,
   loader: async ({ context }) => {
     await context.queryClient.prefetchQuery(
-      orpc.listTodos.queryOptions({
+      orpc.todos.list.queryOptions({
         input: {},
       }),
     );
@@ -17,14 +17,14 @@ export const Route = createFileRoute("/demo/orpc-todo")({
 
 function ORPCTodos() {
   const { data, refetch } = useQuery(
-    orpc.listTodos.queryOptions({
+    orpc.todos.list.queryOptions({
       input: {},
     }),
   );
 
   const [todo, setTodo] = useState("");
   const { mutate: addTodo } = useMutation({
-    mutationFn: orpc.addTodo.call,
+    mutationFn: orpc.todos.add.call,
     onSuccess: () => {
       refetch();
       setTodo("");
