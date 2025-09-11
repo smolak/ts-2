@@ -14,7 +14,7 @@
     "@biomejs/biome": "2.2.4",
     "@turbo/gen": "^2.5.6",
     "turbo": "^2.5.6",
-    "typescript": "5.9.2"
+    "typescript": "catalog:"
   },
   "packageManager": "pnpm@10.15.1",
   "engines": {

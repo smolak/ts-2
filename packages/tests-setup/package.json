@@ -1,5 +1,5 @@
 {
-  "name": "{{packageName}}",
+  "name": "@repo/tests-setup",
   "version": "0.0.0",
   "private": true,
   "scripts": {
@@ -7,12 +7,13 @@
     "build": "echo 'Add build script here'",
     "test": "echo 'Add test script here'",
     "lint": "echo 'Add lint script here'"
-  }{{#if (eq type "package")}},
+  },
   "exports": {
     "./*": "./src/*"
   },
   "devDependencies": {
     "@repo/typescript-config": "workspace:*",
+    "jest-extended": "^6.0.0",
     "typescript": "catalog:"
-  }{{/if}}
+  }
 }

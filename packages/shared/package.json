@@ -13,8 +13,7 @@
   },
   "devDependencies": {
     "@repo/typescript-config": "workspace:*",
-    "typescript": "5.9.2",
-    "vitest": "^3.2.4"
+    "typescript": "catalog:"
   },
   "dependencies": {
     "nanoid": "^5.1.5"
