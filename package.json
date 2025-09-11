@@ -8,10 +8,11 @@
     "format": "biome format",
     "lint": "biome lint",
     "check": "biome check",
-    "gen:workspace": "turbo gen workspace"
+    "gen:workspace": "turbo gen"
   },
   "devDependencies": {
     "@biomejs/biome": "2.2.4",
+    "@turbo/gen": "^2.5.6",
     "turbo": "^2.5.6",
     "typescript": "5.9.2"
   },
