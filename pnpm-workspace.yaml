@@ -3,6 +3,7 @@ packages:
   - packages/*
 
 catalog:
+  '@t3-oss/env-core': ^0.13.8
   '@types/node': ^22.18.1
   '@types/react': ^19.1.12
   '@types/react-dom': ^19.1.9

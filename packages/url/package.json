@@ -1,5 +1,5 @@
 {
-  "name": "@repo/shared",
+  "name": "@repo/url",
   "version": "0.0.0",
   "private": true,
   "scripts": {
@@ -9,15 +9,15 @@
     "lint": "echo 'Add lint script here'"
   },
   "exports": {
-    "./types": "./src/types.ts",
-    "./utils/*": "./src/utils/*.ts"
+    "./*": "./src/*.ts"
+  },
+  "dependencies": {
+    "@repo/shared": "workspace:*",
+    "zod": "catalog:"
   },
   "devDependencies": {
     "@repo/typescript-config": "workspace:*",
     "typescript": "catalog:",
     "vitest": "catalog:"
-  },
-  "dependencies": {
-    "nanoid": "^5.1.5"
   }
 }
