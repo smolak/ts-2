@@ -18,7 +18,7 @@
     "@orpc/tanstack-query": "^1.8.7",
     "@orpc/zod": "^1.8.7",
     "@repo/ui": "workspace:*",
-    "@t3-oss/env-core": "^0.13.8",
+    "@t3-oss/env-core": "catalog:",
     "@tailwindcss/vite": "^4.1.13",
     "@tanstack/react-devtools": "^0.2.2",
     "@tanstack/react-query": "^5.87.1",
