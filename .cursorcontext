@@ -1,0 +1,74 @@
+# BookmarkFlow Project Context
+
+## Project Overview
+
+BookmarkFlow is a bookmark sharing application built with TanStack Start, orpc, and Clerk. It includes a web app and browser extension for sharing and discovering bookmarks.
+
+## Documentation Structure
+
+- **CODING-GUIDELINE.md**: Complete coding standards, import rules, testing patterns
+- **ARCHITECTURE.md**: Component organization, package structure, architectural patterns
+- **DESIGN.md**: User experience, features, and product specifications
+
+## Key Architectural Patterns
+
+### Package Structure
+
+```
+packages/
+├── ui/                 # Shared UI components
+├── shared/             # Shared utilities and types
+├── user-profile/       # User profile features
+├── categories/         # Category management
+├── urls/              # URL management
+├── metadata/          # Metadata extraction
+└── feed/              # Feed functionality
+```
+
+### App Structure
+
+```
+apps/
+├── web/               # Web application
+└── browser-extension/ # Browser extension
+```
+
+### Import Rules
+
+- **Same package**: Relative imports (`../`, `./`)
+- **Cross-package**: `@repo/` alias
+- **App to package**: `@repo/` alias
+- **Same app**: Relative imports
+- **Forbidden**: App-to-app, package-to-app, `@/` aliases
+
+### Component Organization
+
+- **Shared UI**: `packages/ui/` for reusable components
+- **Shared Features**: `packages/*/` for cross-app features
+- **App Features**: `apps/*/features/` for app-specific features
+- **CRUD Hooks**: Single file per feature (e.g., `userProfile.ts`)
+
+### Testing Strategy
+
+- **Location**: Tests next to files (`./formatDate.test.ts`)
+- **Approach**: Dependency injection, mock only at boundaries
+- **Frontend**: Mock DB/outside APIs
+- **Backend**: Mock external APIs, email services, file storage
+
+## Technology Stack
+
+- **Frontend**: TanStack Start, React 19, Tailwind CSS, Zustand, TanStack Query
+- **API**: orpc
+- **Auth**: Clerk
+- **Database**: PostgreSQL, Drizzle ORM
+- **Code Quality**: BiomeJS
+- **Monorepo**: Turborepo
+
+## Development Guidelines
+
+1. Always follow import rules from CODING-GUIDELINE.md
+2. Organize components according to ARCHITECTURE.md patterns
+3. Use dependency injection for testing
+4. Place tests next to the files they test
+5. Use `@repo/` alias for cross-package imports
+6. Use relative imports within same package/app
