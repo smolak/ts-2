@@ -66,6 +66,8 @@
 
 ## Component Architecture
 
+> **Related**: See docs/CODING-GUIDELINE.md for import rules, naming conventions, and testing patterns that apply to components.
+
 ### Frontend Components
 
 #### Shared UI Components
@@ -322,11 +324,7 @@ apps/browser-extension/ (depends on all packages)
 **Import Rules:**
 
 - **📋 See [CODING-GUIDELINE.md](./CODING-GUIDELINE.md#import-rules) for complete import patterns and examples**
-- **Same package**: Use relative imports (`../`, `./`)
-- **Cross-package**: Use `@repo/` alias
-- **App to package**: Use `@repo/` alias
-- **Same app**: Use relative imports
-- **Forbidden**: App-to-app imports, package-to-app imports
+- **Related**: See docs/CODING-GUIDELINE.md for detailed import rules and examples
 
 #### CRUD Hooks Organization
 
@@ -1018,7 +1016,7 @@ jobs:
 
 ```typescript
 // Structured logging
-import { logger } from "@workspace/logger";
+import { logger } from "@repo/shared/utils/logger";
 
 logger.info("User created", {
   userId: user.id,

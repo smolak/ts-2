@@ -84,6 +84,8 @@
 
 ## Naming Conventions
 
+> **Related**: See docs/ARCHITECTURE.md for component organization patterns that affect file naming and structure.
+
 ### Files and Directories
 
 ```typescript
@@ -179,6 +181,8 @@ src/
 ### Import Rules
 
 **Single source of truth for all import patterns in the codebase.**
+
+> **Related**: See docs/ARCHITECTURE.md for component organization patterns and file structure guidelines.
 
 #### **Import Order (BiomeJS auto-organizes, but follow this structure):**
 
@@ -370,7 +374,7 @@ import { useUser } from "../hooks/useUser";
 
 ```typescript
 // ❌ Old
-import { Button } from "@workspace/ui/components/Button";
+import { Button } from "@repo/ui/components/Button";
 
 // ✅ New
 import { Button } from "@repo/ui/components/Button";
@@ -668,6 +672,8 @@ export const apiClient = {
 ```
 
 ## Testing Patterns
+
+> **Related**: See docs/ARCHITECTURE.md for component organization and file structure that affects test placement.
 
 ### Test File Organization
 

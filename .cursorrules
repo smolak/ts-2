@@ -2,48 +2,39 @@
 
 ## Documentation References
 
-- **Coding Standards**: See CODING-GUIDELINE.md for all coding patterns, import rules, and testing strategies
-- **Architecture**: See ARCHITECTURE.md for component organization, package structure, and architectural patterns
-- **Design**: See DESIGN.md for user experience and feature specifications
+- **Quick Reference**: See docs/RULES-INDEX.md for a complete overview of all rules and where to find them
+- **Coding Standards**: See docs/CODING-GUIDELINE.md for all coding patterns, import rules, and testing strategies
+- **Architecture**: See docs/ARCHITECTURE.md for component organization, package structure, and architectural patterns
+- **Design**: See docs/DESIGN.md for user experience and feature specifications
 
-## Key Rules to Follow
+## Rule Sources
 
-### Import Rules (from CODING-GUIDELINE.md)
+All rules are defined in their respective documentation files. This file only references where to find them:
 
-- Same package/feature: Use relative imports (`../`, `./`)
-- Cross-package: Use `@repo/` alias
-- App to package: Use `@repo/` alias
-- Same app: Use relative imports
-- Forbidden: App-to-app imports, package-to-app imports, `@/` aliases
+### Import Rules
+- **Source**: docs/CODING-GUIDELINE.md
+- **Section**: Import Rules
 
-### Component Organization (from ARCHITECTURE.md)
+### Component Organization
+- **Source**: docs/ARCHITECTURE.md
+- **Section**: Component Architecture
 
-- Shared UI: `packages/ui/` for reusable components
-- Shared Features: `packages/*/` for cross-app features
-- App Features: `apps/*/features/` for app-specific features
-- CRUD Hooks: Single file per feature (e.g., `userProfile.ts`)
+### Testing Strategy
+- **Source**: docs/CODING-GUIDELINE.md
+- **Section**: Testing Patterns
 
-### Testing Strategy (from CODING-GUIDELINE.md)
+### Naming Conventions
+- **Source**: docs/CODING-GUIDELINE.md
+- **Section**: Naming Conventions
 
-- Tests next to files: `./formatDate.ts` and `./formatDate.test.ts`
-- Avoid mocks: Use dependency injection, mock only at boundaries
-- Frontend: Mock DB/outside APIs
-- Backend: Mock external APIs, email services, file storage
+### Technology Stack
+- **Source**: docs/CODING-GUIDELINE.md
+- **Section**: Technology Stack
 
-## Technology Stack
+## Validation
 
-- **Frontend**: TanStack Start, React 19, Tailwind CSS, Zustand, TanStack Query
-- **API**: orpc
-- **Auth**: Clerk
-- **Database**: PostgreSQL, Drizzle ORM
-- **Code Quality**: BiomeJS
-- **Monorepo**: Turborepo
+The validation script reads rules directly from these documentation files to ensure consistency and avoid duplication.
 
 ## Always Reference Documentation
 
-When making changes, always check the relevant .md files for:
-
-- Import patterns
-- Component organization
-- Testing approaches
-- Architectural patterns
+When making changes, always check the relevant .md files for the complete, up-to-date rules.

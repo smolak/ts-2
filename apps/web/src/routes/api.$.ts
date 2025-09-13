@@ -7,7 +7,7 @@ import { onError } from "@orpc/server";
 import { ZodToJsonSchemaConverter } from "@orpc/zod/zod4";
 import { createServerFileRoute } from "@tanstack/react-start/server";
 import router from "@/orpc/router";
-import { TodoSchema } from "@/orpc/schema";
+import { TodoSchema } from "../orpc/schema";
 
 const handler = new OpenAPIHandler(router, {
   interceptors: [
