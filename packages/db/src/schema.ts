@@ -19,7 +19,7 @@ export const urls = createTable("urls", {
   createdAt: timestamp("created_at", { withTimezone: true }).default(sql`CURRENT_TIMESTAMP`).notNull(),
   updatedAt: timestamp("updated_at", { withTimezone: true }).$onUpdate(() => new Date()),
   url: text("url").notNull(),
-  // This is a hash of url, title, image url. Even it image url is not present, hash will be created without it
+  // This is a hash of url, title, image url. Even if image url is not present, hash will be created without it
   compoundHash: char("compound_hash", { length: 64 }).unique().notNull(),
   metadata: jsonb("metadata").default({}).notNull(),
 });
