@@ -1,0 +1,13 @@
+{
+  "extends": "@repo/typescript-config/base.json",
+  "compilerOptions": {
+    "paths": {
+      "/*": ["./src/*"]
+    },
+    "baseUrl": ".",
+    "outDir": "dist",
+    "types": ["vitest/globals"]
+  },
+  "include": ["src/**/*", "../tests-setup/src/vitest-jest-extended.d.ts"],
+  "exclude": ["node_modules", "dist"]
+}
