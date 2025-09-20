@@ -1,5 +1,5 @@
 {
-  "extends": "@repo/typescript-config/base.json",
+  "extends": "@repo/typescript-config/{{#if (eq packageType "react")}}react{{else}}base{{/if}}.json",
   "compilerOptions": {
     "paths": {
       "{{packageName}}/*": ["./src/*"]

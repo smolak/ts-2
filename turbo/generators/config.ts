@@ -34,6 +34,17 @@ export default function generator(plop: PlopTypes.NodePlopAPI): void {
         default: 'package'
       },
       {
+        type: 'list',
+        name: 'packageType',
+        message: 'What kind of package will this be?',
+        choices: [
+          { name: 'Node', value: 'node' },
+          { name: 'React', value: 'react' }
+        ],
+        default: 'node',
+        when: (answers) => answers.type === 'package'
+      },
+      {
         type: 'confirm',
         name: 'hasTests',
         message: 'Will this workspace include tests?',
@@ -78,7 +89,8 @@ export default function generator(plop: PlopTypes.NodePlopAPI): void {
         path: `${workspacePath}/{{kebabCase name}}/tsconfig.json`,
         templateFile: 'plop-templates/tsconfig.json.hbs',
         data: {
-          isTestPackage: data.hasTests || false
+          isTestPackage: data.hasTests || false,
+          packageType: data.packageType || 'node'
         }
       });
 
@@ -91,15 +103,11 @@ export default function generator(plop: PlopTypes.NodePlopAPI): void {
         });
       }
 
-      // Create src folder with index file
+      // Create empty src folder
       actions.push({
         type: 'add',
-        path: `${workspacePath}/{{kebabCase name}}/src/index.ts`,
-        templateFile: 'plop-templates/index.ts.hbs',
-        data: {
-          packageName: packageName,
-          displayName: data.name
-        }
+        path: `${workspacePath}/{{kebabCase name}}/src/.gitkeep`,
+        template: ''
       });
 
       return actions;
