@@ -712,15 +712,44 @@ import { formatDate } from "./format-date";
 describe("formatDate", () => {
   it("should format date correctly", () => {
     const date = new Date("2024-01-15T10:30:00Z");
+
     const result = formatDate(date);
+
     expect(result).toBe("Jan 15, 2024");
   });
 
   it("should handle invalid date", () => {
-    expect(() => formatDate(new Date("invalid"))).toThrow();
+    const invalidDate = new Date("invalid");
+
+    expect(() => formatDate(invalidDate)).toThrow();
   });
 });
 ```
+
+#### Test Structure (AAA Pattern)
+
+All tests must follow the **Arrange-Act-Assert** pattern with blank lines separating each section:
+
+```typescript
+it("should do something", () => {
+  // Arrange - Set up test data and conditions
+  const input = "test input";
+  const expectedOutput = "expected result";
+
+  // Act - Execute the function being tested
+  const result = functionUnderTest(input);
+
+  // Assert - Verify the results
+  expect(result).toBe(expectedOutput);
+});
+```
+
+**Rules:**
+- **Arrange section**: Variable declarations, mock setup, test data preparation
+- **Act section**: Function calls, state changes, operations being tested
+- **Assert section**: Expect statements, result verification
+- **Blank lines**: Must have blank lines between each section for readability
+- **No comments**: Do not add `// Arrange`, `// Act`, `// Assert` comments - the blank lines make it clear
 
 ### Component Test Pattern (Dependency Injection)
 
@@ -812,7 +841,6 @@ describe("users router", () => {
   });
 
   it("should get user profile", async () => {
-    // Create test data in database
     const testUser = await testContext.db
       .insert(users)
       .values({
@@ -890,7 +918,6 @@ describe("User Flow Integration", () => {
   it("should complete user registration flow", async () => {
     const app = await createTestApp();
 
-    // 1. Create user via API
     const userResponse = await app.inject({
       method: "POST",
       url: "/api/users",
@@ -903,7 +930,6 @@ describe("User Flow Integration", () => {
     expect(userResponse.statusCode).toBe(201);
     const { id: userId } = userResponse.json();
 
-    // 2. Create user profile
     const profileResponse = await app.inject({
       method: "POST",
       url: "/api/profiles",
@@ -915,7 +941,6 @@ describe("User Flow Integration", () => {
 
     expect(profileResponse.statusCode).toBe(201);
 
-    // 3. Verify user can access their profile
     const getProfileResponse = await app.inject({
       method: "GET",
       url: `/api/profiles/testuser`,
