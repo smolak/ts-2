@@ -89,25 +89,29 @@
 ### Files and Directories
 
 ```typescript
-// Components: PascalCase
-UserProfile.tsx;
-FeedList.tsx;
+// Components: kebab-case for multi-word, original case for single-word
+user-profile.tsx;
+feed-list.tsx;
+hover-card.tsx;
+dropdown-menu.tsx;
 
-// Hooks: camelCase starting with 'use'
-useUserProfile.ts;
-useFeedData.ts;
+// Hooks: kebab-case starting with 'use'
+use-user-profile.ts;
+use-feed-data.ts;
 
-// Utilities: camelCase
-formatDate.ts;
-validateUrl.ts;
+// Utilities: kebab-case
+format-date.ts;
+validate-url.ts;
+create-possessive-form.ts;
 
-// Types: PascalCase
-UserProfile.ts;
-FeedItem.ts;
+// Types: kebab-case
+user-profile.ts;
+feed-item.ts;
+category-name.schema.ts;
 
-// Constants: UPPER_SNAKE_CASE
-API_BASE_URL.ts;
-MAX_CATEGORIES.ts;
+// Constants: kebab-case
+api-base-url.ts;
+max-categories.ts;
 ```
 
 ### Variables and Functions
@@ -196,19 +200,19 @@ import { z } from "zod";
 import { clsx } from "clsx";
 
 // 3. Package imports (@repo)
-import { Button } from "@repo/ui/components/Button";
-import { useUserProfile } from "@repo/user-profile/hooks/userProfile";
-import { apiClient } from "@repo/shared/utils/apiClient";
+import { Button } from "@repo/ui/components/button";
+import { useUserProfile } from "@repo/user-profile/hooks/use-user-profile";
+import { apiClient } from "@repo/shared/utils/api-client";
 
 // 4. Relative imports (same feature/package)
-import { UserProfileCard } from "./UserProfileCard";
-import { formatUserData } from "../utils/formatUserData";
+import { UserProfileCard } from "./user-profile-card";
+import { formatUserData } from "../utils/format-user-data";
 
 // 5. Same app imports (using @/ alias)
-import { FeedList } from "@/features/feed/components/FeedList";
+import { FeedList } from "@/features/feed/components/feed-list";
 
 // 6. CSS imports
-import "./UserProfile.css";
+import "./user-profile.css";
 ```
 
 #### **Context-Specific Rules:**
@@ -216,7 +220,7 @@ import "./UserProfile.css";
 **Within Same Package/Feature:**
 
 - Use relative imports (`../`, `./`)
-- Example: `import { UserProfile } from "../types/UserProfile";`
+- Example: `import { UserProfile } from "../types/user-profile";`
 
 **Cross-Package Imports:**
 
@@ -225,17 +229,17 @@ import "./UserProfile.css";
 - For catch-all exports (`"./*": "./src/*.ts"`): Use the full path
   - Example: `import { generateUrlId } from "@repo/url/id/generate-url-id";`
 - For specific exports: Use the defined export keys
-  - Example: `import { Button } from "@repo/ui/components/Button";`
+  - Example: `import { Button } from "@repo/ui/components/button";`
 
 **App to Package Imports:**
 
 - Use `@repo/` alias
-- Example: `import { UserProfileCard } from "@repo/user-profile/components/UserProfileCard";`
+- Example: `import { UserProfileCard } from "@repo/user-profile/components/user-profile-card";`
 
 **Within Same App:**
 
 - Use `@/` alias for cleaner imports
-- Example: `import { FeedList } from "@/features/feed/components/FeedList";`
+- Example: `import { FeedList } from "@/features/feed/components/feed-list";`
 
 #### **Forbidden Patterns:**
 
@@ -250,18 +254,18 @@ import "./UserProfile.css";
 ```typescript
 import React from "react";
 import { z } from "zod";
-import { Button } from "@repo/ui/components/Button";
-import { useUserProfile } from "@repo/user-profile/hooks/userProfile";
-import { FeedList } from "@/features/feed/components/FeedList";
-import "./Component.css";
+import { Button } from "@repo/ui/components/button";
+import { useUserProfile } from "@repo/user-profile/hooks/use-user-profile";
+import { FeedList } from "@/features/feed/components/feed-list";
+import "./component.css";
 ```
 
 **Hook Files:**
 
 ```typescript
 import { useQuery } from "@tanstack/react-query";
-import { apiClient } from "@repo/shared/utils/apiClient";
-import { UserProfile } from "../types/UserProfile";
+import { apiClient } from "@repo/shared/utils/api-client";
+import { UserProfile } from "../types/user-profile";
 ```
 
 **API Router Files:**
@@ -269,7 +273,7 @@ import { UserProfile } from "../types/UserProfile";
 ```typescript
 import { createRouter, publicProcedure } from "@repo/shared/lib/orpc";
 import { z } from "zod";
-import { getUserProfile } from "../services/userService";
+import { getUserProfile } from "../services/user-service";
 ```
 
 **Test Files:**
@@ -277,8 +281,8 @@ import { getUserProfile } from "../services/userService";
 ```typescript
 import { describe, it, expect } from "vitest";
 import { render, screen } from "@testing-library/react";
-import { UserProfile } from "./UserProfile";
-import { TestWrapper } from "../test-utils/TestWrapper";
+import { UserProfile } from "./user-profile";
+import { TestWrapper } from "../test-utils/test-wrapper";
 ```
 
 **Service Files:**
@@ -286,7 +290,7 @@ import { TestWrapper } from "../test-utils/TestWrapper";
 ```typescript
 import { logger } from "@repo/shared/utils/logger";
 import { sendEmail } from "@repo/shared/lib/email";
-import { UserProfile } from "../types/UserProfile";
+import { UserProfile } from "../types/user-profile";
 ```
 
 **Utility Files:**
@@ -326,34 +330,34 @@ import { AppError } from "@repo/shared/utils/errors";
 **From Web App to Package:**
 
 ```typescript
-// apps/web/features/feed/components/FeedItem.tsx
-import { UserProfileCard } from "@repo/user-profile/components/UserProfileCard";
-import { CategoryBadge } from "@repo/categories/components/CategoryBadge";
+// apps/web/features/feed/components/feed-item.tsx
+import { UserProfileCard } from "@repo/user-profile/components/user-profile-card";
+import { CategoryBadge } from "@repo/categories/components/category-badge";
 ```
 
 **From Package to Package:**
 
 ```typescript
-// packages/user-profile/components/UserProfileCard.tsx
-import { Button } from "@repo/ui/components/Button";
-import { apiClient } from "@repo/shared/utils/apiClient";
+// packages/user-profile/components/user-profile-card.tsx
+import { Button } from "@repo/ui/components/button";
+import { apiClient } from "@repo/shared/utils/api-client";
 ```
 
 **Within Same Package:**
 
 ```typescript
-// packages/user-profile/hooks/userProfile.ts
-import { UserProfile } from "../types/UserProfile";
+// packages/user-profile/hooks/use-user-profile.ts
+import { UserProfile } from "../types/user-profile";
 import { useQuery } from "@tanstack/react-query";
 ```
 
 **Within Same App:**
 
 ```typescript
-// apps/web/features/feed/components/FeedList.tsx
-import { FeedItem } from "./FeedItem";
-import { FeedFilters } from "./FeedFilters";
-import { AppLayout } from "../../layout/components/AppLayout";
+// apps/web/features/feed/components/feed-list.tsx
+import { FeedItem } from "./feed-item";
+import { FeedFilters } from "./feed-filters";
+import { AppLayout } from "../../layout/components/app-layout";
 ```
 
 #### **Migration Guide:**
@@ -366,8 +370,8 @@ import { Button } from "@/components/ui/Button";
 import { useUser } from "@/hooks/useUser";
 
 // ✅ New
-import { Button } from "@repo/ui/components/Button";
-import { useUser } from "../hooks/useUser";
+import { Button } from "@repo/ui/components/button";
+import { useUser } from "../hooks/use-user";
 ```
 
 **From `@workspace` to `@repo`:**
@@ -377,18 +381,18 @@ import { useUser } from "../hooks/useUser";
 import { Button } from "@repo/ui/components/Button";
 
 // ✅ New
-import { Button } from "@repo/ui/components/Button";
+import { Button } from "@repo/ui/components/button";
 ```
 
 #### **Quick Reference Table:**
 
 | Context        | Import Type | Example                                                               |
 | -------------- | ----------- | --------------------------------------------------------------------- |
-| Same package   | Relative    | `import { User } from "../types/User";`                               |
-| Cross-package  | `@repo/`    | `import { Button } from "@repo/ui/components/Button";`<br>`import { generateUrlId } from "@repo/url/id/generate-url-id";` |
-| App to package | `@repo/`    | `import { UserCard } from "@repo/user-profile/components/UserCard";`  |
-| Same app       | `@/` alias  | `import { FeedList } from "@/features/feed/components/FeedList";` |
-| CSS files      | Relative    | `import "./Component.css";`                                           |
+| Same package   | Relative    | `import { User } from "../types/user";`                               |
+| Cross-package  | `@repo/`    | `import { Button } from "@repo/ui/components/button";`<br>`import { generateUrlId } from "@repo/url/id/generate-url-id";` |
+| App to package | `@repo/`    | `import { UserCard } from "@repo/user-profile/components/user-card";`  |
+| Same app       | `@/` alias  | `import { FeedList } from "@/features/feed/components/feed-list";` |
+| CSS files      | Relative    | `import "./component.css";`                                           |
 
 ## React Component Patterns
 
@@ -430,7 +434,7 @@ export const UserProfile: React.FC<UserProfileProps> = ({
 ### Custom Hooks Pattern
 
 ```typescript
-// hooks/useUserProfile.ts
+// hooks/use-user-profile.ts
 export const useUserProfile = (userId: string) => {
   const [data, setData] = useState<UserProfile | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -621,7 +625,7 @@ export const createUserWithProfile = async (userData: CreateUserInput) => {
 ### Client-Side Error Handling
 
 ```typescript
-// hooks/useErrorHandler.ts
+// hooks/use-error-handler.ts
 export const useErrorHandler = () => {
   const [error, setError] = useState<Error | null>(null);
 
@@ -682,28 +686,28 @@ Tests should be placed next to the files they test:
 ```
 src/
 ├── utils/
-│   ├── formatDate.ts
-│   └── formatDate.test.ts
+│   ├── format-date.ts
+│   └── format-date.test.ts
 ├── components/
-│   ├── UserProfile.tsx
-│   └── UserProfile.test.tsx
+│   ├── user-profile.tsx
+│   └── user-profile.test.tsx
 └── features/
     └── user-profile/
         ├── hooks/
-        │   ├── useUserProfile.ts
-        │   └── useUserProfile.test.ts
+        │   ├── use-user-profile.ts
+        │   └── use-user-profile.test.ts
         └── components/
-            ├── UserProfileCard.tsx
-            └── UserProfileCard.test.tsx
+            ├── user-profile-card.tsx
+            └── user-profile-card.test.tsx
 ```
 
 ### Unit Test Pattern
 
 ```typescript
-// utils/formatDate.test.ts
+// utils/format-date.test.ts
 // Follow Import Rules section for import order
 import { describe, it, expect } from "vitest";
-import { formatDate } from "./formatDate";
+import { formatDate } from "./format-date";
 
 describe("formatDate", () => {
   it("should format date correctly", () => {
@@ -721,11 +725,11 @@ describe("formatDate", () => {
 ### Component Test Pattern (Dependency Injection)
 
 ```typescript
-// components/UserProfile.test.tsx
+// components/user-profile.test.tsx
 // Follow Import Rules section for import order
 import { render, screen } from "@testing-library/react";
 import { describe, it, expect } from "vitest";
-import { UserProfile } from "./UserProfile";
+import { UserProfile } from "./user-profile";
 
 // Test wrapper with dependency injection
 const TestWrapper = ({ children, userService }: { children: React.ReactNode; userService: any }) => (
@@ -758,11 +762,11 @@ describe("UserProfile", () => {
 ### Hook Test Pattern (Dependency Injection)
 
 ```typescript
-// features/user-profile/hooks/useUserProfile.test.ts
+// features/user-profile/hooks/use-user-profile.test.ts
 // Follow Import Rules section for import order
 import { renderHook, waitFor } from "@testing-library/react";
 import { describe, it, expect, vi } from "vitest";
-import { useUserProfile } from "./useUserProfile";
+import { useUserProfile } from "./use-user-profile";
 
 describe("useUserProfile", () => {
   it("should fetch user profile", async () => {

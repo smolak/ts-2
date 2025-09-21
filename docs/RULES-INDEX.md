@@ -27,7 +27,7 @@ This document provides a quick reference to all project rules and where to find 
 - **File**: `docs/CODING-GUIDELINE.md`
 - **Section**: Testing Patterns
 - **Key Rules**:
-  - Tests next to files: `./formatDate.ts` and `./formatDate.test.ts`
+  - Tests next to files: `./format-date.ts` and `./format-date.test.ts`
   - Avoid mocks: Use dependency injection, mock only at boundaries
   - Frontend: Mock DB/outside APIs
   - Backend: Mock external APIs, email services, file storage
@@ -36,10 +36,10 @@ This document provides a quick reference to all project rules and where to find 
 - **File**: `docs/CODING-GUIDELINE.md`
 - **Section**: Naming Conventions
 - **Key Rules**:
-  - Components: PascalCase (e.g., `UserProfile.tsx`)
-  - Hooks: camelCase starting with 'use' (e.g., `useUserProfile.ts`)
-  - Utilities: camelCase (e.g., `formatDate.ts`)
-  - Types: PascalCase (e.g., `UserProfile.ts`)
+  - Components: kebab-case for multi-word, original case for single-word (e.g., `user-profile.tsx`, `hover-card.tsx`)
+  - Hooks: kebab-case starting with 'use' (e.g., `use-user-profile.ts`)
+  - Utilities: kebab-case (e.g., `format-date.ts`)
+  - Types: kebab-case (e.g., `user-profile.ts`)
 
 ### Technology Stack
 - **File**: `docs/CODING-GUIDELINE.md`
