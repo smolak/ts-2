@@ -9,8 +9,7 @@
     "lint": "echo 'Add lint script here'"
   },
   "exports": {
-    "./types": "./src/types.ts",
-    "./utils/*": "./src/utils/*.ts"
+    "./*": "./src/*.ts"
   },
   "devDependencies": {
     "@repo/typescript-config": "workspace:*",

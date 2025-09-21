@@ -8,6 +8,6 @@
     "outDir": "dist",
     "types": ["vitest/globals"]
   },
-  "include": ["src/**/*", "../tests-setup/src/vitest-jest-extended.d.ts", "../user/src/id/user-id.schema.ts"],
+  "include": ["src/**/*", "../tests-setup/src/vitest-jest-extended.d.ts", "../db/src/id/user-id.schema.ts"],
   "exclude": ["node_modules", "dist"]
 }

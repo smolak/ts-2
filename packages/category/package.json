@@ -1,5 +1,5 @@
 {
-  "name": "@repo/db",
+  "name": "@repo/category",
   "version": "0.0.0",
   "private": true,
   "scripts": {
@@ -9,20 +9,17 @@
     "lint": "echo 'Add lint script here'"
   },
   "exports": {
-    "./*": "./src/*.ts"
+    "./*": "./src/*"
+  },
+  "dependencies": {
+    "@repo/db": "workspace:*",
+    "drizzle-orm": "catalog:",
+    "uuid": "^13.0.0",
+    "zod": "catalog:"
   },
   "devDependencies": {
     "@repo/typescript-config": "workspace:*",
-    "drizzle-kit": "^0.31.4",
-    "tsx": "^4.20.5",
     "typescript": "catalog:",
     "vitest": "catalog:"
-  },
-  "dependencies": {
-    "@repo/shared": "workspace:*",
-    "@t3-oss/env-core": "catalog:",
-    "drizzle-orm": "^0.44.5",
-    "postgres": "^3.4.7",
-    "zod": "catalog:"
   }
 }

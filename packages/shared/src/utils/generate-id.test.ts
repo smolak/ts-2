@@ -32,13 +32,13 @@ describe("generateId", () => {
   });
 
   describe("alphabet configuration", () => {
-    it("should generate the default alphabet, if not specified", () => {
+    it("should generate id using the default alphabet, if custom alphabet not specified", () => {
       const id = generateId();
 
       expect(id).toMatch(/^[a-zA-Z0-9]{22}$/);
     });
 
-    it("should generate a specific alphabet, if passed", () => {
+    it("should generate id using a custom alphabet, if passed", () => {
       const id = generateId("", 66, "abc");
 
       expect(id).toMatch(/^[abc]{66}$/);

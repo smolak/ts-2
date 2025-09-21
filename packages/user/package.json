@@ -1,5 +1,5 @@
 {
-  "name": "@repo/db",
+  "name": "@repo/user",
   "version": "0.0.0",
   "private": true,
   "scripts": {
@@ -11,18 +11,13 @@
   "exports": {
     "./*": "./src/*.ts"
   },
-  "devDependencies": {
-    "@repo/typescript-config": "workspace:*",
-    "drizzle-kit": "^0.31.4",
-    "tsx": "^4.20.5",
-    "typescript": "catalog:",
-    "vitest": "catalog:"
-  },
   "dependencies": {
     "@repo/shared": "workspace:*",
-    "@t3-oss/env-core": "catalog:",
-    "drizzle-orm": "^0.44.5",
-    "postgres": "^3.4.7",
     "zod": "catalog:"
+  },
+  "devDependencies": {
+    "@repo/typescript-config": "workspace:*",
+    "typescript": "catalog:",
+    "vitest": "catalog:"
   }
 }

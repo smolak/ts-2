@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { generateUrlId } from "./generate-url-id";
+import { generateUrlId } from "./url-id";
 
 describe("generateUrlId", () => {
   it("should prefix id with url prefix", () => {
