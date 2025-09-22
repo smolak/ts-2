@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { categoryNameSchema } from "../name/category-name.schema";
+import { categoryNameSchema } from "../../name/category-name.schema";
 
 export type AddCategoryBody = z.infer<typeof addCategoryBodySchema>;
 
