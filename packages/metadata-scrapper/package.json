@@ -1,0 +1,26 @@
+{
+  "name": "@repo/metadata-scrapper",
+  "version": "0.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "echo 'Add dev script here'",
+    "build": "echo 'Add build script here'",
+    "test": "vitest run",
+    "lint": "echo 'Add lint script here'"
+  },
+  "exports": {
+    "./*": "./src/*.ts"
+  },
+  "devDependencies": {
+    "@repo/typescript-config": "workspace:*",
+    "@types/jsdom": "^21.1.7",
+    "@types/lodash": "^4.17.20",
+    "jsdom": "^26.1.0",
+    "typescript": "catalog:",
+    "vitest": "catalog:"
+  },
+  "dependencies": {
+    "lodash": "^4.17.21",
+    "zod": "catalog:"
+  }
+}
