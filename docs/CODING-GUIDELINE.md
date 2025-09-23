@@ -978,6 +978,25 @@ describe("User Flow Integration", () => {
 - **Internal services**: Use dependency injection instead
 - **Utility functions**: Test the actual implementation
 
+### Test Execution Rules
+
+**Immediate Test Execution Required:**
+
+- **When a test file is changed**: Run the specific test file immediately after making changes
+- **When a source file is changed**: Run all related test files immediately after making changes
+
+**Implementation:**
+- Use your IDE's test runner or terminal to run tests immediately after changes
+- For test files: `pnpm test path/to/test-file.test.ts`
+- For source files: Run all tests that import or test the changed file
+- Use watch mode during development: `pnpm test --watch`
+
+**Rationale:**
+- Ensures tests pass immediately after changes
+- Prevents broken tests from accumulating
+- Maintains code quality and confidence in changes
+- Catches regressions early in the development cycle
+
 ## Performance Guidelines
 
 ### React Performance

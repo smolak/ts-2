@@ -31,6 +31,7 @@ This document provides a quick reference to all project rules and where to find 
   - Avoid mocks: Use dependency injection, mock only at boundaries
   - Frontend: Mock DB/outside APIs
   - Backend: Mock external APIs, email services, file storage
+  - **Test Execution**: Run tests immediately after changes to test files or source files
 
 ### Naming Conventions
 - **File**: `docs/CODING-GUIDELINE.md`
@@ -149,6 +150,7 @@ pnpm run lint
 - **Setting up imports** → docs/CODING-GUIDELINE.md → Import Rules
 - **Creating components** → docs/ARCHITECTURE.md → Component Architecture
 - **Writing tests** → docs/CODING-GUIDELINE.md → Testing Patterns
+- **Running tests** → docs/CODING-GUIDELINE.md → Test Execution Rules
 - **Naming files** → docs/CODING-GUIDELINE.md → Naming Conventions
 - **Choosing technologies** → docs/CODING-GUIDELINE.md → Technology Stack
 
