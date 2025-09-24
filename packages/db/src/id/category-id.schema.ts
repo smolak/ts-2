@@ -4,6 +4,7 @@ import { CATEGORY_ID_PREFIX } from "./category-id";
 
 export type CategoryId = z.infer<typeof categoryIdSchema>;
 
+// TODO: move this to category-id.ts. Do the same with other schemas in this folder.
 export const categoryIdSchema = z
   .string()
   .trim()

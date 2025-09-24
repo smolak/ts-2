@@ -4,7 +4,7 @@ import { resolve } from "node:path";
 import { JSDOM } from "jsdom";
 import { describe, expect, it } from "vitest";
 
-import { scrapeMetadata } from "./index";
+import { scrapeMetadata } from "./scrape-metadata";
 
 describe("metadata-scrapper", () => {
   it("should work for article from ppe", async () => {

@@ -9,7 +9,7 @@
     "lint": "echo 'Add lint script here'"
   },
   "exports": {
-    "./*": "./src/*"
+    "./*": "./src/*.ts"
   },
   "dependencies": {
     "@repo/db": "workspace:*",

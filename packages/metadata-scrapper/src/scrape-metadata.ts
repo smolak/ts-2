@@ -8,20 +8,7 @@ import { getLogo } from "./data/logo";
 import { getPublisher } from "./data/publisher";
 import { getTitle } from "./data/title";
 import { getUrl } from "./data/url";
-import type { MetadataGetter } from "./types";
-
-export type ScrappedMetadata = {
-  author?: string;
-  date?: string;
-  description?: string;
-  faviconUrl?: string;
-  imageUrl?: string;
-  lang?: string;
-  logoUrl?: string;
-  publisher?: string;
-  title?: string;
-  url?: string;
-};
+import type { MetadataGetter, ScrappedMetadata } from "./types";
 
 const getters: Array<[keyof ScrappedMetadata, MetadataGetter]> = [
   ["author", getAuthor],
