@@ -5,8 +5,9 @@ import { env } from "./src/env";
 export default {
   schema: "./src/schema.ts",
   dialect: "postgresql",
+  out: './supabase/migrations',
   dbCredentials: {
     url: env.DATABASE_URL,
   },
-  tablesFilter: ["urlshare_*"],
+  // tablesFilter: ["urlshare_*"],
 } satisfies Config;

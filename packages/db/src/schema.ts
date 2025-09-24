@@ -1,23 +1,10 @@
 import { type InferSelectModel, sql } from "drizzle-orm";
-import {
-  char,
-  index,
-  integer,
-  jsonb,
-  pgTableCreator,
-  text,
-  timestamp,
-  unique,
-  uuid,
-  varchar,
-} from "drizzle-orm/pg-core";
+import { char, index, integer, jsonb, pgTable, text, timestamp, unique, uuid, varchar } from "drizzle-orm/pg-core";
 import { API_KEY_LENGTH } from "./constants";
 import { CATEGORY_ID_LENGTH, generateCategoryId } from "./id/category-id";
 import { generateUrlId, URL_ID_LENGTH } from "./id/url-id";
 
-const createTable = pgTableCreator((name) => `urlshare_${name}`);
-
-export const categories = createTable(
+export const categories = pgTable(
   "categories",
   {
     id: char("id", { length: CATEGORY_ID_LENGTH })
@@ -37,7 +24,7 @@ export const categories = createTable(
 
 export type Category = InferSelectModel<typeof categories>;
 
-export const urls = createTable("urls", {
+export const urls = pgTable("urls", {
   id: char("id", { length: URL_ID_LENGTH })
     .notNull()
     .primaryKey()
@@ -53,7 +40,7 @@ export const urls = createTable("urls", {
 export type Url = InferSelectModel<typeof urls>;
 
 // TODO: add role, as it will be used for basic/pro users
-export const users = createTable("users", {
+export const users = pgTable("users", {
   id: uuid("id").notNull().primaryKey(),
   createdAt: timestamp("created_at", { withTimezone: true }).default(sql`CURRENT_TIMESTAMP`).notNull(),
   updatedAt: timestamp("updated_at", { withTimezone: true }).$onUpdate(() => new Date()),

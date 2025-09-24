@@ -6,7 +6,10 @@
     "dev": "echo 'Add dev script here'",
     "build": "echo 'Add build script here'",
     "test": "vitest run",
-    "lint": "echo 'Add lint script here'"
+    "lint": "echo 'Add lint script here'",
+    "db:generate": "drizzle-kit generate",
+    "db:migrate": "drizzle-kit migrate",
+    "db:studio": "drizzle-kit studio"
   },
   "exports": {
     "./*": "./src/*.ts"
