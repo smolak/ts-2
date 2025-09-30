@@ -8,16 +8,17 @@
     "start": "next start"
   },
   "dependencies": {
+    "@clerk/nextjs": "^6.33.1",
+    "next": "15.5.4",
     "react": "catalog:",
-    "react-dom": "catalog:",
-    "next": "15.5.4"
+    "react-dom": "catalog:"
   },
   "devDependencies": {
-    "typescript": "catalog:",
+    "@tailwindcss/postcss": "^4.1.13",
     "@types/node": "catalog:",
     "@types/react": "catalog:",
     "@types/react-dom": "catalog:",
-    "@tailwindcss/postcss": "^4.1.13",
-    "tailwindcss": "catalog:"
+    "tailwindcss": "catalog:",
+    "typescript": "catalog:"
   }
 }
