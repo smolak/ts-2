@@ -1,6 +1,6 @@
 import { categoryNameSchema } from "@repo/category/name/category-name.schema";
-import { categoryIdSchema } from "@repo/db/id/category-id";
 import { orm, schema } from "@repo/db/db";
+import { categoryIdSchema } from "@repo/db/id/category-id";
 import { TRPCError } from "@trpc/server";
 import { z } from "zod";
 import { protectedProcedure } from "@/server/api/trpc";
@@ -14,9 +14,8 @@ export const updateCategorySchema = z.object({
 
 export const updateCategory = protectedProcedure
   .input(updateCategorySchema)
-  .mutation(async ({ input: { id, name }, ctx: { logger, requestId, user, db } }) => {
+  .mutation(async ({ input: { id, name }, ctx: { logger, requestId, userId, db } }) => {
     const path = "category.updateCategory";
-    const userId = user.id;
 
     const maybeCategory = await db.query.categories.findFirst({
       where: (categories, { and, eq }) => and(eq(categories.id, id), eq(categories.userId, userId)),

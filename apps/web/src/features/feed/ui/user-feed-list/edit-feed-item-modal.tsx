@@ -1,5 +1,6 @@
-import { Category } from "@workspace/db/types";
-import { Button } from "@workspace/ui/components/button";
+import type { CategoryDto } from "@repo/category/dto/category.dto";
+import type { Category } from "@repo/db/schema";
+import { Button } from "@repo/ui/components/button";
 import {
   Dialog,
   DialogContent,
@@ -7,17 +8,14 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from "@workspace/ui/components/dialog";
-import { LoadingIndicator } from "@workspace/ui/components/loading-indicator";
-import { cn } from "@workspace/ui/lib/utils";
-import { FC, useCallback, useEffect, useState } from "react";
-
+} from "@repo/ui/components/dialog";
+import { LoadingIndicator } from "@repo/ui/components/loading-indicator";
+import { cn } from "@repo/ui/lib/utils";
+import { type FC, useCallback, useEffect, useState } from "react";
 import { api } from "@/trpc/react";
-
-import { CategoryVM } from "../../../category/models/category.vm";
 import { useCategoriesStore } from "../../../category/stores/use-categories-store";
 import { CategoryPickerCategoriesList } from "../../../category/ui/category-picker/category-picker-categories-list";
-import { FeedDTO } from "../../dto/feed.dto";
+import type { FeedDTO } from "../../dto/feed.dto";
 
 export type OnSuccess = (categoryNames: Category["name"][]) => void;
 
@@ -32,15 +30,15 @@ const prepareCategories = ({
   userCategories,
   selectedCategoryIds,
 }: {
-  userCategories: CategoryVM[];
-  selectedCategoryIds: CategoryVM["id"][];
+  userCategories: CategoryDto[];
+  selectedCategoryIds: CategoryDto["id"][];
 }) =>
   userCategories.map((category) => ({
     ...category,
     selected: selectedCategoryIds.indexOf(category.id) >= 0,
   }));
 
-const getCategoryIds = (userUrlCategories: GetUserUrlCategoriesReturnType) =>
+const getCategoryIds = (userUrlCategories: { categoryId: Category["id"] }[]) =>
   userUrlCategories.map(({ categoryId }) => categoryId);
 
 export const EditFeedItemModal: FC<EditFeedItemProps> = ({ open, onOpenChange, feedItem, onSuccess }) => {
@@ -78,7 +76,7 @@ export const EditFeedItemModal: FC<EditFeedItemProps> = ({ open, onOpenChange, f
     if (categoriesLoaded) {
       setSelectedCategoryIds(getCategoryIds(data));
     }
-  }, [categoriesLoaded, data, setSelectedCategoryIds]);
+  }, [categoriesLoaded, data]);
 
   useEffect(() => {
     if (updatedUserUrl) {
@@ -107,9 +105,7 @@ export const EditFeedItemModal: FC<EditFeedItemProps> = ({ open, onOpenChange, f
           />
         ) : null}
         {errorUpdatingUserUrl ? (
-          <p className="rounded rounded-md bg-red-50 px-2 py-1 text-sm text-red-600">
-            Could not update Url, try again.
-          </p>
+          <p className="rounded bg-red-50 px-2 py-1 text-sm text-red-600">Could not update Url, try again.</p>
         ) : null}
         <DialogFooter>
           <Button

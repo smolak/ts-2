@@ -1,9 +1,8 @@
+import { orm, schema } from "@repo/db/db";
+import { apiKeySchema } from "@repo/user/api-key/api-key.schema";
 import { TRPCError } from "@trpc/server";
-import { apiKeySchema } from "@workspace/user/api-key/api-key.schema";
 import { z } from "zod";
-
 import { protectedProcedure } from "@/server/api/trpc";
-import { orm, schema } from "@workspace/db/db";
 
 export type UpdateUserSchema = z.infer<typeof updateUserSchema>;
 
@@ -13,8 +12,7 @@ export const updateUserSchema = z.object({
 
 export const updateUser = protectedProcedure
   .input(updateUserSchema)
-  .mutation(async ({ input, ctx: { logger, requestId, user, db } }) => {
-    const userId = user.id;
+  .mutation(async ({ input, ctx: { logger, requestId, userId, db } }) => {
     const path = "user.updateUser";
 
     logger.info({ requestId, path }, "Updating user initiated.");

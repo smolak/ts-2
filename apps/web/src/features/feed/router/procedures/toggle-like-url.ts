@@ -24,9 +24,8 @@ type UrlNotFound = {
 export const toggleLikeUrl = protectedProcedure
   .input(toggleLikeUrlSchema)
   .mutation<UrlNotFound | ToggleLikeUrlResult>(
-    async ({ input: { userUrlId }, ctx: { logger, requestId, user, db } }) => {
+    async ({ input: { userUrlId }, ctx: { logger, requestId, userId, db } }) => {
       const path = "likeUrl.toggleLikeUrl";
-      const userId = user.id;
 
       logger.info({ requestId, path, userId, userUrlId }, "Toggle liking the URL.");
 

@@ -7,19 +7,18 @@
  * need to use are documented accordingly near the end.
  */
 
-import type { User } from "@clerk/nextjs/server";
+import { auth, type User } from "@clerk/nextjs/server";
 import { type Db, db } from "@repo/db/db";
 import { generateRequestId, type RequestId } from "@repo/db/id/request-id";
 import { initTRPC, TRPCError } from "@trpc/server";
 import superjson from "superjson";
 import { ZodError } from "zod";
-import type { Logger } from "@/features/logger";
-import { createClient, type ServerClient } from "@/supabase/utils/server";
+import { type Logger, logger } from "@/features/logger";
 
 type TRPCContext = {
   db: Db;
+  auth: Awaited<ReturnType<typeof auth>>;
   logger: Logger;
-  serverClient: ServerClient;
   requestId: RequestId;
   // TODO: perhaps passing a userId will be enough
   user?: User;
@@ -38,12 +37,9 @@ type TRPCContext = {
  * @see https://trpc.io/docs/server/context
  */
 export const createTRPCContext = async (opts: { headers: Headers }): Promise<TRPCContext> => {
-  // TODO: check if this is executed on every request. Depending on the answer, implementation might need to be changed
-  const serverClient = await createClient();
-
   return {
+    auth: await auth(),
     db,
-    serverClient,
     logger,
     requestId: generateRequestId(),
     ...opts,
@@ -124,15 +120,15 @@ const timingMiddleware = t.middleware(async ({ next, path }) => {
 export const publicProcedure = t.procedure.use(timingMiddleware);
 
 const isAuthenticated = t.middleware(async ({ ctx, next }) => {
-  const { data } = await ctx.serverClient.auth.getUser();
+  const { isAuthenticated, userId } = ctx.auth;
 
-  if (!data.user) {
+  if (!isAuthenticated) {
     throw new TRPCError({ code: "UNAUTHORIZED" });
   }
 
   return next({
     ctx: {
-      user: data.user,
+      userId,
     },
   });
 });

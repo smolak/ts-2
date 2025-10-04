@@ -1,5 +1,5 @@
+import { userIdSchema } from "@repo/db/id/user-id";
 import { TRPCError } from "@trpc/server";
-import { userIdSchema } from "@workspace/user/id/user-id.schema";
 import { z } from "zod";
 
 import { protectedProcedure } from "@/server/api/trpc";
@@ -10,9 +10,9 @@ export const isFollowingUserSchema = z.object({
 
 export const isFollowingUser = protectedProcedure
   .input(isFollowingUserSchema)
-  .query(async ({ input: { userId: followingId }, ctx: { logger, requestId, user, db } }) => {
+  .query(async ({ input: { userId: followingId }, ctx: { logger, requestId, userId, db } }) => {
     const path = "followUser.isFollowingUser";
-    const followerId = user.id;
+    const followerId = userId;
 
     logger.info({ requestId, path, followerId, followingId }, "Check if is following a user.");
 

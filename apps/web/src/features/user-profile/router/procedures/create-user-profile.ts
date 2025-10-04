@@ -1,11 +1,10 @@
+import { orm, schema } from "@repo/db/db";
+import { apiKeySchema } from "@repo/user/api-key/api-key.schema";
+import { usernameSchema } from "@repo/user-profile/username/schemas/username.schema";
+import { normalizeUsername } from "@repo/user-profile/utils/normalize-username";
 import { TRPCError } from "@trpc/server";
-import { orm, schema } from "@workspace/db/db";
-import { apiKeySchema } from "@workspace/user/api-key/api-key.schema";
-import { usernameSchema } from "@workspace/user-profile/username/schemas/username.schema";
 import { z } from "zod";
-
 import { protectedProcedure } from "@/server/api/trpc";
-import { normalizeUsername } from "@workspace/user-profile/utils/normalize-username";
 
 export type CreateUserProfileSchema = z.infer<typeof createUserProfileSchema>;
 
@@ -30,8 +29,7 @@ export const createUserProfileSchema = z.object({
 
 export const createUserProfile = protectedProcedure
   .input(createUserProfileSchema)
-  .mutation(async ({ input, ctx: { logger, requestId, user, db } }) => {
-    const userId = user.id;
+  .mutation(async ({ input, ctx: { logger, requestId, userId, db } }) => {
     const path = "userProfile.createUserProfile";
 
     logger.info({ requestId, path }, "Creating user profile initiated.");

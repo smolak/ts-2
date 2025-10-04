@@ -3,9 +3,8 @@ import { protectedProcedure } from "@/server/api/trpc";
 import { type PrivateUserProfileVM, toPrivateUserProfileVM } from "../../models/private-user-profile.vm";
 
 export const getPrivateUserProfile = protectedProcedure.query<PrivateUserProfileVM>(
-  async ({ ctx: { logger, requestId, user, db } }) => {
+  async ({ ctx: { logger, requestId, userId, db } }) => {
     const path = "userProfile.getPrivateUserProfile";
-    const userId = user.id;
 
     logger.info({ requestId, path, userId }, "Get private user profile initiated.");
 
@@ -28,7 +27,7 @@ export const getPrivateUserProfile = protectedProcedure.query<PrivateUserProfile
       return toPrivateUserProfileVM({
         ...maybeUserProfile,
         id: userId,
-        apiKey: maybeUserProfile.apiKey,
+        apiKey: maybeUserProfile.user.apiKey,
       });
     }
 

@@ -17,9 +17,8 @@ type CreateCategoryResult = {
 
 export const createCategory = protectedProcedure
   .input(createCategorySchema)
-  .mutation<CreateCategoryResult>(async ({ input: { name }, ctx: { logger, requestId, user, db } }) => {
+  .mutation<CreateCategoryResult>(async ({ input: { name }, ctx: { logger, requestId, userId, db } }) => {
     const path = "category.createCategory";
-    const userId = user.id;
 
     const maybeCategory = await db.query.categories.findFirst({
       where: (categories, { and, eq }) => and(eq(categories.userId, userId), eq(categories.name, name)),

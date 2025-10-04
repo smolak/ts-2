@@ -181,6 +181,12 @@ importers:
       '@repo/ui':
         specifier: workspace:*
         version: link:../../packages/ui
+      '@repo/user':
+        specifier: workspace:*
+        version: link:../../packages/user
+      '@repo/user-profile':
+        specifier: workspace:*
+        version: link:../../packages/user-profile
       '@supabase/ssr':
         specifier: ^0.7.0
         version: 0.7.0(@supabase/supabase-js@2.58.0)

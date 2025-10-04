@@ -12,9 +12,8 @@ export const deleteCategorySchema = z.object({
 
 export const deleteCategory = protectedProcedure
   .input(deleteCategorySchema)
-  .mutation(async ({ input: { id }, ctx: { logger, requestId, user, db } }) => {
+  .mutation(async ({ input: { id }, ctx: { logger, requestId, userId, db } }) => {
     const path = "category.deleteCategory";
-    const userId = user.id;
 
     const maybeCategory = await db.query.categories.findFirst({
       where: (categories, { and, eq }) => and(eq(categories.userId, userId), eq(categories.id, id)),

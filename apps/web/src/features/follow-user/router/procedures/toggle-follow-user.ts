@@ -1,6 +1,6 @@
+import { orm, schema } from "@repo/db/db";
+import { userIdSchema } from "@repo/db/id/user-id";
 import { TRPCError } from "@trpc/server";
-import { orm, schema } from "@workspace/db/db";
-import { userIdSchema } from "@workspace/user/id/user-id.schema";
 import { z } from "zod";
 
 import { protectedProcedure } from "@/server/api/trpc";
@@ -18,9 +18,9 @@ type ToggleFollowUserResult = {
 export const toggleFollowUser = protectedProcedure
   .input(toggleFollowUserSchema)
   .mutation<ToggleFollowUserResult>(
-    async ({ input: { userId: followingId }, ctx: { logger, requestId, user, db } }) => {
+    async ({ input: { userId: followingId }, ctx: { logger, requestId, userId, db } }) => {
       const path = "followUser.toggleFollowUser";
-      const followerId = user.id;
+      const followerId = userId;
 
       logger.info({ requestId, path, followerId, followingId }, "Toggle following user initiated.");
 

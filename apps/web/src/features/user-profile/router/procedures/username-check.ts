@@ -1,7 +1,7 @@
-import { protectedProcedure } from "@/server/api/trpc";
-import { usernameSchema } from "@workspace/user-profile/username/schemas/username.schema";
-import { normalizeUsername } from "@workspace/user-profile/utils/normalize-username";
+import { usernameSchema } from "@repo/user-profile/username/schemas/username.schema";
+import { normalizeUsername } from "@repo/user-profile/utils/normalize-username";
 import { z } from "zod";
+import { protectedProcedure } from "@/server/api/trpc";
 
 export const usernameCheckSchema = z.object({
   username: usernameSchema,
