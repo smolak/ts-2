@@ -264,6 +264,7 @@ export const usersUrlsInteractions = pgTable(
     interactionTypeId: smallint("interaction_type_id")
       .notNull()
       .references(() => interactionTypes.id),
+    createdAt: timestamp("created_at", { withTimezone: true }).default(sql`CURRENT_TIMESTAMP`).notNull(),
   },
   (table) => [
     primaryKey({ columns: [table.userUrlId, table.userId, table.interactionTypeId] }),

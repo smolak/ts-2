@@ -31,16 +31,26 @@ export const toggleLikeUrl = protectedProcedure
       logger.info({ requestId, path, userId, userUrlId }, "Toggle liking the URL.");
 
       try {
-        const [maybeUserUrl] = await db
+        // Combine URL lookup and like status check into a single query with LEFT JOIN
+        const [result] = await db
           .select({
             urlCreatorId: schema.usersUrls.userId,
             likesCount: schema.usersUrls.likesCount,
+            isLiked: schema.usersUrlsInteractions.interactionTypeId,
           })
           .from(schema.usersUrls)
+          .leftJoin(
+            schema.usersUrlsInteractions,
+            orm.and(
+              orm.eq(schema.usersUrlsInteractions.userUrlId, schema.usersUrls.id),
+              orm.eq(schema.usersUrlsInteractions.userId, userId),
+              orm.eq(schema.usersUrlsInteractions.interactionTypeId, 1),
+            ),
+          )
           .where(orm.eq(schema.usersUrls.id, userUrlId))
           .limit(1);
 
-        if (!maybeUserUrl) {
+        if (!result) {
           throw new TRPCError({
             code: "NOT_FOUND",
             message: "User URL not found.",
@@ -48,20 +58,17 @@ export const toggleLikeUrl = protectedProcedure
           });
         }
 
-        const idOfProfileOwningTheUrl = maybeUserUrl.urlCreatorId;
+        const idOfProfileOwningTheUrl = result.urlCreatorId;
+        const maybeUserUrlInteraction = result.isLiked;
 
-        // Note: interactionTypeId = 1 represents "LIKED" in the interaction_types table
-        const [maybeUserUrlInteraction] = await db
-          .select()
-          .from(schema.usersUrlsInteractions)
-          .where(
-            orm.and(
-              orm.eq(schema.usersUrlsInteractions.userUrlId, userUrlId),
-              orm.eq(schema.usersUrlsInteractions.userId, userId),
-              orm.eq(schema.usersUrlsInteractions.interactionTypeId, 1),
-            ),
-          )
-          .limit(1);
+        // Prevent users from liking their own URLs
+        if (idOfProfileOwningTheUrl === userId) {
+          throw new TRPCError({
+            code: "BAD_REQUEST",
+            message: "You cannot like your own URL.",
+            cause: new Error("User attempted to like their own URL."),
+          });
+        }
 
         if (maybeUserUrlInteraction) {
           // Liked, unliking
@@ -70,7 +77,7 @@ export const toggleLikeUrl = protectedProcedure
               tx
                 .update(schema.usersUrls)
                 .set({
-                  likesCount: orm.sql`${schema.usersUrls.likesCount} - 1`,
+                  likesCount: orm.sql`GREATEST(0, ${schema.usersUrls.likesCount} - 1)`,
                 })
                 .where(orm.eq(schema.usersUrls.id, userUrlId))
                 .returning({ likesCount: schema.usersUrls.likesCount }),
@@ -78,14 +85,14 @@ export const toggleLikeUrl = protectedProcedure
               tx
                 .update(schema.userProfiles)
                 .set({
-                  likedCount: orm.sql`${schema.userProfiles.likedCount} - 1`,
+                  likedCount: orm.sql`GREATEST(0, ${schema.userProfiles.likedCount} - 1)`,
                 })
                 .where(orm.eq(schema.userProfiles.userId, idOfProfileOwningTheUrl)),
 
               tx
                 .update(schema.userProfiles)
                 .set({
-                  likesCount: orm.sql`${schema.userProfiles.likesCount} - 1`,
+                  likesCount: orm.sql`GREATEST(0, ${schema.userProfiles.likesCount} - 1)`,
                 })
                 .where(orm.eq(schema.userProfiles.userId, userId)),
 

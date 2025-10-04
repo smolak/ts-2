@@ -1,0 +1,1 @@
+ALTER TABLE "users_urls_interactions" ADD COLUMN "created_at" timestamp with time zone DEFAULT CURRENT_TIMESTAMP NOT NULL;

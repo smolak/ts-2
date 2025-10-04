@@ -1,4 +1,4 @@
-import { NonEmptyArray } from "@workspace/shared/types";
+import type { NonEmptyArray } from "@repo/shared/types";
 import { z } from "zod";
 
 export const feedSources = [
