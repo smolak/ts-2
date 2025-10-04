@@ -21,7 +21,5 @@ export const getCategoryIdsFromSearchQuery = (maybeCategoryIds?: string | string
   return trimmedInput
     .split(",")
     .map((id) => id.trim())
-    .filter((maybeCategoryId) => {
-      return categoryIdSchema.safeParse(maybeCategoryId).success;
-    });
+    .filter((maybeCategoryId) => categoryIdSchema.safeParse(maybeCategoryId).success);
 };

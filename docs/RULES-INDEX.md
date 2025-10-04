@@ -46,8 +46,8 @@ This document provides a quick reference to all project rules and where to find 
 - **File**: `docs/CODING-GUIDELINE.md`
 - **Section**: Technology Stack
 - **Key Rules**:
-  - Frontend: TanStack Start, React 19, Tailwind CSS, Zustand, TanStack Query
-  - API: orpc
+  - Frontend: Next.js, React 19, Tailwind CSS, Zustand, TanStack Query
+  - API: tRPC
   - Auth: Clerk
   - Database: PostgreSQL, Drizzle ORM
   - Code Quality: BiomeJS

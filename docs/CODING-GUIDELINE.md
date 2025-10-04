@@ -271,8 +271,8 @@ import { UserProfile } from "../types/user-profile";
 **API Router Files:**
 
 ```typescript
-import { createRouter, publicProcedure } from "@repo/shared/lib/orpc";
 import { z } from "zod";
+import { createTRPCRouter, publicProcedure } from "../trpc";
 import { getUserProfile } from "../services/user-service";
 ```
 
@@ -496,20 +496,22 @@ export const UserForm = () => {
 };
 ```
 
-## API Patterns (orpc)
+## API Patterns (tRPC)
 
 ### Router Structure
 
 ```typescript
-// routers/users.ts
+// server/api/routers/users.ts
 // Follow Import Rules section for import order
-import { createRouter, publicProcedure, protectedProcedure } from "@repo/shared/lib/orpc";
 import { z } from "zod";
+import { createTRPCRouter, publicProcedure, protectedProcedure } from "../trpc";
 
-export const usersRouter = createRouter({
-  getProfile: publicProcedure.input(z.object({ userId: z.string() })).query(async ({ input, ctx }) => {
-    return await getUserProfile(input.userId);
-  }),
+export const usersRouter = createTRPCRouter({
+  getProfile: publicProcedure
+    .input(z.object({ userId: z.string() }))
+    .query(async ({ input, ctx }) => {
+      return await getUserProfile(input.userId);
+    }),
 
   updateProfile: protectedProcedure
     .input(
@@ -827,10 +829,10 @@ describe("useUserProfile", () => {
 ### API Test Pattern (Backend - Mock External Dependencies)
 
 ```typescript
-// routers/users.test.ts
+// server/api/routers/users.test.ts
 // Follow Import Rules section for import order
 import { describe, it, expect, beforeEach } from "vitest";
-import { createTestContext } from "../test-utils";
+import { createTestContext } from "../../test-utils";
 import { usersRouter } from "./users";
 
 describe("users router", () => {

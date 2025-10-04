@@ -311,4 +311,12 @@ This design document focuses on the user experience and feature requirements for
 - **[ARCHITECTURE.md](./ARCHITECTURE.md)** - Technical architecture and system design
 - **[CODING-GUIDELINE.md](./CODING-GUIDELINE.md)** - Development standards and patterns
 
+### Technology Stack
+- **Frontend**: Next.js with React 19
+- **API**: tRPC for type-safe API calls
+- **Database**: PostgreSQL with Drizzle ORM
+- **Auth**: Clerk
+- **Styling**: Tailwind CSS
+- **State Management**: Zustand + TanStack Query
+
 The design prioritizes user experience, social interaction, and seamless content sharing while maintaining simplicity and performance.

@@ -22,13 +22,13 @@
 │                        Client Layer                             │
 ├─────────────────┬─────────────────┬─────────────────────────────┤
 │   Web App       │   Browser       │   Mobile App (Future)       │
-│ (TanStack Start)│   Extension     │                             │
+│   (Next.js)     │   Extension     │                             │
 └─────────────────┴─────────────────┴─────────────────────────────┘
                                 │
                                 ▼
 ┌─────────────────────────────────────────────────────────────────┐
 │                        API Gateway                              │
-│                        (orpc Router)                            │
+│                        (tRPC Router)                            │
 └─────────────────────────────────────────────────────────────────┘
                                 │
                                 ▼
@@ -56,8 +56,8 @@
 
 ### Technology Stack Details
 
-- **Frontend**: TanStack Start (React 19, TypeScript)
-- **Backend**: orpc (OpenAPI-compatible RPC)
+- **Frontend**: Next.js (React 19, TypeScript)
+- **Backend**: tRPC (Type-safe RPC)
 - **Database**: PostgreSQL with Drizzle ORM
 - **Authentication**: Clerk
 - **File Storage**: Cloudinary or AWS S3
@@ -146,6 +146,7 @@ packages/
 ```
 apps/
 ├── web/
+│   ├── app/                # Next.js App Router
 │   └── features/
 │       ├── feed/           # Web-specific feed features
 │       │   ├── components/
@@ -264,11 +265,11 @@ export const UrlSharingForm = () => {
 
 ```typescript
 // App-level composition
-// app/dashboard/page.tsx
+// apps/web/app/dashboard/page.tsx
 // Follow import rules from CODING-GUIDELINE.md
-import { AppLayout } from "../../features/layout/components/AppLayout";
-import { FeedList } from "../../features/feed/components/FeedList";
-import { CategorySidebar } from "../../features/categories/components/CategorySidebar";
+import { AppLayout } from "@/features/layout/components/AppLayout";
+import { FeedList } from "@/features/feed/components/FeedList";
+import { CategorySidebar } from "@/features/categories/components/CategorySidebar";
 
 export default function DashboardPage() {
   return (
@@ -512,24 +513,26 @@ export const useUnlikeUrl = () => {
 
 ### Backend Architecture
 
-#### API Layer (orpc)
+#### API Layer (tRPC)
 
 ```
-api/
-├── routers/
-│   ├── users.ts          # User management
-│   ├── profiles.ts       # User profiles
-│   ├── feeds.ts          # Feed operations
-│   ├── categories.ts     # Category management
-│   ├── urls.ts           # URL operations
-│   └── follow.ts         # Follow system
+server/
+├── api/
+│   ├── routers/
+│   │   ├── users.ts          # User management
+│   │   ├── profiles.ts       # User profiles
+│   │   ├── feeds.ts          # Feed operations
+│   │   ├── categories.ts     # Category management
+│   │   ├── urls.ts           # URL operations
+│   │   └── follow.ts         # Follow system
+│   ├── trpc.ts               # tRPC initialization
+│   └── root.ts               # Root router
 ├── middleware/
-│   ├── auth.ts           # Authentication middleware
-│   ├── validation.ts     # Input validation
-│   └── rateLimit.ts      # Rate limiting
+│   ├── auth.ts               # Authentication middleware
+│   └── rateLimit.ts          # Rate limiting
 └── utils/
-    ├── errors.ts         # Error handling
-    └── responses.ts      # Response formatting
+    ├── errors.ts             # Error handling
+    └── responses.ts          # Response formatting
 ```
 
 #### Service Layer
@@ -715,10 +718,12 @@ const getCachedFeed = async (userId: string) => {
 ```json
 {
   "dependencies": {
-    "@tanstack/start": "^1.0.0",
+    "next": "^15.0.0",
     "@tanstack/react-query": "^5.0.0",
-    "@orpc/server": "^0.1.0",
-    "@orpc/client": "^0.1.0",
+    "@trpc/server": "^11.0.0",
+    "@trpc/client": "^11.0.0",
+    "@trpc/react-query": "^11.0.0",
+    "@trpc/next": "^11.0.0",
     "drizzle-orm": "^0.29.0",
     "@clerk/nextjs": "^5.0.0",
     "zod": "^3.22.0",
