@@ -1,6 +1,6 @@
-import { Badge } from "@workspace/ui/components/badge";
-import { cn } from "@workspace/ui/lib/utils";
-import { FC } from "react";
+import { Badge } from "@repo/ui/components/badge";
+import { cn } from "@repo/ui/lib/utils";
+import type { FC } from "react";
 
 type FollowsMeBadgeProps = {
   className?: string;

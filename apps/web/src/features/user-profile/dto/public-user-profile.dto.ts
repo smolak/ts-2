@@ -1,10 +1,10 @@
-import { schema } from "@workspace/db/db";
+import type { UserProfile } from "@repo/db/schema";
 
-export type PublicUserProfileVM = Omit<schema.UserProfile, "id" | "usernameNormalized" | "userId"> & {
-  id: schema.UserProfile["userId"];
+export type PublicUserProfileDto = Omit<UserProfile, "id" | "usernameNormalized" | "userId"> & {
+  id: UserProfile["userId"];
 };
 
-export const toPublicUserProfileVM = ({
+export const toPublicUserProfileDto = ({
   username,
   imageUrl,
   followingCount,
@@ -15,7 +15,7 @@ export const toPublicUserProfileVM = ({
   updatedAt,
   userId,
   urlsCount,
-}: schema.UserProfile): PublicUserProfileVM => {
+}: UserProfile): PublicUserProfileDto => {
   return {
     username,
     imageUrl,

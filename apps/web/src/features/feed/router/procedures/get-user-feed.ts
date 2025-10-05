@@ -1,6 +1,6 @@
+import { categoryIdSchema } from "@repo/db/id/category-id";
+import { userIdSchema } from "@repo/db/id/user-id";
 import { TRPCError } from "@trpc/server";
-import { categoryIdSchema } from "@workspace/category/id/category-id.schema";
-import { userIdSchema } from "@workspace/user/id/user-id.schema";
 import { z } from "zod";
 
 import { protectedProcedure } from "@/server/api/trpc";

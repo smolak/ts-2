@@ -1,7 +1,7 @@
-import { User } from "@supabase/supabase-js";
-import { FC, useEffect, useRef } from "react";
+import type { User } from "@repo/db/schema";
+import { type FC, useEffect, useRef } from "react";
 
-import { FeedDTO } from "../../dto/feed.dto";
+import type { FeedDTO } from "../../dto/feed.dto";
 import { LoadingFeed } from "../loading-feed";
 import { FeedList } from "./feed-list";
 
@@ -42,7 +42,7 @@ export const InfiniteFeedList: FC<InfiniteFeedListProps> = ({
         observer.unobserve(current);
       }
     };
-  }, [observerTarget, loadMore, shouldLoadMore]);
+  }, [loadMore, shouldLoadMore]);
 
   return (
     <>

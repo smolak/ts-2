@@ -1,4 +1,4 @@
-# CODING GUIDELINE - BookmarkFlow Platform
+# CODING GUIDELINE - LinkDeck Platform
 
 ## Table of Contents
 
@@ -1099,4 +1099,4 @@ export const protectedProcedure = publicProcedure.use(async ({ ctx, next }) => {
 - [ ] Test coverage
 - [ ] Documentation updates
 
-This coding guideline ensures consistency, maintainability, and quality across the BookmarkFlow platform development.
+This coding guideline ensures consistency, maintainability, and quality across the LinkDeck platform development.

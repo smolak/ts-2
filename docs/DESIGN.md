@@ -1,4 +1,4 @@
-# DESIGN Document - BookmarkFlow Social Platform
+# DESIGN Document - LinkDeck Social Platform
 
 ## Table of Contents
 
@@ -14,7 +14,7 @@
 
 ## Project Overview
 
-**BookmarkFlow** is a social bookmarking platform that allows users to save, categorize, and share URLs with a social feed system. Users can follow other users, like shared URLs, and organize their bookmarks into categories. The platform includes both a web application and a browser extension for easy URL sharing.
+**LinkDeck** is a social bookmarking platform that allows users to save, categorize, and share URLs with a social feed system. Users can follow other users, like shared URLs, and organize their bookmarks into categories. The platform includes both a web application and a browser extension for easy URL sharing.
 
 ### Core Value Proposition
 
@@ -306,7 +306,7 @@ Open Categories → Create New Category → Organize URLs → Bulk Actions → S
 
 ## Implementation Notes
 
-This design document focuses on the user experience and feature requirements for BookmarkFlow. For detailed technical implementation, see:
+This design document focuses on the user experience and feature requirements for LinkDeck. For detailed technical implementation, see:
 
 - **[ARCHITECTURE.md](./ARCHITECTURE.md)** - Technical architecture and system design
 - **[CODING-GUIDELINE.md](./CODING-GUIDELINE.md)** - Development standards and patterns

@@ -33,6 +33,8 @@ export const updateUserProfile = protectedProcedure
       });
     }
 
+    // TODO: perhaps it is a good idea to update the user image url as well, using currentUser() from clerk
+
     await db.update(schema.users).set(input).where(orm.eq(schema.users.id, userId));
 
     logger.info({ requestId, path }, "User profile update complete.");

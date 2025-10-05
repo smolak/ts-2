@@ -1,11 +1,11 @@
 "use client";
 
-import { Tabs, TabsList, TabsTrigger } from "@workspace/ui/components/tabs";
-import { cn } from "@workspace/ui/lib/utils";
+import { Tabs, TabsList, TabsTrigger } from "@repo/ui/components/tabs";
+import { cn } from "@repo/ui/lib/utils";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { FC, useCallback } from "react";
+import { type FC, useCallback } from "react";
 
-import { feedSources, feedSourceSchema, FeedSourceValue } from "../shared/feed-source";
+import { type FeedSourceValue, feedSourceSchema, feedSources } from "../shared/feed-source";
 
 type UserFeedSourceSelectorProps = {
   className?: string;
@@ -37,11 +37,11 @@ export const UserFeedSourceSelector: FC<UserFeedSourceSelectorProps> = ({ author
     const searchParamsString = decodeURIComponent(createSearchParamsString(source));
     let path = pathname;
 
-    if (searchParamsString != "") {
-      path += "?" + searchParamsString;
+    if (searchParamsString !== "") {
+      path += `?${searchParamsString}`;
     }
 
-    await router.push(path);
+    router.push(path);
   };
 
   return (

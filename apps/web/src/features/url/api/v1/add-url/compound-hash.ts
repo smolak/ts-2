@@ -1,5 +1,5 @@
-import { sha256 } from "@workspace/crypto/hash";
-import { AddUrlRequestBody } from "./request-body.schema";
+import { sha1, sha256 } from "@repo/crypto/hash";
+import type { AddUrlRequestBody } from "../add-url/request-body.schema";
 
 export const createCompoundHash = (metadata: AddUrlRequestBody["metadata"]): string => {
   const compoundHashData =
@@ -7,3 +7,5 @@ export const createCompoundHash = (metadata: AddUrlRequestBody["metadata"]): str
 
   return sha256(compoundHashData);
 };
+
+export const createUrlHash = sha1;

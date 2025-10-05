@@ -1,8 +1,8 @@
-# BookmarkFlow Project Context
+# LinkDeck Project Context
 
 ## Project Overview
 
-BookmarkFlow is a bookmark sharing application built with TanStack Start, orpc, and Clerk. It includes a web app and browser extension for sharing and discovering bookmarks.
+LinkDeck is a bookmark sharing application built with TanStack Start, orpc, and Clerk. It includes a web app and browser extension for sharing and discovering bookmarks.
 
 ## Documentation Structure
 

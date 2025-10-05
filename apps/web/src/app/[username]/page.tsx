@@ -1,13 +1,13 @@
 import { db } from "@workspace/db/db";
-import { type UserProfile } from "@workspace/db/types";
+import type { UserProfile } from "@workspace/db/types";
 import { usernameSchema } from "@workspace/user-profile/username/schemas/username.schema";
 import { normalizeUsername } from "@workspace/user-profile/utils/normalize-username";
 import { notFound } from "next/navigation";
-import { ReactNode } from "react";
+import type { ReactNode } from "react";
 
 import { CategoriesSelector } from "@/features/category/ui/categories-selector";
 import { InfiniteUserFeed } from "@/features/feed/ui/user-feed-list/infinite-user-feed";
-import { toPublicUserProfileVM } from "@/features/user-profile/models/public-user-profile.vm";
+import { toPublicUserProfileDto } from "@/features/user-profile/dto/public-user-profile.dto";
 import { UserProfileCard } from "@/features/user-profile/ui/user-profile-card";
 import { createClient } from "@/supabase/utils/server";
 
@@ -36,7 +36,7 @@ export default async function Page({
     notFound();
   }
 
-  const userProfile = toPublicUserProfileVM(maybeUserProfile);
+  const userProfile = toPublicUserProfileDto(maybeUserProfile);
   const categories = await db.query.categories.findMany({
     where: (categories, { eq }) => eq(categories.userId, userProfile.id),
     orderBy: (categories, { asc }) => asc(categories.name),

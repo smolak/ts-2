@@ -1,12 +1,12 @@
 "use client";
 
-import { schema } from "@workspace/db/db";
-import { UserProfile } from "@workspace/db/types";
-import { Button } from "@workspace/ui/components/button";
-import { LoadingIndicator } from "@workspace/ui/components/loading-indicator";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@workspace/ui/components/tooltip";
+import type { schema } from "@repo/db/db";
+import type { UserProfile } from "@repo/db/schema";
+import { Button } from "@repo/ui/components/button";
+import { LoadingIndicator } from "@repo/ui/components/loading-indicator";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@repo/ui/components/tooltip";
 import { UserMinus, UserPlus } from "lucide-react";
-import { FC, useEffect, useState } from "react";
+import { type FC, useEffect, useState } from "react";
 
 import { api } from "@/trpc/react";
 
@@ -23,7 +23,7 @@ export const ToggleFollowUser: FC<ToggleFollowUserProps> = ({ userId, onFollowTo
 
   useEffect(() => {
     setIsFollowing(isFollowingCheck);
-  }, [isDoneChecking, isFollowingCheck]);
+  }, [isFollowingCheck]);
 
   const { mutate: toggle, isPending: isToggling } = api.followUser.toggleFollowUser.useMutation({
     onSuccess(input) {

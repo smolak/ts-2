@@ -1,6 +1,7 @@
 import { categoriesRouter } from "@/features/category/router/categories";
 import { feedsRouter } from "@/features/feed/router/feeds";
 import { followUserRouter } from "@/features/follow-user/router/follow-user";
+import { urlsRouter } from "@/features/url/router/urls";
 import { usersRouter } from "@/features/user/router/users";
 import { userProfilesRouter } from "@/features/user-profile/router/user-profiles";
 import { createCallerFactory, createTRPCRouter } from "./trpc";
@@ -16,6 +17,7 @@ export const appRouter = createTRPCRouter({
   users: usersRouter,
   userProfiles: userProfilesRouter,
   feeds: feedsRouter,
+  userUrls: urlsRouter,
 });
 
 // export type definition of API

@@ -1,4 +1,4 @@
-import { CategoryId } from "@workspace/category/id/category-id.schema";
+import type { CategoryId } from "@repo/db/id/category-id";
 
 export const selectCategoryIdsForUpdate = ({
   currentCategoryIds,

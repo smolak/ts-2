@@ -1,11 +1,10 @@
+import type { UserProfile } from "@repo/db/schema";
 import Link from "next/link";
-import { FC } from "react";
-
-import { ProfileListItem, ProfileListItemProps } from "./profile-list-item.js";
-import { schema } from "@workspace/db/db";
+import type { FC } from "react";
+import { ProfileListItem, type ProfileListItemProps } from "./profile-list-item";
 
 type FollowersListProps = {
-  username: schema.UserProfile["username"];
+  username: UserProfile["username"];
   profiles: ReadonlyArray<ProfileListItemProps>;
   myProfile?: boolean;
 };

@@ -1,8 +1,6 @@
+import { categoryIdSchema } from "@repo/db/id/category-id";
+import { metadataSchema } from "@repo/metadata-scrapper/metadata.schema";
 import { z } from "zod";
-import { categoryIdSchema } from "@workspace/category/id/category-id.schema";
-import { getSchema } from "@workspace/metadata/compression";
-
-const metadataSchema = getSchema("v1");
 
 export const addUrlRequestBodySchema = z.object({
   metadata: metadataSchema,

@@ -1,15 +1,14 @@
-import { Avatar, AvatarFallback, AvatarImage } from "@workspace/ui/components/avatar";
-import { Badge } from "@workspace/ui/components/badge";
-import { Button } from "@workspace/ui/components/button";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@workspace/ui/components/card";
+import { Avatar, AvatarFallback, AvatarImage } from "@repo/ui/components/avatar";
+import { Badge } from "@repo/ui/components/badge";
+import { Button } from "@repo/ui/components/button";
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@repo/ui/components/card";
 import { Calendar, ExternalLink, Globe, Image as ImageIcon, MoreHorizontal, Users } from "lucide-react";
 import Link from "next/link";
-import { FC, ReactNode } from "react";
-
+import type { FC, ReactNode } from "react";
 import { LogoIcon } from "@/components/logo";
 
 import { UserImage } from "../../../user/ui/user-image";
-import { FeedDTO } from "../../dto/feed.dto";
+import type { FeedDTO } from "../../dto/feed.dto";
 
 type FeedListItemProps = {
   feedItem: FeedDTO;
@@ -62,11 +61,9 @@ export const FeedListItem: FC<FeedListItemProps> = ({ feedItem, interactions, op
               className="max-h-100 flex place-content-center overflow-hidden"
               rel="noreferrer"
             >
-              <img
-                src={url.metadata.imageUrl}
-                alt={`${url.metadata.title} preview`}
-                className="object-cover"
-              />
+              <picture>
+                <img src={url.metadata.imageUrl} alt={`${url.metadata.title} preview`} className="object-cover" />
+              </picture>
             </a>
           </figure>
         )}
@@ -166,7 +163,9 @@ export const FeedListItem: FC<FeedListItemProps> = ({ feedItem, interactions, op
                 className="flex max-h-80 place-content-center overflow-hidden"
                 rel="noreferrer"
               >
-                <img src={url.metadata.imageUrl} alt={url.metadata.title} className="object-cover" />
+                <picture>
+                  <img src={url.metadata.imageUrl} alt={url.metadata.title} className="object-cover" />
+                </picture>
               </a>
             </figure>
           )}

@@ -1,7 +1,7 @@
-import { UserUrl } from "@workspace/db/types";
-import { toast } from "@workspace/ui/components/sonner";
+import type { UserUrl } from "@repo/db/schema";
+import { toast } from "@repo/ui/components/sonner";
 import { Heart } from "lucide-react";
-import { FC, ReactNode, useState } from "react";
+import { type FC, type ReactNode, useState } from "react";
 
 import { api } from "@/trpc/react";
 
@@ -39,6 +39,7 @@ export const ToggleLikeUrl: FC<ToggleLikeUrlProps> = ({ userUrlId, liked, likes 
 
   return (
     <button
+      type="button"
       className="flex items-center gap-1.5 rounded-xl p-2 text-sm hover:bg-red-50"
       disabled={isToggling}
       onClick={() => {

@@ -1,16 +1,14 @@
-import { schema } from "@workspace/db/db";
-import { type YesNo } from "@workspace/shared/types";
-
-import { FC } from "react";
-
+import type { UserProfile } from "@repo/db/schema";
+import type { YesNo } from "@repo/shared/types";
+import { Card } from "@repo/ui/components/card";
+import type { FC } from "react";
+import { UserImage } from "@/features/user/ui/user-image";
 import { FollowingBadge } from "./following-badge.js";
 import { FollowsMeBadge } from "./follows-me-badge.js";
-import { Card } from "@workspace/ui/components/card";
-import { UserImage } from "@/modules/user/ui/user-image.jsx";
 
 export type ProfileListItemProps = {
-  username: schema.UserProfile["username"];
-  imageUrl: schema.UserProfile["imageUrl"];
+  username: UserProfile["username"];
+  imageUrl: UserProfile["imageUrl"];
   iFollow?: YesNo;
   isFollowingMe?: YesNo;
 };

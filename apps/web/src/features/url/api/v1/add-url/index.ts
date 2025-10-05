@@ -1,11 +1,9 @@
-import { sha1 } from "@workspace/crypto/hash";
-import { db, orm, schema } from "@workspace/db/db";
-import type { Url, UserUrl } from "@workspace/db/types";
-import { compressMetadata } from "@workspace/metadata/compression";
-import { type UserId } from "@workspace/user/id/user-id.schema";
+import { db, orm, schema } from "@repo/db/db";
+import type { UserId } from "@repo/db/id/user-id";
+import type { Url, UserUrl } from "@repo/db/schema";
 
-import { createCompoundHash } from "./compound-hash";
-import { type AddUrlRequestBody } from "./request-body.schema";
+import { createCompoundHash, createUrlHash } from "./compound-hash";
+import type { AddUrlRequestBody } from "./request-body.schema";
 
 interface Params {
   categoryIds: AddUrlRequestBody["categoryIds"];
@@ -17,7 +15,7 @@ type AddUrl = (params: Params) => Promise<UserUrl>;
 
 export const addUrl: AddUrl = async ({ categoryIds, metadata, userId }) => {
   const compoundHash = createCompoundHash(metadata);
-  const urlHash = sha1(metadata.url);
+  const urlHash = createUrlHash(metadata.url);
 
   const maybeUrl = await db.query.urls.findFirst({
     where: (urls, { eq }) => eq(urls.compoundHash, compoundHash),
@@ -54,7 +52,7 @@ export const addUrl: AddUrl = async ({ categoryIds, metadata, userId }) => {
         .insert(schema.urls)
         .values({
           compoundHash,
-          metadata: compressMetadata("v1", metadata),
+          metadata,
           url: metadata.url,
         })
         .returning();

@@ -1,5 +1,5 @@
-import { LoadingIndicator } from "@workspace/ui/components/loading-indicator";
-import { FC } from "react";
+import { LoadingIndicator } from "@repo/ui/components/loading-indicator";
+import type { FC } from "react";
 
 export const LoadingFeed: FC = () => {
   return (

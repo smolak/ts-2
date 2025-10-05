@@ -1,6 +1,4 @@
-import { ReactNode } from "react";
-
-export const ErrorLoadingFeed = (): ReactNode => {
+export const ErrorLoadingFeed = () => {
   return (
     <section className="p-5 sm:px-0 sm:py-20">
       <h1 className="mb-8 text-2xl font-bold tracking-tight text-gray-900 sm:text-3xl md:text-4xl">

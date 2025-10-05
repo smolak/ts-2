@@ -1,19 +1,19 @@
 "use client";
 
-import { A } from "@/components/a";
-import { api } from "@/trpc/react";
-import { generateApiKey } from "@workspace/user/api-key/generate-api-key";
-import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useState } from "react";
-import { REPOSITORY_URL } from "@/lib/constants";
-import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel } from "@workspace/ui/components/form";
+import { Button } from "@repo/ui/components/button";
+import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel } from "@repo/ui/components/form";
+import { Input } from "@repo/ui/components/input";
+import { generateApiKey } from "@repo/user/api-key/generate-api-key";
 import { AtSign, Info, KeyRound, RefreshCcw } from "lucide-react";
-import { Input } from "@workspace/ui/components/input";
+import { useState } from "react";
+import { useForm } from "react-hook-form";
+import { A } from "@/components/a";
 import { CopyToClipboard } from "@/components/copy-to-clipboard";
-import { Button } from "@workspace/ui/components/button";
-import { updateUserProfileSchema, UpdateUserProfileSchema } from "../router/procedures/update-user-profile";
-import { CompleteUserProfileSchema } from "../schemas/complete-user-profile.schema";
+import { REPOSITORY_URL } from "@/lib/constants";
+import { api } from "@/trpc/react";
+import { type UpdateUserProfileSchema, updateUserProfileSchema } from "../router/procedures/update-user-profile";
+import type { CompleteUserProfileSchema } from "../schemas/complete-user-profile.schema";
 
 export const ExistingUserProfileForm = ({ username, apiKey }: CompleteUserProfileSchema) => {
   const { mutate: saveUserProfile, isPending, isSuccess, error } = api.userProfiles.updateUserProfile.useMutation();

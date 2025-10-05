@@ -1,8 +1,8 @@
 import { TRPCError } from "@trpc/server";
 import { protectedProcedure } from "@/server/api/trpc";
-import { type PrivateUserProfileVM, toPrivateUserProfileVM } from "../../models/private-user-profile.vm";
+import { type PrivateUserProfileDto, toPrivateUserProfileDto } from "../../dto/private-user-profile.dto";
 
-export const getPrivateUserProfile = protectedProcedure.query<PrivateUserProfileVM>(
+export const getPrivateUserProfile = protectedProcedure.query<PrivateUserProfileDto>(
   async ({ ctx: { logger, requestId, userId, db } }) => {
     const path = "userProfile.getPrivateUserProfile";
 
@@ -24,7 +24,7 @@ export const getPrivateUserProfile = protectedProcedure.query<PrivateUserProfile
     });
 
     if (maybeUserProfile) {
-      return toPrivateUserProfileVM({
+      return toPrivateUserProfileDto({
         ...maybeUserProfile,
         id: userId,
         apiKey: maybeUserProfile.user.apiKey,

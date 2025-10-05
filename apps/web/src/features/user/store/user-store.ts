@@ -1,4 +1,4 @@
-import type { User, UserProfile } from "@workspace/db/types";
+import type { User, UserProfile } from "@repo/db/schema";
 import { createStore } from "zustand/vanilla";
 
 export type UserState =

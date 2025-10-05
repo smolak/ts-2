@@ -1,4 +1,4 @@
-import { describe, it, expect } from "vitest";
+import { describe, expect, it } from "vitest";
 import { selectCategoryIdsForUpdate } from "./select-category-ids-for-update";
 
 describe("select-category-ids-for-update", () => {

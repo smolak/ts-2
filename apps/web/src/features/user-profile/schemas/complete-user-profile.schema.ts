@@ -1,5 +1,5 @@
-import { usernameSchema } from "@workspace/user-profile/username/schemas/username.schema";
-import { apiKeySchema } from "@workspace/user/api-key/api-key.schema";
+import { apiKeySchema } from "@repo/user/api-key/api-key.schema";
+import { usernameSchema } from "@repo/user-profile/username/schemas/username.schema";
 import { z } from "zod";
 
 export type CompleteUserProfileSchema = z.infer<typeof completeUserProfileSchema>;

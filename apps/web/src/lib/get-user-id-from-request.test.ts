@@ -1,8 +1,7 @@
-import { type Logger } from "@workspace/logger/logger";
-import { generateApiKey } from "@workspace/user/api-key/generate-api-key";
+import { generateApiKey } from "@repo/user/api-key/generate-api-key";
 import { describe, expect, it, vi } from "vitest";
 import { mock } from "vitest-mock-extended";
-
+import type { Logger } from "@/features/logger";
 import { getUserIdFromRequestFactory } from "./get-user-id-from-request";
 
 describe("getUserIdFromRequest", () => {

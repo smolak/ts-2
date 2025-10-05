@@ -1,4 +1,4 @@
-# ARCHITECTURE Document - BookmarkFlow Platform
+# ARCHITECTURE Document - LinkDeck Platform
 
 ## Table of Contents
 
@@ -634,7 +634,7 @@ app.post("/api/webhooks/clerk", (req, res) => {
 const uploadImage = async (file: File) => {
   const formData = new FormData();
   formData.append("file", file);
-  formData.append("upload_preset", "bookmarkflow");
+  formData.append("upload_preset", "linkdeck");
 
   const response = await fetch(`https://api.cloudinary.com/v1_1/${CLOUD_NAME}/image/upload`, {
     method: "POST",
@@ -875,14 +875,14 @@ const getFeedItems = async (userId: string, limit: number) => {
 ```typescript
 // Static assets
 const staticAssets = {
-  css: "https://cdn.bookmarkflow.com/css/",
-  js: "https://cdn.bookmarkflow.com/js/",
-  images: "https://cdn.bookmarkflow.com/images/",
+  css: "https://cdn.linkdeck.com/css/",
+  js: "https://cdn.linkdeck.com/js/",
+  images: "https://cdn.linkdeck.com/images/",
 };
 
 // API responses
 const apiResponses = {
-  baseUrl: "https://api.bookmarkflow.com",
+  baseUrl: "https://api.linkdeck.com",
   timeout: 5000,
   retries: 3,
 };
@@ -1092,4 +1092,4 @@ app.get("/health", async (req, res) => {
 
 ---
 
-This architecture document provides the technical foundation for building and scaling the BookmarkFlow platform with modern technologies and best practices.
+This architecture document provides the technical foundation for building and scaling the LinkDeck platform with modern technologies and best practices.

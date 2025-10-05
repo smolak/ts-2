@@ -1,16 +1,16 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Button } from "@workspace/ui/components/button";
-import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel } from "@workspace/ui/components/form";
-import { Input } from "@workspace/ui/components/input";
-import { Separator } from "@workspace/ui/components/separator";
-import { cn } from "@workspace/ui/lib/utils";
-import { generateApiKey } from "@workspace/user/api-key/generate-api-key";
+import { Button } from "@repo/ui/components/button";
+import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel } from "@repo/ui/components/form";
+import { Input } from "@repo/ui/components/input";
+import { Separator } from "@repo/ui/components/separator";
+import { cn } from "@repo/ui/lib/utils";
+import { generateApiKey } from "@repo/user/api-key/generate-api-key";
 import debounce from "debounce";
 import { AtSign, Info, KeyRound, RefreshCcw, UserCheck2, UserX2 } from "lucide-react";
 import Link from "next/link";
-import { ChangeEvent, useEffect, useState } from "react";
+import { type ChangeEvent, useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 
 import { A } from "@/components/a";
@@ -18,7 +18,7 @@ import { CopyToClipboard } from "@/components/copy-to-clipboard";
 import { REPOSITORY_URL, WEB_APP_DOMAIN } from "@/lib/constants";
 import { api } from "@/trpc/react";
 
-import { CreateUserProfileSchema, createUserProfileSchema } from "../router/procedures/create-user-profile";
+import { type CreateUserProfileSchema, createUserProfileSchema } from "../router/procedures/create-user-profile";
 import { usernameCheckSchema } from "../router/procedures/username-check";
 
 interface FormValues {

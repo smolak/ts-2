@@ -126,6 +126,7 @@ const isAuthenticated = t.middleware(async ({ ctx, next }) => {
     throw new TRPCError({ code: "UNAUTHORIZED" });
   }
 
+  // TODO: we might not need to pass the userId to the procedure, as the auth is already available in the context
   return next({
     ctx: {
       userId,

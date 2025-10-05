@@ -1,10 +1,9 @@
+import { usernameSchema } from "@repo/user-profile/username/schemas/username.schema";
+import { normalizeUsername } from "@repo/user-profile/utils/normalize-username";
 import { TRPCError } from "@trpc/server";
-import { usernameSchema } from "@workspace/user-profile/username/schemas/username.schema";
 import { z } from "zod";
-
-import { type PublicUserProfileVM, toPublicUserProfileVM } from "../../models/public-user-profile.vm";
 import { publicProcedure } from "@/server/api/trpc";
-import { normalizeUsername } from "@workspace/user-profile/utils/normalize-username";
+import { type PublicUserProfileDto, toPublicUserProfileDto } from "../../dto/public-user-profile.dto";
 
 export type GetPublicUserProfile = z.infer<typeof getPublicUserProfileSchema>;
 
@@ -14,7 +13,7 @@ export const getPublicUserProfileSchema = z.object({
 
 export const getPublicUserProfile = publicProcedure
   .input(getPublicUserProfileSchema)
-  .query<PublicUserProfileVM>(async ({ ctx: { logger, requestId, db }, input: { username } }) => {
+  .query<PublicUserProfileDto>(async ({ ctx: { logger, requestId, db }, input: { username } }) => {
     const path = "userProfile.getPublicUserProfile";
 
     logger.info({ requestId, path, username }, "Get public user profile initiated.");
@@ -24,7 +23,7 @@ export const getPublicUserProfile = publicProcedure
     });
 
     if (maybeUserProfile) {
-      return toPublicUserProfileVM(maybeUserProfile);
+      return toPublicUserProfileDto(maybeUserProfile);
     }
 
     logger.info({ requestId, path, username }, "User not found");

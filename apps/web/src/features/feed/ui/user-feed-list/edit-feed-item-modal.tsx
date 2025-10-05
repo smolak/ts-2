@@ -54,10 +54,11 @@ export const EditFeedItemModal: FC<EditFeedItemProps> = ({ open, onOpenChange, f
   });
   const {
     mutate: updateUserUrl,
-    isLoading: updatingUserUrl,
+    isPending: updatingUserUrl,
     isSuccess: updatedUserUrl,
     isError: errorUpdatingUserUrl,
-  } = api.url.updateUserUrl.useMutation();
+  } = api.userUrls.updateUserUrl.useMutation();
+
   const [selectedCategoryIds, setSelectedCategoryIds] = useState<string[]>([]);
 
   const onCategorySelectionChange = useCallback(
@@ -69,7 +70,7 @@ export const EditFeedItemModal: FC<EditFeedItemProps> = ({ open, onOpenChange, f
 
       setSelectedCategoryIds(newSelection);
     },
-    [selectedCategoryIds, setSelectedCategoryIds],
+    [selectedCategoryIds],
   );
 
   useEffect(() => {

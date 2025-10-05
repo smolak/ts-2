@@ -1,16 +1,16 @@
 "use client";
 
-import { UserProfile } from "@workspace/db/types";
+import type { UserProfile } from "@workspace/db/types";
 import { Card, CardContent, CardHeader, CardTitle } from "@workspace/ui/components/card";
 import { cn } from "@workspace/ui/lib/utils";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { FC, useState } from "react";
+import { type FC, useState } from "react";
 
 import { ToggleFollowUser } from "@/features/follow-user/ui/toggle-follow-user";
 import { UserImage } from "@/features/user/ui/user-image";
 
-import { PublicUserProfileVM } from "../../models/public-user-profile.vm";
+import type { PublicUserProfileVM } from "../../dto/public-user-profile.dto";
 import { DataElement } from "./data-element";
 
 interface UserProfileCardProps {

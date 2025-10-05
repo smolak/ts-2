@@ -1,8 +1,7 @@
 "use client";
 
-import { User } from "@supabase/supabase-js";
+import type { User } from "@repo/db/schema";
 import { useEffect } from "react";
-
 import { useUserStore } from "@/features/user/store/user-store-provider";
 import { api } from "@/trpc/react";
 

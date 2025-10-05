@@ -1,3 +1,4 @@
+import { currentUser } from "@clerk/nextjs/server";
 import { orm, schema } from "@repo/db/db";
 import { apiKeySchema } from "@repo/user/api-key/api-key.schema";
 import { usernameSchema } from "@repo/user-profile/username/schemas/username.schema";
@@ -8,6 +9,7 @@ import { protectedProcedure } from "@/server/api/trpc";
 
 export type CreateUserProfileSchema = z.infer<typeof createUserProfileSchema>;
 
+// TODO: move this to some constant / configuration place
 export const NOT_ALLOWED_NORMALIZED_USERNAMES = ["admin", "urlshare", "contact", "accounting", "security"];
 
 const restrictedUsernameSchema = usernameSchema.refine(
@@ -50,6 +52,8 @@ export const createUserProfile = protectedProcedure
       });
     }
 
+    const user = await currentUser();
+
     const userProfile = await db.transaction(async (tx) => {
       await tx
         .update(schema.users)
@@ -64,7 +68,7 @@ export const createUserProfile = protectedProcedure
           userId,
           username: input.username,
           usernameNormalized: normalizeUsername(input.username),
-          imageUrl: user.user_metadata.avatar_url,
+          imageUrl: user?.imageUrl,
         })
         .returning();
 

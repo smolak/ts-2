@@ -1,11 +1,11 @@
-import { schema } from "@workspace/db/db";
-import { cn } from "@workspace/ui/lib/utils";
+import type { UserProfile } from "@repo/db/schema";
+import { cn } from "@repo/ui/lib/utils";
 import { User } from "lucide-react";
-import { FC } from "react";
+import type { FC } from "react";
 
 interface UserImageProps {
-  username: schema.UserProfile["username"];
-  imageUrl?: schema.UserProfile["imageUrl"];
+  username: UserProfile["username"];
+  imageUrl?: UserProfile["imageUrl"];
   size?: "big" | "small";
   className?: string;
 }

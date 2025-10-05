@@ -1,15 +1,15 @@
 "use client";
 
-import { User } from "@supabase/supabase-js";
-import { InfiniteData } from "@tanstack/react-query";
+import type { User } from "@repo/db/schema";
+import type { InfiniteData } from "@tanstack/react-query";
 import { useSearchParams } from "next/navigation";
 import qs from "qs";
-import { FC } from "react";
+import type { FC } from "react";
 
 import { api } from "@/trpc/react";
 
-import { FeedDTO } from "../../dto/feed.dto";
-import { GetUserFeedResponse } from "../../router/procedures/get-user-feed";
+import type { FeedDTO } from "../../dto/feed.dto";
+import type { GetUserFeedResponse } from "../../router/procedures/get-user-feed";
 import { feedSourceSchema } from "../../shared/feed-source";
 import { ErrorLoadingFeed } from "../error-loading-feed";
 import { LoadingFeed } from "../loading-feed";
