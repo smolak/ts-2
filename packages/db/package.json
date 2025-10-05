@@ -16,8 +16,7 @@
   },
   "devDependencies": {
     "@repo/typescript-config": "workspace:*",
-    "drizzle-kit": "^0.31.4",
-    "tsx": "^4.20.5",
+    "drizzle-kit": "^0.31.5",
     "typescript": "catalog:",
     "vitest": "catalog:"
   },
