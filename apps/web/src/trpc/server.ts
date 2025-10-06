@@ -12,6 +12,7 @@ import { createQueryClient } from "./query-client";
  * handling a tRPC call from a React Server Component.
  *
  * TODO: check if `cache` is needed. The createTRPCContext creates request id dynamically. Check if the ID is dynamic each time.
+ *       Perhaps creation of request id should be done in somewhere, where this caching is not interrupting it.
  */
 const createContext = cache(async () => {
   const heads = new Headers(await headers());
