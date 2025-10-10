@@ -46,7 +46,7 @@ export const UserFeedSourceSelector: FC<UserFeedSourceSelectorProps> = ({ author
 
   return (
     <div className={cn("flex items-center gap-2", className)}>
-      <span className="text-sm text-gray-500">Added by:</span>
+      <span className="text-gray-500 text-sm">Added by:</span>
       <Tabs
         defaultValue={source}
         onValueChange={(source) => {

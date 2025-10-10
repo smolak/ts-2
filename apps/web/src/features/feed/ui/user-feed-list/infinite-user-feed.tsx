@@ -68,7 +68,7 @@ export const InfiniteUserFeed: FC<InfiniteUserFeedProps> = ({ userId, from, view
   if (feed.length === 0) {
     return (
       <div className="rounded-xl bg-gray-50 p-10">
-        <h2 className="text-md font-bold">No URLs yet. Add some!</h2>
+        <h2 className="font-bold text-md">No URLs yet. Add some!</h2>
       </div>
     );
   }

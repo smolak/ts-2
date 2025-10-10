@@ -12,8 +12,14 @@ import { A } from "@/components/a";
 import { CopyToClipboard } from "@/components/copy-to-clipboard";
 import { REPOSITORY_URL } from "@/lib/constants";
 import { api } from "@/trpc/react";
-import { type UpdateUserProfileSchema, updateUserProfileSchema } from "../router/procedures/update-user-profile";
+import { type UpdateUserProfileSchema } from "../router/procedures/update-user-profile";
 import type { CompleteUserProfileSchema } from "../schemas/complete-user-profile.schema";
+import { apiKeySchema } from "@repo/user/api-key/api-key.schema";
+import { z } from "zod";
+
+const updateUserProfileSchema = z.object({
+  apiKey: apiKeySchema,
+});
 
 export const ExistingUserProfileForm = ({ username, apiKey }: CompleteUserProfileSchema) => {
   const { mutate: saveUserProfile, isPending, isSuccess, error } = api.userProfiles.updateUserProfile.useMutation();

@@ -1,7 +1,6 @@
 "server-only";
 
-import { TRPCError } from "@trpc/server";
-import { Separator } from "@workspace/ui/components/separator";
+import { Separator } from "@repo/ui/components/separator";
 import type { ReactElement } from "react";
 
 import { completeUserProfileSchema } from "@/features/user-profile/schemas/complete-user-profile.schema";
@@ -10,31 +9,25 @@ import { NewUserProfileForm } from "@/features/user-profile/ui/new-user-profile-
 import { api } from "@/trpc/server";
 
 export default async function Page(): Promise<ReactElement> {
-  try {
-    const maybeCompletePrivateUserProfile = await api.userProfiles.getPrivateUserProfile();
-    const completeUserProfile = completeUserProfileSchema.parse(maybeCompletePrivateUserProfile);
+  const maybeCompletePrivateUserProfile = await api.userProfiles.getPrivateUserProfile();
+  const completeUserProfile = completeUserProfileSchema.safeParse(maybeCompletePrivateUserProfile);
 
+  if (completeUserProfile.success) {
     return (
       <section className="space-y-6">
         <header className="space-y-1">
-          <h3 className="text-xl font-medium tracking-tight">Profile settings</h3>
-          <h4 className="text-sm font-light text-gray-500">Manage your profile settings here.</h4>
+          <h3 className="font-medium text-xl tracking-tight">Profile settings</h3>
+          <h4 className="font-light text-gray-500 text-sm">Manage your profile settings here.</h4>
         </header>
         <Separator className="md:max-w-[450px]" />
-        <ExistingUserProfileForm {...completeUserProfile} />
+        <ExistingUserProfileForm {...completeUserProfile.data} />
       </section>
     );
-  } catch (error) {
-    if (error instanceof TRPCError) {
-      if (error.code === "NOT_FOUND") {
-        return (
-          <section className="space-y-6">
-            <NewUserProfileForm />
-          </section>
-        );
-      }
-    }
-
-    throw error;
   }
+
+  return (
+    <section className="space-y-6">
+      <NewUserProfileForm />
+    </section>
+  );
 }

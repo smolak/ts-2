@@ -1,17 +1,10 @@
 import type { CategoryDto } from "@repo/category/dto/category.dto";
-import { userIdSchema } from "@repo/db/id/user-id";
-import { z } from "zod";
-import { publicProcedure } from "@/server/api/trpc";
-
-export const getUserCategoriesSchema = z.object({
-  userId: userIdSchema,
-});
+import { protectedProcedure } from "@/server/api/trpc";
 
 type GetUserCategoriesResult = CategoryDto[];
 
-export const getUserCategories = publicProcedure
-  .input(getUserCategoriesSchema)
-  .query<GetUserCategoriesResult>(async ({ ctx: { logger, requestId, db }, input: { userId } }) => {
+export const getUserCategories = protectedProcedure.query<GetUserCategoriesResult>(
+  async ({ ctx: { logger, requestId, db, userId } }) => {
     const path = "category.getUserCategories";
 
     logger.info({ requestId, path, userId }, "Fetching user's categories.");
@@ -29,4 +22,5 @@ export const getUserCategories = publicProcedure
     logger.info({ requestId, path, userId }, "User's categories fetched.");
 
     return categories;
-  });
+  },
+);

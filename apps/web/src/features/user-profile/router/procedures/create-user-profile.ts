@@ -1,4 +1,4 @@
-import { currentUser } from "@clerk/nextjs/server";
+import { clerkClient as createClerkClient, currentUser } from "@clerk/nextjs/server";
 import { orm, schema } from "@repo/db/db";
 import { apiKeySchema } from "@repo/user/api-key/api-key.schema";
 import { usernameSchema } from "@repo/user-profile/username/schemas/username.schema";
@@ -52,7 +52,15 @@ export const createUserProfile = protectedProcedure
       });
     }
 
-    const user = await currentUser();
+    const clerkUser = await currentUser();
+    const clerkClient = await createClerkClient();
+
+    if (!clerkUser) {
+      throw new TRPCError({
+        code: "BAD_REQUEST",
+        message: "User doesn't exist on the auth provider.",
+      });
+    }
 
     const userProfile = await db.transaction(async (tx) => {
       await tx
@@ -68,9 +76,15 @@ export const createUserProfile = protectedProcedure
           userId,
           username: input.username,
           usernameNormalized: normalizeUsername(input.username),
-          imageUrl: user?.imageUrl,
+          imageUrl: clerkUser.imageUrl,
         })
         .returning();
+
+      await clerkClient.users.updateUserMetadata(clerkUser.id, {
+        publicMetadata: {
+          appUserId: userId,
+        },
+      });
 
       return result;
     });

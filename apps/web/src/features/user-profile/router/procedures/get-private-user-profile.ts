@@ -1,8 +1,8 @@
-import { TRPCError } from "@trpc/server";
+import type { Maybe } from "@repo/shared/types";
 import { protectedProcedure } from "@/server/api/trpc";
 import { type PrivateUserProfileDto, toPrivateUserProfileDto } from "../../dto/private-user-profile.dto";
 
-export const getPrivateUserProfile = protectedProcedure.query<PrivateUserProfileDto>(
+export const getPrivateUserProfile = protectedProcedure.query<Maybe<PrivateUserProfileDto>>(
   async ({ ctx: { logger, requestId, userId, db } }) => {
     const path = "userProfile.getPrivateUserProfile";
 
@@ -33,6 +33,6 @@ export const getPrivateUserProfile = protectedProcedure.query<PrivateUserProfile
 
     logger.info({ requestId, path, userId }, "User not found");
 
-    throw new TRPCError({ code: "NOT_FOUND", message: "User not found" });
+    return undefined;
   },
 );

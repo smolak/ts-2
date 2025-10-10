@@ -1,17 +1,18 @@
 "use client";
 
-import type { User } from "@repo/db/schema";
 import { LoadingIndicator } from "@repo/ui/components/loading-indicator";
 import { useEffect } from "react";
-
 import { api } from "@/trpc/react";
-
 import { useCategoriesStore } from "../category/stores/use-categories-store";
 import { ErrorLoadingCategories } from "../category/ui/category-picker/error-loading-categories";
 import { FeedListFilters } from "../feed/ui/feed-list-filters";
 import { InfiniteUserFeed } from "../feed/ui/user-feed-list/infinite-user-feed";
+import { useUserId } from "../user/hooks/use-user-id";
 
-export const LoggedInUserContent = ({ userId }: { userId: User["id"] }) => {
+export const LoggedInUserContent = () => {
+  // biome-ignore lint/style/noNonNullAssertion: At this point in time, the user is logged in
+  const userId = useUserId()!;
+
   const {
     data: categories,
     isLoading,
@@ -19,8 +20,9 @@ export const LoggedInUserContent = ({ userId }: { userId: User["id"] }) => {
     isError,
     isRefetching,
     refetch,
-  } = api.categories.getUserCategories.useQuery({ userId });
+  } = api.categories.getUserCategories.useQuery();
 
+  // TODO:  This is probably not needed OR fetching the categories should be moved to the store
   const { setCategories, shouldRefetchCategories, setShouldRefetchCategories } = useCategoriesStore();
 
   useEffect(() => {

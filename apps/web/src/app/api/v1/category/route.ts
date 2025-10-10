@@ -1,11 +1,10 @@
-import { type AddCategorySuccessResponse, addCategoryBodySchema } from "@workspace/category/api/v1/add-category.schema";
-import type { GetCategoriesSuccessResponse } from "@workspace/category/api/v1/get-categories.schema";
-import { getUserCategories } from "@workspace/category/db/operations";
-import { db, schema } from "@workspace/db/db";
-import { logger } from "@workspace/logger/logger";
-import { generateRequestId } from "@workspace/request/id/generate-request-id";
+import { type AddCategorySuccessResponse, addCategoryBodySchema } from "@repo/category/api/v1/add-category.schema";
+import type { GetCategoriesSuccessResponse } from "@repo/category/api/v1/get-categories.schema";
+import { db, schema } from "@repo/db/db";
+import { generateRequestId } from "@repo/db/id/request-id";
 import { StatusCodes } from "http-status-codes";
-
+import { getUserCategories } from "@/features/category/router/procedures/get-user-categories";
+import { logger } from "@/features/logger";
 import { type CorsOptions, cors } from "@/lib/cors";
 import { getUserIdFromRequest } from "@/lib/get-user-id-from-request";
 
@@ -30,7 +29,17 @@ export async function GET(request: Request) {
     return cors(request, response, corsOptions);
   }
 
-  const categories = await getUserCategories(userId);
+  const categories = await db.query.categories.findMany({
+    columns: {
+      id: true,
+      name: true,
+      urlsCount: true,
+    },
+    where: (categories, { eq }) => eq(categories.userId, userId),
+    orderBy: (categories, { asc }) => [asc(categories.name)],
+  });
+
+  // const categories = await getUserCategories();
 
   logger.info({ requestId, actionType: GET_CATEGORIES_ACTION, categories }, "Categories retrieved.");
 

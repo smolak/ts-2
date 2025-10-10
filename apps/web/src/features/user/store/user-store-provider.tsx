@@ -32,3 +32,7 @@ export const useUserStore = <T,>(selector: (store: UserStore) => T): T => {
 
   return useStore(userStoreContext, selector);
 };
+
+export const useUser = () => {
+  return useUserStore((state) => state.profile);
+};

@@ -120,16 +120,30 @@ const timingMiddleware = t.middleware(async ({ next, path }) => {
 export const publicProcedure = t.procedure.use(timingMiddleware);
 
 const isAuthenticated = t.middleware(async ({ ctx, next }) => {
-  const { isAuthenticated, userId } = ctx.auth;
+  const { isAuthenticated, userId: clerkUserId } = ctx.auth;
 
-  if (!isAuthenticated) {
+  if (!isAuthenticated || !clerkUserId) {
     throw new TRPCError({ code: "UNAUTHORIZED" });
   }
 
-  // TODO: we might not need to pass the userId to the procedure, as the auth is already available in the context
+  // Get or create internal user record
+  const [user] = await ctx.db
+    .insert(ctx.db._.fullSchema.users)
+    .values({ clerkUserId })
+    .onConflictDoUpdate({
+      target: ctx.db._.fullSchema.users.clerkUserId,
+      set: { clerkUserId }, // No-op update to return existing record
+    })
+    .returning();
+
+  if (!user) {
+    throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Failed to get user" });
+  }
+
   return next({
     ctx: {
-      userId,
+      userId: user.id, // Internal, application userId, not Clerk's
+      clerkUserId,
     },
   });
 });

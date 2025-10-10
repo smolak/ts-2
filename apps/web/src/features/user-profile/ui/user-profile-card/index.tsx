@@ -1,20 +1,18 @@
 "use client";
 
-import type { UserProfile } from "@workspace/db/types";
-import { Card, CardContent, CardHeader, CardTitle } from "@workspace/ui/components/card";
-import { cn } from "@workspace/ui/lib/utils";
+import type { UserProfile } from "@repo/db/schema";
+import { Card, CardContent, CardHeader, CardTitle } from "@repo/ui/components/card";
+import { cn } from "@repo/ui/lib/utils";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { type FC, useState } from "react";
-
 import { ToggleFollowUser } from "@/features/follow-user/ui/toggle-follow-user";
 import { UserImage } from "@/features/user/ui/user-image";
-
-import type { PublicUserProfileVM } from "../../dto/public-user-profile.dto";
+import type { PublicUserProfileDto } from "../../dto/public-user-profile.dto";
 import { DataElement } from "./data-element";
 
 interface UserProfileCardProps {
-  publicUserProfileData: PublicUserProfileVM;
+  publicUserProfileData: PublicUserProfileDto;
   canFollow?: boolean;
 }
 
@@ -33,7 +31,7 @@ export const UserProfileCard: FC<UserProfileCardProps> = ({ publicUserProfileDat
             username={username}
             imageUrl={imageUrl}
             size="big"
-            className="hover:ring-0 md:absolute md:-top-9"
+            className="md:-top-9 hover:ring-0 md:absolute"
           />
           <div className="flex flex-col items-center gap-2">
             <span className="text-lg">@{username}</span>
@@ -42,7 +40,7 @@ export const UserProfileCard: FC<UserProfileCardProps> = ({ publicUserProfileDat
         </CardTitle>
       </CardHeader>
       <CardContent className="flex items-stretch p-2 md:flex-col">
-        <div className="md:text-md max-md:flex max-md:flex-col max-md:justify-between md:grid md:grid-cols-2 md:grid-rows-2 md:gap-x-14 md:gap-y-4 md:text-center">
+        <div className="max-md:flex max-md:flex-col max-md:justify-between md:grid md:grid-cols-2 md:grid-rows-2 md:gap-x-14 md:gap-y-4 md:text-center md:text-md">
           <Link
             href={`/${username}`}
             className={cn("rounded-sm px-2 py-1", pathname === `/${username}` && "bg-slate-50")}

@@ -1,7 +1,7 @@
-import { db } from "@workspace/db/db";
-import type { UserProfile } from "@workspace/db/types";
-import { usernameSchema } from "@workspace/user-profile/username/schemas/username.schema";
-import { normalizeUsername } from "@workspace/user-profile/utils/normalize-username";
+import { db } from "@repo/db/db";
+import type { UserProfile } from "@repo/db/schema";
+import { usernameSchema } from "@repo/user-profile/username/schemas/username.schema";
+import { normalizeUsername } from "@repo/user-profile/utils/normalize-username";
 import { notFound } from "next/navigation";
 import type { ReactNode } from "react";
 
@@ -9,18 +9,12 @@ import { CategoriesSelector } from "@/features/category/ui/categories-selector";
 import { InfiniteUserFeed } from "@/features/feed/ui/user-feed-list/infinite-user-feed";
 import { toPublicUserProfileDto } from "@/features/user-profile/dto/public-user-profile.dto";
 import { UserProfileCard } from "@/features/user-profile/ui/user-profile-card";
-import { createClient } from "@/supabase/utils/server";
 
 export default async function Page({
   params,
 }: {
   params: Promise<{ username: UserProfile["username"] }>;
 }): Promise<ReactNode> {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
   const { username } = await params;
   const parseResult = usernameSchema.safeParse(username);
 
@@ -42,7 +36,7 @@ export default async function Page({
     orderBy: (categories, { asc }) => asc(categories.name),
   });
 
-  const canFollow = Boolean(user?.id) && userProfile.id !== user?.id;
+  const canFollow = true; // Boolean(user?.id) && userProfile.id !== user?.id;
 
   return (
     <>
