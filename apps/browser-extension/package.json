@@ -21,9 +21,9 @@
     "@repo/metadata-scrapper": "workspace:*",
     "@repo/ui": "workspace:*",
     "@repo/user": "workspace:*",
-    "@tailwindcss/vite": "^4.1.14",
+    "@tailwindcss/vite": "^4.1.16",
     "@tanstack/react-query": "catalog:",
-    "axios": "^1.12.2",
+    "axios": "^1.13.1",
     "lucide-react": "catalog:",
     "react": "catalog:",
     "react-dom": "catalog:",
@@ -32,7 +32,7 @@
     "zod": "catalog:"
   },
   "devDependencies": {
-    "@types/chrome": "^0.1.22",
+    "@types/chrome": "^0.1.27",
     "@types/react": "catalog:",
     "@types/react-dom": "catalog:",
     "@wxt-dev/module-react": "^1.1.5",
