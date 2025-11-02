@@ -1,5 +1,5 @@
 import { generateRequestId } from "@repo/db/id/request-id";
-import type { UserUrl } from "@repo/db/schema";
+import type { UserUrl } from "@repo/db/types";
 import { StatusCodes } from "http-status-codes";
 import { logger } from "@/features/logger";
 import { addUrl } from "@/features/url/api/v1/add-url";

@@ -4,18 +4,18 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { Button } from "@repo/ui/components/button";
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel } from "@repo/ui/components/form";
 import { Input } from "@repo/ui/components/input";
+import { apiKeySchema } from "@repo/user/api-key/api-key.schema";
 import { generateApiKey } from "@repo/user/api-key/generate-api-key";
 import { AtSign, Info, KeyRound, RefreshCcw } from "lucide-react";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
+import { z } from "zod";
 import { A } from "@/components/a";
 import { CopyToClipboard } from "@/components/copy-to-clipboard";
 import { REPOSITORY_URL } from "@/lib/constants";
 import { api } from "@/trpc/react";
-import { type UpdateUserProfileSchema } from "../router/procedures/update-user-profile";
+import type { UpdateUserProfileSchema } from "../router/procedures/update-user-profile";
 import type { CompleteUserProfileSchema } from "../schemas/complete-user-profile.schema";
-import { apiKeySchema } from "@repo/user/api-key/api-key.schema";
-import { z } from "zod";
 
 const updateUserProfileSchema = z.object({
   apiKey: apiKeySchema,
@@ -41,7 +41,7 @@ export const ExistingUserProfileForm = ({ username, apiKey }: CompleteUserProfil
         <FormItem>
           <FormLabel>Username</FormLabel>
           <div className="relative mt-1 flex rounded-md shadow-sm">
-            <span className="absolute inline-flex h-full items-center rounded-l-md px-3 text-sm text-gray-500">
+            <span className="absolute inline-flex h-full items-center rounded-l-md px-3 text-gray-500 text-sm">
               <AtSign size={14} />
             </span>
             <FormControl className="block w-full flex-1">
@@ -58,7 +58,7 @@ export const ExistingUserProfileForm = ({ username, apiKey }: CompleteUserProfil
             <FormItem>
               <FormLabel>API key</FormLabel>
               <div className="relative mt-1 flex rounded-md shadow-sm">
-                <span className="absolute inline-flex h-full items-center rounded-l-md px-3 text-sm text-gray-500">
+                <span className="absolute inline-flex h-full items-center rounded-l-md px-3 text-gray-500 text-sm">
                   <KeyRound size={14} />
                 </span>
                 <FormControl className="block w-full flex-1">
@@ -71,7 +71,7 @@ export const ExistingUserProfileForm = ({ username, apiKey }: CompleteUserProfil
                     form.setValue("apiKey", newValue);
                     setGeneratedApiKey(newValue);
                   }}
-                  className="absolute right-10 top-3.5 cursor-copy text-lg text-gray-400 hover:text-gray-700"
+                  className="absolute top-3.5 right-10 cursor-copy text-gray-400 text-lg hover:text-gray-700"
                 />
                 <CopyToClipboard string={generatedApiKey} />
               </div>
@@ -91,9 +91,9 @@ export const ExistingUserProfileForm = ({ username, apiKey }: CompleteUserProfil
         <div className="flex items-center gap-10">
           <Button type="submit">Save</Button>
           <div>
-            {isPending && <span className="mr-5 text-sm font-light text-gray-500">Saving...</span>}
-            {isSuccess && <span className="mr-5 text-sm font-light text-green-700">Profile data saved</span>}
-            {error?.message && <span className="mr-5 text-sm font-light text-red-600">{error.message}</span>}
+            {isPending && <span className="mr-5 font-light text-gray-500 text-sm">Saving...</span>}
+            {isSuccess && <span className="mr-5 font-light text-green-700 text-sm">Profile data saved</span>}
+            {error?.message && <span className="mr-5 font-light text-red-600 text-sm">{error.message}</span>}
           </div>
         </div>
       </form>

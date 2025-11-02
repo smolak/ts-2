@@ -1,5 +1,5 @@
 import { db } from "@repo/db/db";
-import type { UserProfile } from "@repo/db/schema";
+import type { UserProfile } from "@repo/db/types";
 import { usernameSchema } from "@repo/user-profile/username/schemas/username.schema";
 import { normalizeUsername } from "@repo/user-profile/utils/normalize-username";
 import { notFound } from "next/navigation";
@@ -51,7 +51,7 @@ export default async function Page({
                 </aside>
               </div>
               <div className="flex flex-col gap-2">
-                <InfiniteUserFeed userId={userProfile.id} viewerId={user?.id} />
+                <InfiniteUserFeed userId={userProfile.id} viewerId={undefined} />
               </div>
             </div>
           </div>

@@ -1,4 +1,4 @@
-import type { User } from "@repo/db/schema";
+import type { User } from "@repo/db/types";
 import { type FC, useEffect, useRef } from "react";
 
 import type { FeedDTO } from "../../dto/feed.dto";

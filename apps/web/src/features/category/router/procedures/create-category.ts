@@ -1,18 +1,20 @@
-import { categoryNameSchema } from "@repo/category/name/category-name.schema";
 import { schema } from "@repo/db/db";
+import type { Category } from "@repo/db/types";
 import { TRPCError } from "@trpc/server";
-import { z } from "zod";
 
 import { protectedProcedure } from "@/server/api/trpc";
 
-export type CreateCategorySchema = z.infer<typeof createCategorySchema>;
+import {
+  type CreateCategorySchema,
+  createCategorySchema,
+} from "../../schemas/create-category.schema";
 
-export const createCategorySchema = z.object({
-  name: categoryNameSchema,
-});
+// TODO: Split schema exports from server-only procedures for all router procedures to prevent client-side imports of server code
+export type { CreateCategorySchema };
+export { createCategorySchema };
 
 type CreateCategoryResult = {
-  categoryId: schema.Category["id"];
+  categoryId: Category["id"];
 };
 
 export const createCategory = protectedProcedure

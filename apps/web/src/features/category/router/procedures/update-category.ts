@@ -1,16 +1,16 @@
-import { categoryNameSchema } from "@repo/category/name/category-name.schema";
 import { orm, schema } from "@repo/db/db";
-import { categoryIdSchema } from "@repo/db/id/category-id";
 import { TRPCError } from "@trpc/server";
-import { z } from "zod";
+
 import { protectedProcedure } from "@/server/api/trpc";
 
-export type UpdateCategorySchema = z.infer<typeof updateCategorySchema>;
+import {
+  type UpdateCategorySchema,
+  updateCategorySchema,
+} from "../../schemas/update-category.schema";
 
-export const updateCategorySchema = z.object({
-  id: categoryIdSchema,
-  name: categoryNameSchema,
-});
+// TODO: Split schema exports from server-only procedures for all router procedures to prevent client-side imports of server code
+export type { UpdateCategorySchema };
+export { updateCategorySchema };
 
 export const updateCategory = protectedProcedure
   .input(updateCategorySchema)

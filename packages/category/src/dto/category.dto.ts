@@ -1,4 +1,4 @@
-import type { Category } from "@repo/db/schema";
+import type { Category } from "@repo/db/types";
 
 // TODO: probably not needed. The procedure, that returns this Dto, can define the type, as it defines the structure of the returned data.
 export type CategoryDto = Pick<Category, "id" | "name" | "urlsCount">;

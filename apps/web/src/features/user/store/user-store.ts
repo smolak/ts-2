@@ -1,4 +1,4 @@
-import type { User, UserProfile } from "@repo/db/schema";
+import type { User, UserProfile } from "@repo/db/types";
 import { createStore } from "zustand/vanilla";
 
 export type UserState = {

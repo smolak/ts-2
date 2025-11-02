@@ -1,4 +1,4 @@
-import type { UserProfile } from "@repo/db/schema";
+import type { UserProfile } from "@repo/db/types";
 import Link from "next/link";
 import type { FC } from "react";
 import { ProfileListItem, type ProfileListItemProps } from "./profile-list-item";
@@ -12,7 +12,7 @@ type FollowersListProps = {
 export const FollowersList: FC<FollowersListProps> = ({ username, profiles, myProfile }) => {
   return (
     <section className="lg:min-h-[350px]">
-      <h1 className="mb-5 text-lg font-bold">
+      <h1 className="mb-5 font-bold text-lg">
         {myProfile ? "Profiles following me" : `Profiles following ${username}`}
       </h1>
       <ol className="flex flex-col gap-1.5">

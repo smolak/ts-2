@@ -8,7 +8,10 @@ import type { FC } from "react";
 import { useCallback, useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { api } from "@/trpc/react";
-import { type DeleteCategorySchema, deleteCategorySchema } from "../../router/procedures/delete-category";
+import {
+  type DeleteCategorySchema,
+  deleteCategorySchema,
+} from "../../schemas/delete-category.schema";
 import { ActionPending } from "./action-pending";
 import { CancelAction } from "./cancel-action";
 import { StickyErrorMessage } from "./sticky-error-message";

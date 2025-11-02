@@ -12,19 +12,22 @@
     "db:studio": "drizzle-kit studio"
   },
   "exports": {
-    "./*": "./src/*.ts"
-  },
-  "devDependencies": {
-    "@repo/typescript-config": "workspace:*",
-    "drizzle-kit": "^0.31.5",
-    "typescript": "catalog:",
-    "vitest": "catalog:"
+    "./db": "./src/db.ts",
+    "./types": "./src/types.ts",
+    "./id/*": "./src/id/*.ts"
   },
   "dependencies": {
     "@repo/shared": "workspace:*",
     "@t3-oss/env-core": "catalog:",
     "drizzle-orm": "^0.44.5",
     "postgres": "^3.4.7",
+    "server-only": "^0.0.1",
     "zod": "catalog:"
+  },
+  "devDependencies": {
+    "@repo/typescript-config": "workspace:*",
+    "drizzle-kit": "^0.31.5",
+    "typescript": "catalog:",
+    "vitest": "catalog:"
   }
 }

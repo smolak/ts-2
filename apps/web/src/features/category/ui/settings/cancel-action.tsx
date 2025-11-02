@@ -12,7 +12,7 @@ export const CancelAction: FC<CancelActionProps> = ({ actionPending, onCancelAct
       type="button"
       onClick={onCancelAction}
       disabled={actionPending}
-      className="border-1 group flex h-[31px] w-[31px] items-center justify-center rounded-md hover:bg-gray-100"
+      className="group flex h-[31px] w-[31px] items-center justify-center rounded-md border-1 hover:bg-gray-100"
     >
       <Ban size={14} />
     </button>

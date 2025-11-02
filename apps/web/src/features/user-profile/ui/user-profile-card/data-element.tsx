@@ -1,4 +1,4 @@
-import { FC } from "react";
+import type { FC } from "react";
 
 type DataElementProps = {
   name: string;
@@ -20,7 +20,7 @@ type DataElementProps = {
 export const DataElement: FC<DataElementProps> = ({ name, value }) => {
   return (
     <div className="grid grid-cols-2 gap-1.5 md:block md:grid-rows-2">
-      <span className="text-sm font-bold max-md:text-right md:block md:font-extrabold">{value}</span>
+      <span className="font-bold text-sm max-md:text-right md:block md:font-extrabold">{value}</span>
       <span className="text-gray-400 max-md:text-sm md:text-xs">{name}</span>
     </div>
   );

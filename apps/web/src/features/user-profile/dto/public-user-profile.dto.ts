@@ -1,4 +1,4 @@
-import type { UserProfile } from "@repo/db/schema";
+import type { UserProfile } from "@repo/db/types";
 
 export type PublicUserProfileDto = Omit<UserProfile, "id" | "usernameNormalized" | "userId"> & {
   id: UserProfile["userId"];

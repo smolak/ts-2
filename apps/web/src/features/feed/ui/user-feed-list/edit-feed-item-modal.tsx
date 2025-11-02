@@ -1,5 +1,5 @@
 import type { CategoryDto } from "@repo/category/dto/category.dto";
-import type { Category } from "@repo/db/schema";
+import type { Category } from "@repo/db/types";
 import { Button } from "@repo/ui/components/button";
 import {
   Dialog,

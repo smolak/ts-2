@@ -1,5 +1,5 @@
 import { db, orm, schema } from "@repo/db/db";
-import type { Category, Feed, User } from "@repo/db/schema";
+import type { Category, Feed, User } from "@repo/db/types";
 
 import type { FeedSourceValue } from "../shared/feed-source";
 

@@ -1,4 +1,4 @@
-import type { UserUrl } from "@repo/db/schema";
+import type { UserUrl } from "@repo/db/types";
 import { toast } from "@repo/ui/components/sonner";
 import { Heart } from "lucide-react";
 import { type FC, type ReactNode, useState } from "react";

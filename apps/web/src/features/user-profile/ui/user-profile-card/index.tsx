@@ -1,6 +1,6 @@
 "use client";
 
-import type { UserProfile } from "@repo/db/schema";
+import type { UserProfile } from "@repo/db/types";
 import { Card, CardContent, CardHeader, CardTitle } from "@repo/ui/components/card";
 import { cn } from "@repo/ui/lib/utils";
 import Link from "next/link";

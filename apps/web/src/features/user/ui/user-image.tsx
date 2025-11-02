@@ -1,4 +1,4 @@
-import type { UserProfile } from "@repo/db/schema";
+import type { UserProfile } from "@repo/db/types";
 import { cn } from "@repo/ui/lib/utils";
 import { User } from "lucide-react";
 import type { FC } from "react";

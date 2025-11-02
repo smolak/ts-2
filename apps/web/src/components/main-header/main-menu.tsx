@@ -9,7 +9,7 @@ export const MainMenu = () => {
 
   return (
     <nav>
-      <ol className="flex items-center space-x-4 text-sm font-medium sm:space-x-6">
+      <ol className="flex items-center space-x-4 font-medium text-sm sm:space-x-6">
         <li>
           <Link
             href="/"

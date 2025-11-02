@@ -1,6 +1,6 @@
 import { orm, schema } from "@repo/db/db";
 import { userUrlIdSchema } from "@repo/db/id/user-url-id";
-import type { UserUrl } from "@repo/db/schema";
+import type { UserUrl } from "@repo/db/types";
 import { TRPCError } from "@trpc/server";
 import { z } from "zod";
 

@@ -1,7 +1,7 @@
 "use client";
 
 import type { CategoryDto } from "@repo/category/dto/category.dto";
-import type { Category } from "@repo/db/schema";
+import type { Category } from "@repo/db/types";
 import { createPossessiveForm } from "@repo/shared/utils/create-possessive-form";
 import { Button } from "@repo/ui/components/button";
 import {

@@ -1,4 +1,4 @@
-import type { UserProfile } from "@repo/db/schema";
+import type { UserProfile } from "@repo/db/types";
 import type { YesNo } from "@repo/shared/types";
 import { Card } from "@repo/ui/components/card";
 import type { FC } from "react";

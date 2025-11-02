@@ -1,5 +1,5 @@
 import type { CategoryDto } from "@repo/category/dto/category.dto";
-import type { UserProfile } from "@repo/db/schema";
+import type { UserProfile } from "@repo/db/types";
 import type { FC } from "react";
 import { CategoriesSelector } from "@/features/category/ui/categories-selector";
 import { UserFeedSourceSelector } from "./user-feed-source-selector";

@@ -1,7 +1,7 @@
 "use client";
 
 import type { schema } from "@repo/db/db";
-import type { UserProfile } from "@repo/db/schema";
+import type { UserProfile } from "@repo/db/types";
 import { Button } from "@repo/ui/components/button";
 import { LoadingIndicator } from "@repo/ui/components/loading-indicator";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@repo/ui/components/tooltip";

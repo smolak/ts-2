@@ -1,4 +1,4 @@
-import type { UserProfile } from "@repo/db/schema";
+import type { UserProfile } from "@repo/db/types";
 import Link from "next/link";
 import type { FC } from "react";
 
@@ -13,7 +13,7 @@ type FollowingFollowersListProps = {
 export const FollowingList: FC<FollowingFollowersListProps> = ({ username, profiles, myProfile }) => {
   return (
     <section className="lg:min-h-[350px]">
-      <h1 className="mb-5 text-lg font-bold">{myProfile ? "Profiles I follow" : `Profiles ${username} follows`}</h1>
+      <h1 className="mb-5 font-bold text-lg">{myProfile ? "Profiles I follow" : `Profiles ${username} follows`}</h1>
       <ol className="flex flex-col gap-1.5">
         {profiles.map((profile) => {
           return (

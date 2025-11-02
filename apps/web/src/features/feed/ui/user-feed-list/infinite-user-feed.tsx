@@ -1,6 +1,6 @@
 "use client";
 
-import type { User } from "@repo/db/schema";
+import type { User } from "@repo/db/types";
 import type { InfiniteData } from "@tanstack/react-query";
 import { useSearchParams } from "next/navigation";
 import qs from "qs";

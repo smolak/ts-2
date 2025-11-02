@@ -1,3 +1,5 @@
+"use client";
+
 import { type FC, useCallback, useState } from "react";
 import type { FieldValues } from "react-hook-form";
 

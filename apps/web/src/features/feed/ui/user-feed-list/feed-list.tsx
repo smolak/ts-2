@@ -1,4 +1,4 @@
-import type { User } from "@repo/db/schema";
+import type { User } from "@repo/db/types";
 import { Button } from "@repo/ui/components/button";
 import { toast } from "@repo/ui/components/sonner";
 import Link from "next/link";

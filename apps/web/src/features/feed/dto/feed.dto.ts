@@ -1,4 +1,4 @@
-import type { Category, Feed, Url, UserProfile, UserUrl } from "@repo/db/schema";
+import type { Category, Feed, Url, UserProfile, UserUrl } from "@repo/db/types";
 import type { ScrappedMetadata } from "@repo/metadata-scrapper/types";
 
 type Metadata = ScrappedMetadata;

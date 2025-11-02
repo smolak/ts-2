@@ -1,6 +1,6 @@
 import { db } from "@repo/db/db";
 import type { RequestId } from "@repo/db/id/request-id";
-import type { User } from "@repo/db/schema";
+import type { User } from "@repo/db/types";
 import { type ApiKey, apiKeySchema } from "@repo/user/api-key/api-key.schema";
 import { type Logger, logger } from "@/features/logger";
 

@@ -1,3 +1,5 @@
+"use client";
+
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Button } from "@repo/ui/components/button";
 import { Input } from "@repo/ui/components/input";
@@ -6,7 +8,10 @@ import { Plus } from "lucide-react";
 import { type FC, useEffect } from "react";
 import { type FieldValues, useForm } from "react-hook-form";
 
-import { type CreateCategorySchema, createCategorySchema } from "../../router/procedures/create-category";
+import {
+  type CreateCategorySchema,
+  createCategorySchema,
+} from "../../schemas/create-category.schema";
 
 export type Size = "default" | "small";
 
@@ -89,7 +94,7 @@ export const AddCategoryForm: FC<AddCategoryFormProps> = ({
         </Button>
       </div>
       {errors?.name?.message || errorResponse !== "" ? (
-        <p className="absolute mt-1 rounded-md bg-red-50 px-2 py-1 text-sm text-red-600">
+        <p className="absolute mt-1 rounded-md bg-red-50 px-2 py-1 text-red-600 text-sm">
           {errors?.name?.message || errorResponse}
         </p>
       ) : null}

@@ -1,4 +1,4 @@
-import type { CategoryId } from "@repo/db/id/category-id.schema";
+import type { CategoryId } from "@repo/db/id/category-id";
 import type { ScrappedMetadata } from "@repo/metadata-scrapper/types";
 import type { ApiKey } from "@repo/user/api-key/api-key.schema";
 import { useMutation } from "@tanstack/react-query";

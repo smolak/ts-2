@@ -1,3 +1,5 @@
+"use client";
+
 import type { CategoryDto } from "@repo/category/dto/category.dto";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@repo/ui/components/tooltip";
 import { Pencil, Trash2 } from "lucide-react";

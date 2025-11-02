@@ -42,8 +42,8 @@ export const FeedListItem: FC<FeedListItemProps> = ({ feedItem, interactions, op
               </AvatarFallback>
             </Avatar>
             <div>
-              <CardTitle className="line-clamp-1 text-xl font-bold">{title}</CardTitle>
-              <div className="text-muted-foreground flex items-center text-sm">
+              <CardTitle className="line-clamp-1 font-bold text-xl">{title}</CardTitle>
+              <div className="flex items-center text-muted-foreground text-sm">
                 <Globe className="mr-1 h-3 w-3" />
                 <span className="max-w-md truncate" title={urlWithoutProtocol}>
                   {urlWithoutProtocol}
@@ -58,7 +58,7 @@ export const FeedListItem: FC<FeedListItemProps> = ({ feedItem, interactions, op
               href={url.url}
               title={url.metadata.title}
               target="_blank"
-              className="max-h-100 flex place-content-center overflow-hidden"
+              className="flex max-h-100 place-content-center overflow-hidden"
               rel="noreferrer"
             >
               <picture>
@@ -68,17 +68,17 @@ export const FeedListItem: FC<FeedListItemProps> = ({ feedItem, interactions, op
           </figure>
         )}
         <CardContent className="pb-2">
-          <CardDescription className="text-muted-foreground mb-3 line-clamp-3 text-sm">
+          <CardDescription className="mb-3 line-clamp-3 text-muted-foreground text-sm">
             {url.metadata.description}
           </CardDescription>
 
           <div className="grid grid-cols-2 gap-2 text-xs">
-            <div className="text-muted-foreground flex items-center gap-1">
+            <div className="flex items-center gap-1 text-muted-foreground">
               <Calendar className="h-3 w-3" />
               <span>Updated: {createdAt}</span>
             </div>
             {url.metadata.author && (
-              <div className="text-muted-foreground flex items-center gap-1">
+              <div className="flex items-center gap-1 text-muted-foreground">
                 <Users className="h-3 w-3" />
                 <span>By: {url.metadata.author}</span>
               </div>
@@ -88,7 +88,7 @@ export const FeedListItem: FC<FeedListItemProps> = ({ feedItem, interactions, op
           {url.categoryNames && url.categoryNames.length > 0 && (
             <div className="mt-3">
               {url.categoryNames.map((categoryName) => (
-                <Badge key={categoryName} variant="outline" className="mb-1 mr-1">
+                <Badge key={categoryName} variant="outline" className="mr-1 mb-1">
                   {categoryName}
                 </Badge>
               ))}
@@ -100,7 +100,7 @@ export const FeedListItem: FC<FeedListItemProps> = ({ feedItem, interactions, op
             href={url.url}
             target="_blank"
             rel="noopener noreferrer"
-            className="text-muted-foreground hover:text-foreground flex items-center text-xs transition-colors"
+            className="flex items-center text-muted-foreground text-xs transition-colors hover:text-foreground"
           >
             <ExternalLink className="mr-1 h-3 w-3" />
             Visit Website
@@ -136,7 +136,7 @@ export const FeedListItem: FC<FeedListItemProps> = ({ feedItem, interactions, op
               {url.metadata.title || url.url}
             </a>
           </CardTitle>
-          <span className="flex flex-row items-center gap-1 pl-12 text-xs text-slate-400">
+          <span className="flex flex-row items-center gap-1 pl-12 text-slate-400 text-xs">
             <Calendar size={13} />
             <span>{createdAt.toLocaleString()}</span>
           </span>
@@ -145,7 +145,7 @@ export const FeedListItem: FC<FeedListItemProps> = ({ feedItem, interactions, op
               <Button
                 variant="ghost"
                 size="icon"
-                className="absolute right-3 top-1 h-7 w-7 rounded text-slate-400 hover:text-slate-600"
+                className="absolute top-1 right-3 h-7 w-7 rounded text-slate-400 hover:text-slate-600"
               >
                 <MoreHorizontal size={16} />
               </Button>
@@ -174,7 +174,7 @@ export const FeedListItem: FC<FeedListItemProps> = ({ feedItem, interactions, op
         <CardFooter className="flex items-center justify-between gap-4">
           <div className="flex grow items-center gap-2">
             <div>{interactions}</div>
-            <span className="text-xs font-light text-slate-400">{url.categoryNames.join(", ")}</span>
+            <span className="font-light text-slate-400 text-xs">{url.categoryNames.join(", ")}</span>
           </div>
           <Link href={`/${user.username}`} className="flex-none">
             <UserImage username={user.username} imageUrl={user.imageUrl} size="small" />

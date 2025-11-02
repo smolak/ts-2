@@ -11,7 +11,6 @@ import { generateApiKey } from "@repo/user/api-key/generate-api-key";
 import { usernameSchema } from "@repo/user-profile/username/schemas/username.schema";
 import debounce from "debounce";
 import { AtSign, Info, KeyRound, RefreshCcw, UserCheck2, UserX2 } from "lucide-react";
-import Link from "next/link";
 import { type ChangeEvent, useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";

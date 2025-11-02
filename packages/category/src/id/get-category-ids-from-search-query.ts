@@ -1,4 +1,4 @@
-import { categoryIdSchema } from "@repo/db/id/category-id.schema";
+import { categoryIdSchema } from "@repo/db/id/category-id";
 
 export const getCategoryIdsFromSearchQuery = (maybeCategoryIds?: string | string[]) => {
   if (!maybeCategoryIds) {

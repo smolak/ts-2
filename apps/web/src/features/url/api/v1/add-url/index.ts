@@ -1,6 +1,6 @@
 import { db, orm, schema } from "@repo/db/db";
 import type { UserId } from "@repo/db/id/user-id";
-import type { Url, UserUrl } from "@repo/db/schema";
+import type { Url, UserUrl } from "@repo/db/types";
 
 import { createCompoundHash, createUrlHash } from "./compound-hash";
 import type { AddUrlRequestBody } from "./request-body.schema";

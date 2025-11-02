@@ -8,7 +8,7 @@ import type { FC } from "react";
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { api } from "@/trpc/react";
-import { type UpdateCategorySchema, updateCategorySchema } from "../../router/procedures/update-category";
+import { type UpdateCategorySchema, updateCategorySchema } from "../../schemas/update-category.schema";
 import { ActionPending } from "./action-pending";
 import { CancelAction } from "./cancel-action";
 import { StickyErrorMessage } from "./sticky-error-message";
@@ -66,7 +66,7 @@ export const EditCategory: FC<EditCategoryProps> = ({ category, onSave, onCancel
     <form onSubmit={handleSubmit(onSubmit)}>
       <div
         className={cn(
-          "text-accent-foreground space-between flex h-[42px] items-center justify-between rounded-md border px-1 shadow-sm transition-all",
+          "space-between flex h-[42px] items-center justify-between rounded-md border px-1 text-accent-foreground shadow-sm transition-all",
           { "rounded-bl-none border-red-50": Boolean(errors?.name?.message || errorResponse) },
         )}
       >

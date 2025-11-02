@@ -1,5 +1,5 @@
 import { generateCategoryId } from "@repo/db/id/category-id";
-import type { Category } from "@repo/db/schema";
+import type { Category } from "@repo/db/types";
 import { v4 as uuid } from "uuid";
 
 export const createCategory = (overwrites: Partial<Category> = {}): Category => ({

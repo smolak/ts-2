@@ -1,4 +1,4 @@
-import type { User } from "@repo/db/schema";
+import type { User } from "@repo/db/types";
 import { ThemeToggle } from "@/features/theme/ui/toggle";
 import { LoggedInUserMenu } from "./logged-in-user-menu";
 import { LoggedOutUserMenu } from "./logged-out-user-menu";
