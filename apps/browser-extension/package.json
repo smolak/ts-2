@@ -16,9 +16,9 @@
   },
   "dependencies": {
     "@hookform/resolvers": "catalog:",
-    "@repo/category": "workspace:*",
     "@repo/db": "workspace:*",
     "@repo/metadata-scrapper": "workspace:*",
+    "@repo/tag": "workspace:*",
     "@repo/ui": "workspace:*",
     "@repo/user": "workspace:*",
     "@tailwindcss/vite": "^4.1.16",

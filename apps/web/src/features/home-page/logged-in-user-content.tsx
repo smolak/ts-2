@@ -3,8 +3,8 @@
 import { LoadingIndicator } from "@repo/ui/components/loading-indicator";
 import { useEffect } from "react";
 import { api } from "@/trpc/react";
-import { useCategoriesStore } from "../category/stores/use-categories-store";
-import { ErrorLoadingCategories } from "../category/ui/category-picker/error-loading-categories";
+import { useTagsStore } from "../tag/stores/use-tags-store";
+import { ErrorLoadingTags } from "../tag/ui/tag-picker/error-loading-tags";
 import { FeedListFilters } from "../feed/ui/feed-list-filters";
 import { InfiniteUserFeed } from "../feed/ui/user-feed-list/infinite-user-feed";
 import { useUserId } from "../user/hooks/use-user-id";
@@ -14,40 +14,40 @@ export const LoggedInUserContent = () => {
   const userId = useUserId()!;
 
   const {
-    data: categories,
+    data: tags,
     isLoading,
     isSuccess,
     isError,
     isRefetching,
     refetch,
-  } = api.categories.getUserCategories.useQuery();
+  } = api.tags.getUserTags.useQuery();
 
-  // TODO:  This is probably not needed OR fetching the categories should be moved to the store
-  const { setCategories, shouldRefetchCategories, setShouldRefetchCategories } = useCategoriesStore();
+  // TODO:  This is probably not needed OR fetching the tags should be moved to the store
+  const { setTags, shouldRefetchTags, setShouldRefetchTags } = useTagsStore();
 
   useEffect(() => {
     if (isSuccess) {
-      setCategories(categories);
+      setTags(tags);
     }
-  }, [categories, isSuccess, setCategories]);
+  }, [tags, isSuccess, setTags]);
 
   useEffect(() => {
-    if (shouldRefetchCategories) {
+    if (shouldRefetchTags) {
       refetch();
-      setShouldRefetchCategories(false);
+      setShouldRefetchTags(false);
     }
-  }, [shouldRefetchCategories, setShouldRefetchCategories, refetch]);
+  }, [shouldRefetchTags, setShouldRefetchTags, refetch]);
 
   return (
     <div className="flex flex-col gap-2">
       {isLoading ? (
         <div className="flex flex-col items-center">
-          <LoadingIndicator label="Fetching categories" />
+          <LoadingIndicator label="Fetching tags" />
         </div>
       ) : null}
-      {isError ? <ErrorLoadingCategories onLoadCategoriesClick={() => !isRefetching && refetch()} /> : null}
+      {isError ? <ErrorLoadingTags onLoadTagsClick={() => !isRefetching && refetch()} /> : null}
       {isSuccess ? (
-        <div className="flex flex-col gap-7">{<FeedListFilters categories={categories} username="Me" />}</div>
+        <div className="flex flex-col gap-7">{<FeedListFilters tags={tags} username="Me" />}</div>
       ) : null}
       <InfiniteUserFeed userId={userId} viewerId={userId} />
     </div>

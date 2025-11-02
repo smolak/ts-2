@@ -1,5 +1,5 @@
-import type { CategoryDto } from "@repo/category/dto/category.dto";
-import type { Category } from "@repo/db/types";
+import type { TagDto } from "@repo/tag/dto/tag.dto";
+import type { Tag } from "@repo/db/types";
 import { Button } from "@repo/ui/components/button";
 import {
   Dialog,
@@ -13,11 +13,11 @@ import { LoadingIndicator } from "@repo/ui/components/loading-indicator";
 import { cn } from "@repo/ui/lib/utils";
 import { type FC, useCallback, useEffect, useState } from "react";
 import { api } from "@/trpc/react";
-import { useCategoriesStore } from "../../../category/stores/use-categories-store";
-import { CategoryPickerCategoriesList } from "../../../category/ui/category-picker/category-picker-categories-list";
+import { useTagsStore } from "../../../tag/stores/use-tags-store";
+import { TagPickerTagsList } from "../../../tag/ui/tag-picker/tag-picker-tags-list";
 import type { FeedDTO } from "../../dto/feed.dto";
 
-export type OnSuccess = (categoryNames: Category["name"][]) => void;
+export type OnSuccess = (tagNames: Tag["name"][]) => void;
 
 type EditFeedItemProps = {
   open: boolean;
@@ -26,30 +26,30 @@ type EditFeedItemProps = {
   feedItem: FeedDTO;
 };
 
-const prepareCategories = ({
-  userCategories,
-  selectedCategoryIds,
+const prepareTags = ({
+  userTags,
+  selectedTagIds,
 }: {
-  userCategories: CategoryDto[];
-  selectedCategoryIds: CategoryDto["id"][];
+  userTags: TagDto[];
+  selectedTagIds: TagDto["id"][];
 }) =>
-  userCategories.map((category) => ({
-    ...category,
-    selected: selectedCategoryIds.indexOf(category.id) >= 0,
+  userTags.map((tag) => ({
+    ...tag,
+    selected: selectedTagIds.indexOf(tag.id) >= 0,
   }));
 
-const getCategoryIds = (userUrlCategories: { categoryId: Category["id"] }[]) =>
-  userUrlCategories.map(({ categoryId }) => categoryId);
+const getTagIds = (userUrlTags: { tagId: Tag["id"] }[]) =>
+  userUrlTags.map(({ tagId }) => tagId);
 
 export const EditFeedItemModal: FC<EditFeedItemProps> = ({ open, onOpenChange, feedItem, onSuccess }) => {
-  const userCategories = useCategoriesStore(({ categories }) => categories);
-  const setShouldRefetchCategories = useCategoriesStore(({ setShouldRefetchCategories }) => setShouldRefetchCategories);
+  const userTags = useTagsStore(({ tags }) => tags);
+  const setShouldRefetchTags = useTagsStore(({ setShouldRefetchTags }) => setShouldRefetchTags);
   const {
     data,
-    isLoading: loadingCategories,
-    isSuccess: categoriesLoaded,
-    isError: errorLoadingCategories,
-  } = api.categories.getUserUrlCategories.useQuery({
+    isLoading: loadingTags,
+    isSuccess: tagsLoaded,
+    isError: errorLoadingTags,
+  } = api.tags.getUserUrlTags.useQuery({
     userUrlId: feedItem.userUrlId,
   });
   const {
@@ -59,50 +59,50 @@ export const EditFeedItemModal: FC<EditFeedItemProps> = ({ open, onOpenChange, f
     isError: errorUpdatingUserUrl,
   } = api.userUrls.updateUserUrl.useMutation();
 
-  const [selectedCategoryIds, setSelectedCategoryIds] = useState<string[]>([]);
+  const [selectedTagIds, setSelectedTagIds] = useState<string[]>([]);
 
-  const onCategorySelectionChange = useCallback(
-    (categoryId: Category["id"]) => {
-      const categoryListed = selectedCategoryIds.indexOf(categoryId) !== -1;
-      const newSelection = categoryListed
-        ? selectedCategoryIds.filter((id) => categoryId !== id)
-        : [...selectedCategoryIds, categoryId];
+  const onTagSelectionChange = useCallback(
+    (tagId: Tag["id"]) => {
+      const tagListed = selectedTagIds.indexOf(tagId) !== -1;
+      const newSelection = tagListed
+        ? selectedTagIds.filter((id) => tagId !== id)
+        : [...selectedTagIds, tagId];
 
-      setSelectedCategoryIds(newSelection);
+      setSelectedTagIds(newSelection);
     },
-    [selectedCategoryIds],
+    [selectedTagIds],
   );
 
   useEffect(() => {
-    if (categoriesLoaded) {
-      setSelectedCategoryIds(getCategoryIds(data));
+    if (tagsLoaded) {
+      setSelectedTagIds(getTagIds(data));
     }
-  }, [categoriesLoaded, data]);
+  }, [tagsLoaded, data]);
 
   useEffect(() => {
     if (updatedUserUrl) {
-      const newUserUrlCategories = userCategories
-        .filter((category) => selectedCategoryIds.indexOf(category.id) !== -1)
+      const newUserUrlTags = userTags
+        .filter((tag) => selectedTagIds.indexOf(tag.id) !== -1)
         .map(({ name }) => name);
 
-      onSuccess(newUserUrlCategories);
-      setShouldRefetchCategories(true);
+      onSuccess(newUserUrlTags);
+      setShouldRefetchTags(true);
     }
-  }, [updatedUserUrl, onSuccess, selectedCategoryIds, userCategories, setShouldRefetchCategories]);
+  }, [updatedUserUrl, onSuccess, selectedTagIds, userTags, setShouldRefetchTags]);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[625px]">
         <DialogHeader>
           <DialogTitle>Edit Url</DialogTitle>
-          <DialogDescription>Right now only categories are editable.</DialogDescription>
+          <DialogDescription>Right now only tags are editable.</DialogDescription>
         </DialogHeader>
-        {loadingCategories ? <LoadingIndicator label="Loading categories..." /> : null}
-        {errorLoadingCategories ? <div>Could not load the categories, try again.</div> : null}
-        {categoriesLoaded ? (
-          <CategoryPickerCategoriesList
-            categories={prepareCategories({ userCategories, selectedCategoryIds })}
-            onCategorySelectionChange={onCategorySelectionChange}
+        {loadingTags ? <LoadingIndicator label="Loading tags..." /> : null}
+        {errorLoadingTags ? <div>Could not load the tags, try again.</div> : null}
+        {tagsLoaded ? (
+          <TagPickerTagsList
+            tags={prepareTags({ userTags, selectedTagIds })}
+            onTagSelectionChange={onTagSelectionChange}
           />
         ) : null}
         {errorUpdatingUserUrl ? (
@@ -114,7 +114,7 @@ export const EditFeedItemModal: FC<EditFeedItemProps> = ({ open, onOpenChange, f
             onClick={() =>
               updateUserUrl({
                 userUrlId: feedItem.userUrlId,
-                categoryIds: selectedCategoryIds,
+                tagIds: selectedTagIds,
               })
             }
             disabled={updatedUserUrl}

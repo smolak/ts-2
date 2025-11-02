@@ -14,14 +14,14 @@
 
 ## Project Overview
 
-**LinkDeck** is a social bookmarking platform that allows users to save, categorize, and share URLs with a social feed system. Users can follow other users, like shared URLs, and organize their bookmarks into categories. The platform includes both a web application and a browser extension for easy URL sharing.
+**LinkDeck** is a social bookmarking platform that allows users to save, tag, and share URLs with a social feed system. Users can follow other users, like shared URLs, and organize their bookmarks with tags. The platform includes both a web application and a browser extension for easy URL sharing.
 
 ### Core Value Proposition
 
 - **Social Bookmarking**: Save and organize URLs with social features
 - **Content Discovery**: Follow users and discover interesting content through feeds
 - **Easy Sharing**: Browser extension for one-click URL sharing
-- **Categorization**: Organize URLs into custom categories
+- **Tagging**: Organize URLs with custom tags
 - **Social Interaction**: Like, follow, and interact with other users' content
 
 ### Target Users
@@ -57,9 +57,9 @@ Discovery → Sign Up → Create Profile → Start Sharing → Follow Others →
 ### Key User Scenarios
 
 - **New User**: Discovers platform, signs up, creates profile, shares first URL
-- **Content Curator**: Organizes bookmarks, creates categories, shares with followers
+- **Content Curator**: Organizes bookmarks, creates tags, shares with followers
 - **Content Consumer**: Follows interesting users, discovers new content, likes and saves
-- **Team Lead**: Creates shared categories, collaborates with team members
+- **Team Lead**: Creates shared tags, collaborates with team members
 
 ## Core Features
 
@@ -80,10 +80,10 @@ Discovery → Sign Up → Create Profile → Start Sharing → Follow Others →
 
 ### 3. Organization System
 
-- **Custom Categories**: Create and manage personal categories
-- **Smart Suggestions**: AI-powered category recommendations
+- **Custom Tags**: Create and manage personal tags
+- **Smart Suggestions**: AI-powered tag recommendations
 - **Tagging System**: Add custom tags to URLs
-- **Search & Filter**: Find URLs by title, category, or tags
+- **Search & Filter**: Find URLs by title, tag, or tags
 - **Sorting Options**: Sort by date, popularity, or custom order
 
 ### 4. Social Features
@@ -96,9 +96,9 @@ Discovery → Sign Up → Create Profile → Start Sharing → Follow Others →
 
 ### 5. Discovery Features
 
-- **Trending**: See popular URLs and categories
+- **Trending**: See popular URLs and tags
 - **Recommendations**: Personalized content suggestions
-- **Category Feeds**: Browse content by category
+- **Tag Feeds**: Browse content by tag
 - **User Feeds**: See all content from specific users
 - **Search**: Global search across all public content
 
@@ -115,14 +115,14 @@ Landing Page → Sign Up (Clerk) → Create Profile → Choose Interests → Fir
 1. User lands on homepage with clear value proposition
 2. One-click sign up with Clerk (email, Google, GitHub)
 3. Create username and upload profile picture
-4. Choose interests/categories to personalize feed
+4. Choose interests/tags to personalize feed
 5. Share first URL via guided tutorial
 6. See personalized dashboard with recommendations
 
 ### 2. URL Sharing Flow
 
 ```
-Browse Web → Click Extension → Preview Metadata → Choose Categories → Add Notes → Share → See in Feed
+Browse Web → Click Extension → Preview Metadata → Choose Tags → Add Notes → Share → See in Feed
 ```
 
 **Key Steps:**
@@ -130,7 +130,7 @@ Browse Web → Click Extension → Preview Metadata → Choose Categories → Ad
 1. User browsing any website
 2. Click browser extension icon
 3. Preview extracted metadata (title, description, image)
-4. Select relevant categories
+4. Select relevant tags
 5. Add optional personal notes
 6. Click share to save
 7. URL appears in personal feed and followers' feeds
@@ -138,14 +138,14 @@ Browse Web → Click Extension → Preview Metadata → Choose Categories → Ad
 ### 3. Content Discovery Flow
 
 ```
-Open Dashboard → Browse Feed → Filter by Category → Like/Bookmark → Follow User → Explore Profile
+Open Dashboard → Browse Feed → Filter by Tag → Like/Bookmark → Follow User → Explore Profile
 ```
 
 **Key Steps:**
 
 1. User opens personalized dashboard
 2. Scroll through infinite feed of content
-3. Filter by categories or users
+3. Filter by tags or users
 4. Like interesting URLs
 5. Follow users with good content
 6. Explore user profiles for more content
@@ -153,14 +153,14 @@ Open Dashboard → Browse Feed → Filter by Category → Like/Bookmark → Foll
 ### 4. Organization Flow
 
 ```
-Open Categories → Create New Category → Organize URLs → Bulk Actions → Search & Filter
+Open Tags → Create New Tag → Organize URLs → Bulk Actions → Search & Filter
 ```
 
 **Key Steps:**
 
-1. User opens categories sidebar
-2. Create new category with name and description
-3. Drag and drop URLs into categories
+1. User opens tags sidebar
+2. Create new tag with name and description
+3. Drag and drop URLs into tags
 4. Use bulk actions to organize multiple URLs
 5. Search and filter to find specific content
 
@@ -179,7 +179,7 @@ Open Categories → Create New Category → Organize URLs → Bulk Actions → S
 #### Dashboard
 
 - **Header**: Navigation, search, user menu
-- **Sidebar**: Categories, filters, user stats
+- **Sidebar**: Tags, filters, user stats
 - **Main Feed**: Infinite scroll feed of URLs
 - **Right Panel**: User suggestions, trending topics
 
@@ -188,14 +188,14 @@ Open Categories → Create New Category → Organize URLs → Bulk Actions → S
 - **Profile Header**: Avatar, username, bio, follow button
 - **Stats**: Followers, following, URLs shared
 - **Content Grid**: User's shared URLs in grid layout
-- **Categories**: User's public categories
+- **Tags**: User's public tags
 
 #### URL Detail
 
 - **URL Preview**: Title, description, image, original link
-- **Metadata**: Categories, tags, sharing date
+- **Metadata**: Tags, sharing date
 - **Actions**: Like, bookmark, share, comment
-- **Related**: Similar URLs from same user/category
+- **Related**: Similar URLs from same user/tag
 
 ### Responsive Design
 
@@ -209,7 +209,7 @@ Open Categories → Create New Category → Organize URLs → Bulk Actions → S
 
 - **One-Click Sharing**: Save URLs without leaving the page
 - **Metadata Preview**: See extracted title, description, and image
-- **Category Selection**: Choose categories directly from extension
+- **Tag Selection**: Choose tags directly from extension
 - **Quick Notes**: Add personal notes to URLs
 - **Settings**: Configure API key and preferences
 
@@ -217,7 +217,7 @@ Open Categories → Create New Category → Organize URLs → Bulk Actions → S
 
 - **Popup Window**: Clean, focused interface for sharing
 - **Metadata Display**: Show extracted content with edit options
-- **Category Picker**: Visual category selection with search
+- **Tag Picker**: Visual tag selection with search
 - **Status Feedback**: Clear success/error messages
 
 ### Integration
@@ -248,7 +248,7 @@ Open Categories → Create New Category → Organize URLs → Bulk Actions → S
 
 - **Algorithmic Feed**: Personalized content recommendations
 - **Social Signals**: Content popularity and engagement
-- **Category Browsing**: Explore content by topic
+- **Tag Browsing**: Explore content by topic
 - **User Following**: Content from trusted sources
 
 ## Monetization Strategy
@@ -268,9 +268,9 @@ Open Categories → Create New Category → Organize URLs → Bulk Actions → S
 
 ### Feature Tiers
 
-- **Free**: 100 URLs, basic categories, social features
+- **Free**: 100 URLs, basic tags, social features
 - **Pro**: Unlimited URLs, advanced organization, analytics
-- **Team**: Collaboration, shared categories, admin tools
+- **Team**: Collaboration, shared tags, admin tools
 
 ## Success Metrics
 
@@ -285,7 +285,7 @@ Open Categories → Create New Category → Organize URLs → Bulk Actions → S
 
 - **URL Success Rate**: Percentage of valid, accessible URLs
 - **Metadata Accuracy**: Quality of extracted metadata
-- **Category Usage**: How users organize content
+- **Tag Usage**: How users organize content
 - **Search Success**: Findability of content
 
 ### Growth Metrics

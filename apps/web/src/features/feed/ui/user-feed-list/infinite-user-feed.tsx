@@ -37,8 +37,8 @@ type InfiniteUserFeedProps = {
 
 export const InfiniteUserFeed: FC<InfiniteUserFeedProps> = ({ userId, from, viewerId }) => {
   const searchParams = useSearchParams();
-  const categoriesString = qs.parse(searchParams.toString()).categories;
-  const categoryIdsInSearchParams = typeof categoriesString === "string" ? categoriesString.split(",") : [];
+  const tagsString = qs.parse(searchParams.toString()).tags;
+  const tagIdsInSearchParams = typeof tagsString === "string" ? tagsString.split(",") : [];
   const source = feedSourceSchema.parse(searchParams.get("source"));
   const initialCursor = from ? new Date(from) : undefined;
 
@@ -46,7 +46,7 @@ export const InfiniteUserFeed: FC<InfiniteUserFeedProps> = ({ userId, from, view
     {
       userId,
       feedSource: source,
-      categoryIds: categoryIdsInSearchParams,
+      tagIds: tagIdsInSearchParams,
     },
     {
       getNextPageParam: (lastPage) => lastPage.nextCursor,

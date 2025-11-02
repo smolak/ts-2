@@ -1,5 +1,5 @@
 import { db, orm, schema } from "@repo/db/db";
-import type { Category, Feed, User } from "@repo/db/types";
+import type { Feed, Tag, User } from "@repo/db/types";
 
 import type { FeedSourceValue } from "../shared/feed-source";
 
@@ -9,20 +9,20 @@ type GetUserFeedQueryOptions = {
   limit: number;
   cursor?: Feed["createdAt"];
   feedSource?: FeedSourceValue;
-  categoryIds: Category["id"][];
+  tagIds: Tag["id"][];
 };
 
 /**
- * Creates a subquery to efficiently filter user_urls that have ALL specified categories.
+ * Creates a subquery to efficiently filter user_urls that have ALL specified tags.
  * This approach filters early (before joins) to reduce intermediate result set size.
  */
-const createCategoryFilterSubquery = (categoryIds: Category["id"][]) => {
+const createTagFilterSubquery = (tagIds: Tag["id"][]) => {
   return db
-    .select({ userUrlId: schema.userUrlsCategories.userUrlId })
-    .from(schema.userUrlsCategories)
-    .where(orm.inArray(schema.userUrlsCategories.categoryId, categoryIds))
-    .groupBy(schema.userUrlsCategories.userUrlId)
-    .having(orm.sql`COUNT(DISTINCT ${schema.userUrlsCategories.categoryId}) >= ${categoryIds.length}`);
+    .select({ userUrlId: schema.userUrlsTags.userUrlId })
+    .from(schema.userUrlsTags)
+    .where(orm.inArray(schema.userUrlsTags.tagId, tagIds))
+    .groupBy(schema.userUrlsTags.userUrlId)
+    .having(orm.sql`COUNT(DISTINCT ${schema.userUrlsTags.tagId}) >= ${tagIds.length}`);
 };
 
 export const getUserFeedQuery = ({
@@ -31,7 +31,7 @@ export const getUserFeedQuery = ({
   limit,
   cursor,
   feedSource,
-  categoryIds,
+  tagIds,
 }: GetUserFeedQueryOptions) => {
   const baseGroupBy = [
     schema.feeds.id,
@@ -61,18 +61,18 @@ export const getUserFeedQuery = ({
       userUrl_liked: orm.sql<boolean>`COALESCE(${schema.usersUrlsInteractions.userId} IS NOT NULL, FALSE)`.as(
         "userUrl_liked",
       ),
-      category_names: orm.sql<string | null>`STRING_AGG(DISTINCT ${schema.categories.name}, ', ')`,
+      tag_names: orm.sql<string | null>`STRING_AGG(DISTINCT ${schema.tags.name}, ', ')`,
     })
     .from(schema.feeds)
     .leftJoin(schema.usersUrls, orm.eq(schema.feeds.userUrlId, schema.usersUrls.id))
     .leftJoin(schema.urls, orm.eq(schema.usersUrls.urlId, schema.urls.id))
-    .leftJoin(schema.userUrlsCategories, orm.eq(schema.usersUrls.id, schema.userUrlsCategories.userUrlId))
-    .leftJoin(schema.categories, orm.eq(schema.userUrlsCategories.categoryId, schema.categories.id))
+    .leftJoin(schema.userUrlsTags, orm.eq(schema.usersUrls.id, schema.userUrlsTags.userUrlId))
+    .leftJoin(schema.tags, orm.eq(schema.userUrlsTags.tagId, schema.tags.id))
     .leftJoin(schema.userProfiles, orm.eq(schema.usersUrls.userId, schema.userProfiles.userId))
     .groupBy(...groupBy)
     .orderBy(orm.desc(schema.feeds.createdAt));
 
-  const includeCategories = categoryIds.length > 0;
+  const includeTags = tagIds.length > 0;
 
   const userCondition = orm.eq(schema.feeds.userId, userId);
   const authorCondition = orm.eq(schema.userProfiles.userId, userId);
@@ -89,9 +89,9 @@ export const getUserFeedQuery = ({
     );
   }
 
-  // Build WHERE conditions with efficient category filtering
-  const baseCategoryCondition = includeCategories
-    ? orm.inArray(schema.feeds.userUrlId, orm.sql`(${createCategoryFilterSubquery(categoryIds)})`)
+  // Build WHERE conditions with efficient tag filtering
+  const baseTagCondition = includeTags
+    ? orm.inArray(schema.feeds.userUrlId, orm.sql`(${createTagFilterSubquery(tagIds)})`)
     : undefined;
 
   if (feedSource === "author") {
@@ -99,13 +99,13 @@ export const getUserFeedQuery = ({
       orm.and(
         userCondition,
         authorCondition,
-        baseCategoryCondition,
+        baseTagCondition,
         cursor ? orm.lt(schema.feeds.createdAt, cursor) : undefined,
       ),
     );
   } else {
     query.where(
-      orm.and(userCondition, baseCategoryCondition, cursor ? orm.lt(schema.feeds.createdAt, cursor) : undefined),
+      orm.and(userCondition, baseTagCondition, cursor ? orm.lt(schema.feeds.createdAt, cursor) : undefined),
     );
   }
 

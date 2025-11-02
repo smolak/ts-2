@@ -6,14 +6,14 @@ import { createCompoundHash, createUrlHash } from "./compound-hash";
 import type { AddUrlRequestBody } from "./request-body.schema";
 
 interface Params {
-  categoryIds: AddUrlRequestBody["categoryIds"];
+  tagIds: AddUrlRequestBody["tagIds"];
   metadata: AddUrlRequestBody["metadata"];
   userId: UserId;
 }
 
 type AddUrl = (params: Params) => Promise<UserUrl>;
 
-export const addUrl: AddUrl = async ({ categoryIds, metadata, userId }) => {
+export const addUrl: AddUrl = async ({ tagIds, metadata, userId }) => {
   const compoundHash = createCompoundHash(metadata);
   const urlHash = createUrlHash(metadata.url);
 
@@ -86,21 +86,21 @@ export const addUrl: AddUrl = async ({ categoryIds, metadata, userId }) => {
       throw new Error("Failed to create userUrl entry.");
     }
 
-    if (categoryIds.length > 0) {
-      const dataToAdd = categoryIds.map((categoryId, index) => ({
-        categoryId,
+    if (tagIds.length > 0) {
+      const dataToAdd = tagIds.map((tagId, index) => ({
+        tagId,
         userUrlId: userUrl.id,
-        categoryOrder: index + 1,
+        tagOrder: index + 1,
       }));
 
-      await tx.insert(schema.userUrlsCategories).values(dataToAdd);
+      await tx.insert(schema.userUrlsTags).values(dataToAdd);
 
       await tx
-        .update(schema.categories)
+        .update(schema.tags)
         .set({
-          urlsCount: orm.sql`${schema.categories.urlsCount} + 1`,
+          urlsCount: orm.sql`${schema.tags.urlsCount} + 1`,
         })
-        .where(orm.inArray(schema.categories.id, categoryIds));
+        .where(orm.inArray(schema.tags.id, tagIds));
     }
 
     await tx

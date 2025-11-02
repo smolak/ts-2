@@ -36,7 +36,7 @@
 │                      Business Logic Layer                       │
 ├─────────────────┬─────────────────┬─────────────────────────────┤
 │   User Service  │   Feed Service  │   URL Service               │
-│   Category Svc  │   Follow Svc    │   Metadata Svc              │
+│   Tag Svc       │   Follow Svc    │   Metadata Svc              │
 └─────────────────┴─────────────────┴─────────────────────────────┘
                                 │
                                 ▼
@@ -109,16 +109,16 @@ packages/
 │   │   └── formatUserData.ts
 │   └── schemas/
 │       └── userProfile.schema.ts
-├── categories/             # Shared category logic
+├── tags/                   # Shared tag logic
 │   ├── components/
-│   │   ├── CategoryBadge.tsx
-│   │   └── CategoryPicker.tsx
+│   │   ├── TagBadge.tsx
+│   │   └── TagPicker.tsx
 │   ├── hooks/
-│   │   └── useCategories.ts
+│   │   └── useTags.ts
 │   ├── types/
-│   │   └── Category.ts
+│   │   └── Tag.ts
 │   └── schemas/
-│       └── category.schema.ts
+│       └── tag.schema.ts
 ├── urls/                   # Shared URL logic
 │   ├── components/
 │   │   ├── UrlCard.tsx
@@ -174,7 +174,7 @@ apps/
         ├── url-sharing/    # Extension-specific URL sharing
         │   ├── components/
         │   │   ├── UrlSharingForm.tsx
-        │   │   └── CategorySelector.tsx
+        │   │   └── TagSelector.tsx
         │   └── hooks/
         │       └── useUrlSharing.ts
         └── settings/       # Extension-specific settings
@@ -199,7 +199,7 @@ apps/
 // apps/web/features/feed/components/FeedItem.tsx
 // Follow import rules from CODING-GUIDELINE.md
 import { UrlCard } from "@repo/urls/components/UrlCard";
-import { CategoryBadge } from "@repo/categories/components/CategoryBadge";
+import { TagBadge } from "@repo/tags/components/TagBadge";
 import { UserAvatar } from "@repo/user-profile/components/UserAvatar";
 
 export const FeedItem = ({ item }) => {
@@ -207,7 +207,7 @@ export const FeedItem = ({ item }) => {
     <div className="feed-item">
       <UserAvatar user={item.user} />
       <UrlCard url={item.url} />
-      <CategoryBadge category={item.category} />
+      <TagBadge tag={item.tag} />
     </div>
   );
 };
@@ -215,7 +215,7 @@ export const FeedItem = ({ item }) => {
 // Browser extension using shared packages
 // apps/browser-extension/features/url-sharing/components/UrlSharingForm.tsx
 // Follow import rules from CODING-GUIDELINE.md
-import { CategoryPicker } from "@repo/categories/components/CategoryPicker";
+import { TagPicker } from "@repo/tags/components/TagPicker";
 import { MetadataPreview } from "@repo/metadata/components/MetadataPreview";
 import { useUrl } from "@repo/urls/hooks/useUrl";
 
@@ -225,7 +225,7 @@ export const UrlSharingForm = () => {
   return (
     <form>
       <MetadataPreview />
-      <CategoryPicker />
+      <TagPicker />
       <button onClick={saveUrl}>Save URL</button>
     </form>
   );
@@ -269,12 +269,12 @@ export const UrlSharingForm = () => {
 // Follow import rules from CODING-GUIDELINE.md
 import { AppLayout } from "@/features/layout/components/AppLayout";
 import { FeedList } from "@/features/feed/components/FeedList";
-import { CategorySidebar } from "@/features/categories/components/CategorySidebar";
+import { TagSidebar } from "@/features/tags/components/TagSidebar";
 
 export default function DashboardPage() {
   return (
     <AppLayout
-      sidebar={<CategorySidebar />}
+      sidebar={<TagSidebar />}
       main={<FeedList />}
     />
   );
@@ -334,7 +334,7 @@ All CRUD operations for an entity should be in one file to centralize cache mana
 
 **File Naming Convention:**
 
-- **File Name**: Use feature name without "use" prefix (e.g., `userProfile.ts`, `categories.ts`)
+- **File Name**: Use feature name without "use" prefix (e.g., `userProfile.ts`, `tags.ts`)
 - **Individual Hooks**: Each hook still uses "use" prefix (e.g., `useUserProfile`, `useCreateUserProfile`)
 - **Purpose**: The file contains multiple hooks but is not a hook itself
 
@@ -462,17 +462,17 @@ export const UserProfileForm = ({ userId }: { userId: string }) => {
 **Other Examples:**
 
 ```typescript
-// packages/categories/hooks/categories.ts
-export const useCategories = () => {
+// packages/tags/hooks/tags.ts
+export const useTags = () => {
   /* ... */
 };
-export const useCreateCategory = () => {
+export const useCreateTag = () => {
   /* ... */
 };
-export const useUpdateCategory = () => {
+export const useUpdateTag = () => {
   /* ... */
 };
-export const useDeleteCategory = () => {
+export const useDeleteTag = () => {
   /* ... */
 };
 
@@ -522,7 +522,7 @@ server/
 │   │   ├── users.ts          # User management
 │   │   ├── profiles.ts       # User profiles
 │   │   ├── feeds.ts          # Feed operations
-│   │   ├── categories.ts     # Category management
+│   │   ├── tags.ts           # Tag management
 │   │   ├── urls.ts           # URL operations
 │   │   └── follow.ts         # Follow system
 │   ├── trpc.ts               # tRPC initialization
@@ -542,7 +542,7 @@ services/
 ├── user.service.ts       # User business logic
 ├── feed.service.ts       # Feed business logic
 ├── url.service.ts        # URL business logic
-├── category.service.ts   # Category business logic
+├── tag.service.ts        # Tag business logic
 └── metadata.service.ts   # Metadata extraction
 ```
 
@@ -554,7 +554,7 @@ data/
 │   ├── user.repository.ts
 │   ├── feed.repository.ts
 │   ├── url.repository.ts
-│   └── category.repository.ts
+│   └── tag.repository.ts
 ├── schemas/
 │   └── database.ts       # Drizzle schemas
 └── migrations/
@@ -679,7 +679,7 @@ export const db = drizzle(postgres(connectionString), {
     users,
     userProfiles,
     urls,
-    categories,
+    tags,
     feeds,
   },
 });

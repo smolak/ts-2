@@ -1,4 +1,4 @@
-import type { Category, Feed, Url, UserProfile, UserUrl } from "@repo/db/types";
+import type { Feed, Tag, Url, UserProfile, UserUrl } from "@repo/db/types";
 import type { ScrappedMetadata } from "@repo/metadata-scrapper/types";
 
 type Metadata = ScrappedMetadata;
@@ -14,7 +14,7 @@ type RawFeedEntry = {
   url_metadata: unknown;
   url_likesCount: UserUrl["likesCount"] | null;
   userUrl_id: UserUrl["id"];
-  category_names: string | null;
+  tag_names: string | null;
 };
 
 /**
@@ -30,7 +30,7 @@ type RawFeedEntry = {
     url_likesCount: number | null;
     userUrl_id: string;
     userUrl_liked: boolean;
-    category_names: string | null;
+    tag_names: string | null;
 }
  * @returns 
  */
@@ -83,7 +83,7 @@ export const toFeedDTO = (entry: RawFeedEntry): FeedDTO => {
       metadata: filterMetadata(entry.url_metadata),
       likesCount: entry.url_likesCount as UserUrl["likesCount"],
       liked: entry.userUrl_liked || false,
-      categoryNames: entry.category_names ? entry.category_names.split(",") : [],
+      tagNames: entry.tag_names ? entry.tag_names.split(",") : [],
     },
     userUrlId: entry.userUrl_id,
   };
@@ -104,7 +104,7 @@ export type FeedDTO = {
     metadata: Metadata;
     liked: boolean;
     likesCount: UserUrl["likesCount"];
-    categoryNames: Category["name"][];
+    tagNames: Tag["name"][];
   };
   userUrlId: UserUrl["id"];
 };

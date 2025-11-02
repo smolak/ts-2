@@ -15,6 +15,13 @@
       "when": 1759589929586,
       "tag": "0001_lively_doctor_faustus",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1762105832974,
+      "tag": "0002_lazy_plazm",
+      "breakpoints": true
     }
   ]
 }

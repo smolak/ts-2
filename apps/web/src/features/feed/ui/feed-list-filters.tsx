@@ -1,19 +1,19 @@
-import type { CategoryDto } from "@repo/category/dto/category.dto";
+import type { TagDto } from "@repo/tag/dto/tag.dto";
 import type { UserProfile } from "@repo/db/types";
 import type { FC } from "react";
-import { CategoriesSelector } from "@/features/category/ui/categories-selector";
+import { TagsSelector } from "@/features/tag/ui/tags-selector";
 import { UserFeedSourceSelector } from "./user-feed-source-selector";
 
 type FeedListFiltersProps = {
   username: UserProfile["username"];
-  categories: ReadonlyArray<CategoryDto>;
+  tags: ReadonlyArray<TagDto>;
 };
 
-export const FeedListFilters: FC<FeedListFiltersProps> = ({ username, categories }) => {
+export const FeedListFilters: FC<FeedListFiltersProps> = ({ username, tags }) => {
   return (
     <aside className="flex justify-between">
       <UserFeedSourceSelector author={username} />
-      <CategoriesSelector author={username} categories={categories} />
+      <TagsSelector author={username} tags={tags} />
     </aside>
   );
 };

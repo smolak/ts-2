@@ -14,26 +14,26 @@ import {
   varchar,
 } from "drizzle-orm/pg-core";
 import { API_KEY_LENGTH } from "./constants";
-import { CATEGORY_ID_LENGTH, generateCategoryId } from "./id/category-id";
 import { FEED_ID_LENGTH, generateFeedId } from "./id/feed-id";
+import { generateTagId, TAG_ID_LENGTH } from "./id/tag-id";
 import { generateUrlId, URL_ID_LENGTH } from "./id/url-id";
 import { generateUserId, USER_ID_LENGTH } from "./id/user-id";
 import { generateUserProfileId, USER_PROFILE_ID_LENGTH } from "./id/user-profile-id";
 import { generateUserUrlId, USER_URL_ID_LENGTH } from "./id/user-url-id";
 
 /**
- * CATEGORIES
+ * TAGS
  *
- * Users can create categories and assign them to urls.
- * URLs can have multiple categories.
+ * Users can create tags and assign them to urls.
+ * URLs can have multiple tags.
  */
-export const categories = pgTable(
-  "categories",
+export const tags = pgTable(
+  "tags",
   {
-    id: char("id", { length: CATEGORY_ID_LENGTH })
+    id: char("id", { length: TAG_ID_LENGTH })
       .notNull()
       .primaryKey()
-      .$defaultFn(() => generateCategoryId()),
+      .$defaultFn(() => generateTagId()),
     userId: char("user_id", { length: USER_ID_LENGTH })
       .notNull()
       .references(() => users.id),
@@ -45,7 +45,7 @@ export const categories = pgTable(
   (table) => [unique().on(table.userId, table.name), index().on(table.userId)],
 );
 
-export type Category = InferSelectModel<typeof categories>;
+export type Tag = InferSelectModel<typeof tags>;
 
 /**
  * URLS
@@ -178,28 +178,28 @@ export const usersUrls = pgTable(
 export type UserUrl = InferSelectModel<typeof usersUrls>;
 
 /**
- * USER URLS CATEGORIES
+ * USER URLS TAGS
  */
-export const userUrlsCategories = pgTable(
-  "user_urls_categories",
+export const userUrlsTags = pgTable(
+  "user_urls_tags",
   {
     userUrlId: char("user_url_id", { length: USER_URL_ID_LENGTH })
       .notNull()
       .references(() => usersUrls.id, { onDelete: "cascade" }),
-    categoryId: char("category_id", { length: CATEGORY_ID_LENGTH })
+    tagId: char("tag_id", { length: TAG_ID_LENGTH })
       .notNull()
-      .references(() => categories.id, { onDelete: "cascade" }),
-    categoryOrder: smallint("category_order").notNull(),
+      .references(() => tags.id, { onDelete: "cascade" }),
+    tagOrder: smallint("tag_order").notNull(),
     createdAt: timestamp("created_at", { withTimezone: true }).default(sql`CURRENT_TIMESTAMP`).notNull(),
   },
   (table) => [
-    primaryKey({ columns: [table.userUrlId, table.categoryId] }),
+    primaryKey({ columns: [table.userUrlId, table.tagId] }),
     index().on(table.userUrlId),
-    index().on(table.categoryId),
+    index().on(table.tagId),
   ],
 );
 
-export type UserUrlCategory = InferSelectModel<typeof userUrlsCategories>;
+export type UserUrlTag = InferSelectModel<typeof userUrlsTags>;
 
 export const follows = pgTable(
   "follows",
@@ -270,7 +270,9 @@ export const usersUrlsInteractions = pgTable(
     primaryKey({ columns: [table.userUrlId, table.userId, table.interactionTypeId] }),
     // Optimized index for checking if a user liked a specific URL (used in feed queries)
     // The partial index filters to only LIKED interactions (interactionTypeId = 1) for better performance
-    index().on(table.userUrlId, table.userId).where(sql`interaction_type_id = 1`),
+    index()
+      .on(table.userUrlId, table.userId)
+      .where(sql`interaction_type_id = 1`),
   ],
 );
 
@@ -293,7 +295,7 @@ export const usersRelations = relations(users, ({ one, many }) => ({
     references: [userProfiles.userId],
   }),
   urls: many(usersUrls),
-  categories: many(categories),
+  tags: many(tags),
   followers: many(follows, { relationName: "followers" }),
   following: many(follows, { relationName: "following" }),
   feeds: many(feeds),
@@ -330,26 +332,26 @@ export const usersUrlsRelations = relations(usersUrls, ({ one, many }) => ({
     fields: [usersUrls.urlId],
     references: [urls.id],
   }),
-  categories: many(userUrlsCategories),
+  tags: many(userUrlsTags),
   feeds: many(feeds),
 }));
 
-export const categoriesRelations = relations(categories, ({ one, many }) => ({
+export const tagsRelations = relations(tags, ({ one, many }) => ({
   user: one(users, {
-    fields: [categories.userId],
+    fields: [tags.userId],
     references: [users.id],
   }),
-  urls: many(userUrlsCategories),
+  urls: many(userUrlsTags),
 }));
 
-export const userUrlsCategoriesRelations = relations(userUrlsCategories, ({ one }) => ({
+export const userUrlsTagsRelations = relations(userUrlsTags, ({ one }) => ({
   usersUrl: one(usersUrls, {
-    fields: [userUrlsCategories.userUrlId],
+    fields: [userUrlsTags.userUrlId],
     references: [usersUrls.id],
   }),
-  category: one(categories, {
-    fields: [userUrlsCategories.categoryId],
-    references: [categories.id],
+  tag: one(tags, {
+    fields: [userUrlsTags.tagId],
+    references: [tags.id],
   }),
 }));
 

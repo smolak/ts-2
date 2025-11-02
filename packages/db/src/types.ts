@@ -1,14 +1,14 @@
 export type {
-  Category,
   Feed,
   Follow,
   InteractionType,
+  Tag,
   Url,
   UrlHashes,
   UrlHashesCompoundHashesCount,
   User,
   UserProfile,
   UserUrl,
-  UserUrlCategory,
   UserUrlInteraction,
+  UserUrlTag,
 } from "./schema";

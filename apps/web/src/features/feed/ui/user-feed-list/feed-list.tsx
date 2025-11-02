@@ -24,14 +24,14 @@ export const FeedList: FC<FeedListProps> = ({ feed, viewerId }) => {
   }, [feed]);
 
   const onEditSuccess = useCallback<OnSuccess>(
-    (categoryNames) => {
+    (tagNames) => {
       const updatedFeedItems = feedItems.map((feedItem) => {
         if (feedItem.id === editedItem?.id) {
           return {
             ...feedItem,
             url: {
               ...feedItem.url,
-              categoryNames,
+              tagNames,
             },
           };
         }

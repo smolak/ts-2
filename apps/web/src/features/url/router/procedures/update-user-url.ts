@@ -1,21 +1,21 @@
 import { orm, schema } from "@repo/db/db";
-import { categoryIdSchema } from "@repo/db/id/category-id";
+import { tagIdSchema } from "@repo/db/id/tag-id";
 import { userUrlIdSchema } from "@repo/db/id/user-url-id";
 import { TRPCError } from "@trpc/server";
 import { z } from "zod";
-import { selectCategoryIdsForUpdate } from "@/features/url/router/procedures/utils/select-category-ids-for-update";
+import { selectTagIdsForUpdate } from "@/features/url/router/procedures/utils/select-tag-ids-for-update";
 import { protectedProcedure } from "@/server/api/trpc";
 
 export type UpdateUserUrlSchema = z.infer<typeof updateUserUrlSchema>;
 
 export const updateUserUrlSchema = z.object({
   userUrlId: userUrlIdSchema,
-  categoryIds: z.array(categoryIdSchema),
+  tagIds: z.array(tagIdSchema),
 });
 
 export const updateUserUrl = protectedProcedure
   .input(updateUserUrlSchema)
-  .mutation(async ({ input: { userUrlId, categoryIds }, ctx: { logger, requestId, userId, db } }) => {
+  .mutation(async ({ input: { userUrlId, tagIds }, ctx: { logger, requestId, userId, db } }) => {
     const path = "userUrl.updateUserUrl";
 
     // Verify the userUrl belongs to the current user
@@ -32,60 +32,60 @@ export const updateUserUrl = protectedProcedure
       });
     }
 
-    // Get current categories
-    const currentUserUrlCategories = await db.query.userUrlsCategories.findMany({
+    // Get current tags
+    const currentUserUrlTags = await db.query.userUrlsTags.findMany({
       columns: {
-        categoryId: true,
+        tagId: true,
       },
-      where: (userUrlsCategories, { eq }) => eq(userUrlsCategories.userUrlId, userUrlId),
+      where: (userUrlsTags, { eq }) => eq(userUrlsTags.userUrlId, userUrlId),
     });
 
-    const currentCategoryIds = currentUserUrlCategories.map(({ categoryId }) => categoryId);
+    const currentTagIds = currentUserUrlTags.map(({ tagId }) => tagId);
 
-    // Determine which categories to add and remove
-    const { increment, decrement } = selectCategoryIdsForUpdate({
-      currentCategoryIds,
-      newCategoryIds: categoryIds,
+    // Determine which tags to add and remove
+    const { increment, decrement } = selectTagIdsForUpdate({
+      currentTagIds,
+      newTagIds: tagIds,
     });
 
     await db.transaction(async (tx) => {
-      // Remove categories that are no longer selected
+      // Remove tags that are no longer selected
       if (decrement.length > 0) {
         await tx
-          .delete(schema.userUrlsCategories)
+          .delete(schema.userUrlsTags)
           .where(
             orm.and(
-              orm.eq(schema.userUrlsCategories.userUrlId, userUrlId),
-              orm.inArray(schema.userUrlsCategories.categoryId, decrement),
+              orm.eq(schema.userUrlsTags.userUrlId, userUrlId),
+              orm.inArray(schema.userUrlsTags.tagId, decrement),
             ),
           );
 
-        // Decrement urlsCount for removed categories
+        // Decrement urlsCount for removed tags
         await tx
-          .update(schema.categories)
+          .update(schema.tags)
           .set({
-            urlsCount: orm.sql`${schema.categories.urlsCount} - 1`,
+            urlsCount: orm.sql`${schema.tags.urlsCount} - 1`,
           })
-          .where(orm.inArray(schema.categories.id, decrement));
+          .where(orm.inArray(schema.tags.id, decrement));
       }
 
-      // Add new categories
+      // Add new tags
       if (increment.length > 0) {
-        const dataToAdd = increment.map((categoryId, index) => ({
-          categoryId,
+        const dataToAdd = increment.map((tagId, index) => ({
+          tagId,
           userUrlId,
-          categoryOrder: currentCategoryIds.length + index + 1,
+          tagOrder: currentTagIds.length + index + 1,
         }));
 
-        await tx.insert(schema.userUrlsCategories).values(dataToAdd);
+        await tx.insert(schema.userUrlsTags).values(dataToAdd);
 
-        // Increment urlsCount for added categories
+        // Increment urlsCount for added tags
         await tx
-          .update(schema.categories)
+          .update(schema.tags)
           .set({
-            urlsCount: orm.sql`${schema.categories.urlsCount} + 1`,
+            urlsCount: orm.sql`${schema.tags.urlsCount} + 1`,
           })
-          .where(orm.inArray(schema.categories.id, increment));
+          .where(orm.inArray(schema.tags.id, increment));
       }
     });
 

@@ -1,4 +1,4 @@
-import { categoryIdSchema } from "@repo/db/id/category-id";
+import { tagIdSchema } from "@repo/db/id/tag-id";
 import { userIdSchema } from "@repo/db/id/user-id";
 import { TRPCError } from "@trpc/server";
 import { z } from "zod";
@@ -15,7 +15,7 @@ const querySchema = z.object({
   cursor: z.date().optional(),
   userId: userIdSchema,
   feedSource: feedSourceSchema,
-  categoryIds: z.array(categoryIdSchema).optional().default([]),
+  tagIds: z.array(tagIdSchema).optional().default([]),
 });
 
 export type GetUserFeedResponse = {
@@ -43,7 +43,7 @@ export const getUserFeed = protectedProcedure
         limit: itemsPerFetch,
         cursor: input.cursor,
         feedSource: input.feedSource,
-        categoryIds: input.categoryIds,
+        tagIds: input.tagIds,
       });
 
       const feed = feedRawEntries.map((entry) => toFeedDTO(entry));

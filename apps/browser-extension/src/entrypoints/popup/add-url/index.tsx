@@ -1,4 +1,4 @@
-import type { CategoryDto } from "@repo/category/dto/category.dto";
+import type { TagDto } from "@repo/tag/dto/tag.dto";
 import type { ScrappedMetadata } from "@repo/metadata-scrapper/types";
 import { Button } from "@repo/ui/components/button";
 import { LoadingIndicator } from "@repo/ui/components/loading-indicator";
@@ -6,11 +6,11 @@ import { Separator } from "@repo/ui/components/separator";
 import { Check } from "lucide-react";
 import { type FC, useCallback, useEffect, useState } from "react";
 
-import { AddCategory } from "../add-category";
-import { CategoryPicker } from "../category-picker";
-import { CATEGORIES_STORAGE_KEY } from "../constants/storage";
+import { AddTag } from "../add-tag";
+import { TagPicker } from "../tag-picker";
+import { TAGS_STORAGE_KEY } from "../constants/storage";
 import { useAddUrl } from "../hooks/use-add-url";
-import { useCategories } from "../hooks/use-categories";
+import { useTags } from "../hooks/use-tags";
 import { useLocalStorage } from "../hooks/use-local-storage";
 
 type AddUrlProps = {
@@ -20,52 +20,52 @@ type AddUrlProps = {
 };
 
 export const AddUrl: FC<AddUrlProps> = ({ apiKey, url, metadata }) => {
-  const [categories, setCategories] = useLocalStorage<CategoryDto[]>(CATEGORIES_STORAGE_KEY, []);
+  const [tags, setTags] = useLocalStorage<TagDto[]>(TAGS_STORAGE_KEY, []);
   const { mutate, isPending, isSuccess, isError } = useAddUrl(apiKey);
-  const { data, isSuccess: categoriesFetched, refetch } = useCategories(apiKey);
+  const { data, isSuccess: tagsFetched, refetch } = useTags(apiKey);
 
   useEffect(() => {
-    if (categoriesFetched) {
-      setCategories(data);
+    if (tagsFetched) {
+      setTags(data);
     }
-  }, [categoriesFetched, data, setCategories]);
+  }, [tagsFetched, data, setTags]);
 
-  const [selectedCategories, setSelectedCategories] = useState<CategoryVM["id"][]>([]);
+  const [selectedTags, setSelectedTags] = useState<TagDto["id"][]>([]);
 
-  const onCategorySelectionChange = useCallback(
-    (categoryId: CategoryVM["id"]) => {
-      const categoryListed = selectedCategories.indexOf(categoryId) !== -1;
-      const newSelection = categoryListed
-        ? selectedCategories.filter((id) => categoryId !== id)
-        : [...selectedCategories, categoryId];
+  const onTagSelectionChange = useCallback(
+    (tagId: TagDto["id"]) => {
+      const tagListed = selectedTags.indexOf(tagId) !== -1;
+      const newSelection = tagListed
+        ? selectedTags.filter((id) => tagId !== id)
+        : [...selectedTags, tagId];
 
-      setSelectedCategories(newSelection);
+      setSelectedTags(newSelection);
     },
-    [selectedCategories, setSelectedCategories],
+    [selectedTags, setSelectedTags],
   );
 
   const addUrl = useCallback(() => {
-    console.log("Adding URL", { metadata, selectedCategories });
-    mutate({ metadata, categoryIds: selectedCategories });
-  }, [mutate, metadata, selectedCategories]);
+    console.log("Adding URL", { metadata, selectedTags });
+    mutate({ metadata, tagIds: selectedTags });
+  }, [mutate, metadata, selectedTags]);
 
   return (
     <div className="flex flex-col gap-4 p-2">
-      {categories.length > 0 ? (
+      {tags.length > 0 ? (
         <div>
-          <h2 className="text-lg font-medium">Categories</h2>
-          <CategoryPicker
+          <h2 className="text-lg font-medium">Tags</h2>
+          <TagPicker
             description="optional"
-            categories={categories}
-            selectedCategories={selectedCategories}
-            onCategorySelectionChange={onCategorySelectionChange}
+            tags={tags}
+            selectedTags={selectedTags}
+            onTagSelectionChange={onTagSelectionChange}
           />
         </div>
       ) : (
-        <div className="text-sm">No categories. Add some.</div>
+        <div className="text-sm">No tags. Add some.</div>
       )}
 
-      <AddCategory apiKey={apiKey} onSuccess={() => refetch()} />
+      <AddTag apiKey={apiKey} onSuccess={() => refetch()} />
       <Separator />
 
       {isError && <div>Could not add, try again.</div>}

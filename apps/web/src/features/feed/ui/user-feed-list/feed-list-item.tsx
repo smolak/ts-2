@@ -85,11 +85,11 @@ export const FeedListItem: FC<FeedListItemProps> = ({ feedItem, interactions, op
             )}
           </div>
 
-          {url.categoryNames && url.categoryNames.length > 0 && (
+          {url.tagNames && url.tagNames.length > 0 && (
             <div className="mt-3">
-              {url.categoryNames.map((categoryName) => (
-                <Badge key={categoryName} variant="outline" className="mr-1 mb-1">
-                  {categoryName}
+              {url.tagNames.map((tagName) => (
+                <Badge key={tagName} variant="outline" className="mr-1 mb-1">
+                  {tagName}
                 </Badge>
               ))}
             </div>
@@ -174,7 +174,7 @@ export const FeedListItem: FC<FeedListItemProps> = ({ feedItem, interactions, op
         <CardFooter className="flex items-center justify-between gap-4">
           <div className="flex grow items-center gap-2">
             <div>{interactions}</div>
-            <span className="font-light text-slate-400 text-xs">{url.categoryNames.join(", ")}</span>
+            <span className="font-light text-slate-400 text-xs">{url.tagNames.join(", ")}</span>
           </div>
           <Link href={`/${user.username}`} className="flex-none">
             <UserImage username={user.username} imageUrl={user.imageUrl} size="small" />

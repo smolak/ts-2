@@ -107,11 +107,11 @@ create-possessive-form.ts;
 // Types: kebab-case
 user-profile.ts;
 feed-item.ts;
-category-name.schema.ts;
+tag-name.schema.ts;
 
 // Constants: kebab-case
 api-base-url.ts;
-max-categories.ts;
+max-tags.ts;
 ```
 
 ### Variables and Functions
@@ -308,7 +308,7 @@ import { AppError } from "@repo/shared/utils/errors";
 - `@repo/ui` - UI components
 - `@repo/shared` - Shared utilities and types
 - `@repo/user-profile` - User profile features
-- `@repo/categories` - Category management
+- `@repo/tags` - Tag management
 - `@repo/urls` - URL management
 - `@repo/metadata` - Metadata extraction
 - `@repo/feed` - Feed functionality
@@ -332,7 +332,7 @@ import { AppError } from "@repo/shared/utils/errors";
 ```typescript
 // apps/web/features/feed/components/feed-item.tsx
 import { UserProfileCard } from "@repo/user-profile/components/user-profile-card";
-import { CategoryBadge } from "@repo/categories/components/category-badge";
+import { TagBadge } from "@repo/tags/components/tag-badge";
 ```
 
 **From Package to Package:**
