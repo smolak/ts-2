@@ -8,10 +8,7 @@ import type { FC } from "react";
 import { useCallback, useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { api } from "@/trpc/react";
-import {
-  type DeleteTagSchema,
-  deleteTagSchema,
-} from "../../schemas/delete-tag.schema";
+import { type DeleteTagSchema, deleteTagSchema } from "../../schemas/delete-tag.schema";
 import { ActionPending } from "./action-pending";
 import { CancelAction } from "./cancel-action";
 import { StickyErrorMessage } from "./sticky-error-message";
@@ -66,7 +63,7 @@ export const DeleteTag: FC<EditTagProps> = ({ tag, onDelete, onCancel }) => {
 
   return (
     <form className="relative" onSubmit={handleSubmit(onSubmit)}>
-      <p className="absolute -top-8 rounded-md border-l-4 border-sky-600 bg-sky-50 px-2 py-1 text-sm text-sky-600">
+      <p className="-top-8 absolute rounded-md border-sky-600 border-l-4 bg-sky-50 px-2 py-1 text-sky-600 text-sm">
         <span className="flex items-center gap-2">
           <Info size={13} strokeWidth={2.5} />
           <span className="font-light">No URLs will be removed with this operation.</span>
@@ -74,7 +71,7 @@ export const DeleteTag: FC<EditTagProps> = ({ tag, onDelete, onCancel }) => {
       </p>
       <div
         className={cn(
-          "text-accent-foreground space-between flex h-[42px] items-center justify-between rounded-md border border-red-100 px-1 shadow-sm transition-all",
+          "space-between flex h-[42px] items-center justify-between rounded-md border border-red-100 px-1 text-accent-foreground shadow-sm transition-all",
           { "rounded-bl-none border-red-50": Boolean(errorResponse) },
         )}
       >
@@ -99,8 +96,8 @@ export const DeleteTag: FC<EditTagProps> = ({ tag, onDelete, onCancel }) => {
           )}
           <TooltipProvider>
             <Tooltip>
-              <TooltipTrigger>
-                <CancelAction actionPending={isPending} onCancelAction={onCancel} />
+              <TooltipTrigger onClick={onCancel} disabled={isPending}>
+                <CancelAction />
               </TooltipTrigger>
               <TooltipContent>
                 <p>No, I changed my mind.</p>

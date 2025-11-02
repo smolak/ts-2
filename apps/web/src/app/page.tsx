@@ -2,7 +2,7 @@
 
 import { SignedIn, SignedOut, SignInButton, SignUpButton } from "@clerk/nextjs";
 import { Button } from "@repo/ui/components/button";
-import { Card, CardAction, CardDescription, CardFooter, CardHeader, CardTitle } from "@repo/ui/components/card";
+import { Card, CardDescription, CardFooter, CardHeader, CardTitle } from "@repo/ui/components/card";
 import type { ReactNode } from "react";
 import { SignedInLayout } from "@/components/signed-in-layout";
 import { SignedOutLayout } from "@/components/signed-out-layout";

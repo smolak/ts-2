@@ -101,8 +101,8 @@ export const EditTag: FC<EditTagProps> = ({ tag, onSave, onCancel }) => {
           )}
           <TooltipProvider>
             <Tooltip>
-              <TooltipTrigger>
-                <CancelAction actionPending={isPending} onCancelAction={onCancel} />
+              <TooltipTrigger disabled={isPending} onClick={onCancel}>
+                <CancelAction />
               </TooltipTrigger>
               <TooltipContent>
                 <p>Discard changes.</p>

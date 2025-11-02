@@ -5,7 +5,6 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@repo/
 import { Pencil, Trash2 } from "lucide-react";
 import type { FC } from "react";
 import { useState } from "react";
-import { ActionButton } from "./action-button";
 import { DeleteTag } from "./delete-tag";
 import { EditTag } from "./edit-tag";
 
@@ -50,10 +49,10 @@ export const TagListItem: FC<TagListItemProps> = ({ tag, onTagDelete }) => {
       <span className="flex text-gray-600">
         <TooltipProvider>
           <Tooltip>
-            <TooltipTrigger>
-              <ActionButton onClick={() => setState("edit")} className="group hover:bg-sky-100">
+            <TooltipTrigger asChild onClick={() => setState("edit")}>
+              <span className="group flex h-[32px] w-[32px] items-center justify-center rounded-md hover:bg-sky-100">
                 <Pencil size={14} className="group-hover:text-sky-600" />
-              </ActionButton>
+              </span>
             </TooltipTrigger>
             <TooltipContent>
               <p>Edit tag name.</p>
@@ -62,10 +61,10 @@ export const TagListItem: FC<TagListItemProps> = ({ tag, onTagDelete }) => {
         </TooltipProvider>
         <TooltipProvider>
           <Tooltip>
-            <TooltipTrigger>
-              <ActionButton onClick={() => setState("delete")} className="group hover:bg-red-100">
+            <TooltipTrigger asChild onClick={() => setState("delete")}>
+              <span className="group flex h-[32px] w-[32px] items-center justify-center rounded-md hover:bg-red-100">
                 <Trash2 size={14} className="group-hover:text-red-600" />
-              </ActionButton>
+              </span>
             </TooltipTrigger>
             <TooltipContent>
               <p>Delete?</p>

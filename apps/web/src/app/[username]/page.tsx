@@ -4,9 +4,8 @@ import { usernameSchema } from "@repo/user-profile/username/schemas/username.sch
 import { normalizeUsername } from "@repo/user-profile/utils/normalize-username";
 import { notFound } from "next/navigation";
 import type { ReactNode } from "react";
-
-import { TagsSelector } from "@/features/tag/ui/tags-selector";
 import { InfiniteUserFeed } from "@/features/feed/ui/user-feed-list/infinite-user-feed";
+import { TagsSelector } from "@/features/tag/ui/tags-selector";
 import { toPublicUserProfileDto } from "@/features/user-profile/dto/public-user-profile.dto";
 import { UserProfileCard } from "@/features/user-profile/ui/user-profile-card";
 

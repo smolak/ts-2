@@ -1,6 +1,6 @@
-import { tagsRouter } from "@/features/tag/router/tags";
 import { feedsRouter } from "@/features/feed/router/feeds";
 import { followUserRouter } from "@/features/follow-user/router/follow-user";
+import { tagsRouter } from "@/features/tag/router/tags";
 import { urlsRouter } from "@/features/url/router/urls";
 import { usersRouter } from "@/features/user/router/users";
 import { userProfilesRouter } from "@/features/user-profile/router/user-profiles";
