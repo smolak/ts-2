@@ -36,8 +36,8 @@ const mimeTypes = {
   video: new Set(["video/mp4", "video/ogg", "video/webm", "video/quicktime"])
 }
 
-export const isMimeType = (mimeType: string, category: keyof typeof mimeTypes): boolean =>
-  mimeTypes[category].has(mimeType)
+export const isMimeType = (mimeType: string, type: keyof typeof mimeTypes): boolean =>
+  mimeTypes[type].has(mimeType)
 
 export const isImage = (mimeType: string) => isMimeType(mimeType, "image")
 export const isText = (mimeType: string) => isMimeType(mimeType, "text")

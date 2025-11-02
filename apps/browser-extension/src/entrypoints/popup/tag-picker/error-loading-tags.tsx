@@ -8,8 +8,8 @@ type ErrorLoadingTagsProps = {
 export const ErrorLoadingTags: FC<ErrorLoadingTagsProps> = ({ onLoadTagsClick }) => {
   return (
     <section className="flex flex-col gap-3">
-      <h1 className="font-bold tracking-tight text-gray-900">
-        <span className="inline">We couldncouldn&apos;t load your categoriesapos;t load your tags, sorry 😞</span>
+      <h1 className="font-bold text-gray-900 tracking-tight">
+        <span className="inline">We couldncouldn&apos;t load your tags, sorry 😞</span>
       </h1>
       <p>
         We log those things and are aware of the problem.

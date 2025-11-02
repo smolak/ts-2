@@ -4,9 +4,9 @@ import { Lightbulb } from "lucide-react";
 import type { FC } from "react";
 import { api } from "@/trpc/react";
 import { AddTag } from "../add-tag";
-import { TagList } from "./tag-list";
 import { ErrorLoadingTags } from "./error-loading-tags";
 import { LoadingTags } from "./loading-tags";
+import { TagList } from "./tag-list";
 
 export const TagsSettings: FC = () => {
   const { data, isLoading, isError, refetch } = api.tags.getUserTags.useQuery();

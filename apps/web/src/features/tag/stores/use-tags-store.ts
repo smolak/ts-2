@@ -1,7 +1,7 @@
 import type { TagDto } from "@repo/tag/dto/tag.dto";
 import { create } from "zustand";
 
-interface CategoriesState {
+interface TagsState {
   tags: TagDto[];
   shouldRefetchTags: boolean;
   refetchTags: () => void;
@@ -9,7 +9,7 @@ interface CategoriesState {
   setTags: (tags: TagDto[]) => void;
 }
 
-export const useTagsStore = create<CategoriesState>()((set) => ({
+export const useTagsStore = create<TagsState>()((set) => ({
   tags: [],
   setTags: (tags) => set({ tags: tags }),
   shouldRefetchTags: false,

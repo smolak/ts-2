@@ -19,7 +19,7 @@ packages/
 ├── ui/                 # Shared UI components
 ├── shared/             # Shared utilities and types
 ├── user-profile/       # User profile features
-├── categories/         # Category management
+├── tags/              # Tag management
 ├── urls/              # URL management
 ├── metadata/          # Metadata extraction
 └── feed/              # Feed functionality

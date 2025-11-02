@@ -37,11 +37,11 @@ I've successfully implemented **Option 1** - a script that uses Cursor IDE's AI 
 - Currently uses mock response (ready for real Cursor integration)
 
 ### 3. Rule Validation
-Validates against these categories from your `.cursorrules`:
+Validates against these tags from your `.cursorrules`:
 
 - **Import Rules**: Relative vs `@repo/` vs `@/` aliases
 - **Component Organization**: File structure and architecture
-- **Testing Strategy**: Test file placement and patterns  
+- **Testing Strategy**: Test file placement and patterns
 - **Naming Conventions**: File and function naming standards
 - **Technology Stack**: Proper use of specified technologies
 
@@ -149,7 +149,7 @@ Total violations: 2
 ## Benefits
 
 1. **Leverages Cursor AI** - Uses the same AI that reads your `.cursorrules`
-2. **Comprehensive Validation** - Checks all rule categories thoroughly
+2. **Comprehensive Validation** - Checks all rule tags thoroughly
 3. **Detailed Reporting** - Clear violation messages with suggestions
 4. **Easy Integration** - Simple pnpm command
 5. **Flexible Architecture** - Ready for real Cursor integration

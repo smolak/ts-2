@@ -5,10 +5,9 @@ import axios from "axios";
 
 import { API_BASE_URL } from "../utils/constants";
 
-export const useTags = (apiKey: string) =>
-  useQuery({ queryKey: ["tags"], queryFn: () => getCategories(apiKey) });
+export const useTags = (apiKey: string) => useQuery({ queryKey: ["tags"], queryFn: () => getTags(apiKey) });
 
-const getCategories = async (apiKey: string): Promise<TagDto[]> => {
+const getTags = async (apiKey: string): Promise<TagDto[]> => {
   const { data } = await axios.get<GetTagsSuccessResponse>(`${API_BASE_URL}/v1/tag`, {
     headers: {
       Authorization: `Bearer ${apiKey}`,

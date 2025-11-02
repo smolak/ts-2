@@ -13,7 +13,7 @@ export const getUserUrlTags = publicProcedure
 
     logger.info({ requestId, path, userUrlId }, "Fetching user url's tags.");
 
-    const userUrlCategories = await db.query.userUrlsTags.findMany({
+    const userUrlTags = await db.query.userUrlsTags.findMany({
       columns: {
         tagId: true,
       },
@@ -22,5 +22,5 @@ export const getUserUrlTags = publicProcedure
 
     logger.info({ requestId, path, userUrlId }, "User url's tags fetched.");
 
-    return userUrlCategories;
+    return userUrlTags;
   });

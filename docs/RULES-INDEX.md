@@ -124,7 +124,7 @@ pnpm run lint
     └── cursor-ai-client.js        # Rule reading and validation
 ```
 
-## 🎯 Rule Categories
+## 🎯 Rule Tags
 
 ### Code Quality Rules
 - **Import Rules** - How to structure imports

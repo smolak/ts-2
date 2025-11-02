@@ -225,7 +225,7 @@ describe("urlSchema", () => {
   describe("edge cases", () => {
     it("should handle URLs with complex query parameters", () => {
       const complexQueryUrls = [
-        "https://example.com/search?q=test+query&category=all&sort=relevance&page=1",
+        "https://example.com/search?q=test+query&tag=all&sort=relevance&page=1",
         "https://example.com/api/v1/users?filter[status]=active&include=profile,settings&limit=50&offset=0",
         "https://example.com/path?param1=value1&param2=value2&param3=value3&param4=value4&param5=value5",
         "https://example.com/path?empty=&null=null&undefined=undefined&boolean=true&number=123",
