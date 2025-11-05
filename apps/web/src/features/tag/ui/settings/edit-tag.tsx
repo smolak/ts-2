@@ -88,7 +88,7 @@ export const EditTag: FC<EditTagProps> = ({ tag, onSave, onCancel }) => {
           ) : (
             <TooltipProvider>
               <Tooltip>
-                <TooltipTrigger>
+                <TooltipTrigger asChild>
                   <SubmitButton isSubmitting={isPending} className="group hover:bg-green-100">
                     <Save size={14} className="group-hover:text-green-600" />
                   </SubmitButton>
@@ -101,8 +101,8 @@ export const EditTag: FC<EditTagProps> = ({ tag, onSave, onCancel }) => {
           )}
           <TooltipProvider>
             <Tooltip>
-              <TooltipTrigger disabled={isPending} onClick={onCancel}>
-                <CancelAction />
+              <TooltipTrigger asChild>
+                <CancelAction actionPending={isPending} onCancelAction={onCancel} />
               </TooltipTrigger>
               <TooltipContent>
                 <p>Discard changes.</p>

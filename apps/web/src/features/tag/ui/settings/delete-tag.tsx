@@ -83,7 +83,7 @@ export const DeleteTag: FC<EditTagProps> = ({ tag, onDelete, onCancel }) => {
           ) : (
             <TooltipProvider>
               <Tooltip>
-                <TooltipTrigger>
+                <TooltipTrigger asChild>
                   <SubmitButton isSubmitting={isPending} className="group hover:bg-green-100">
                     <Trash size={14} className="group-hover:text-green-600" />
                   </SubmitButton>
@@ -96,8 +96,8 @@ export const DeleteTag: FC<EditTagProps> = ({ tag, onDelete, onCancel }) => {
           )}
           <TooltipProvider>
             <Tooltip>
-              <TooltipTrigger onClick={onCancel} disabled={isPending}>
-                <CancelAction />
+              <TooltipTrigger asChild>
+                <CancelAction actionPending={isPending} onCancelAction={onCancel} />
               </TooltipTrigger>
               <TooltipContent>
                 <p>No, I changed my mind.</p>
