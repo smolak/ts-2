@@ -1,0 +1,1 @@
+CREATE INDEX "user_urls_tags_tag_id_user_url_id_index" ON "user_urls_tags" USING btree ("tag_id","user_url_id");

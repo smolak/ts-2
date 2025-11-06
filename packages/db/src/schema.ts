@@ -196,6 +196,8 @@ export const userUrlsTags = pgTable(
     primaryKey({ columns: [table.userUrlId, table.tagId] }),
     index().on(table.userUrlId),
     index().on(table.tagId),
+    // Composite index optimized for tag filtering subquery (tag_id IN (...) GROUP BY user_url_id)
+    index().on(table.tagId, table.userUrlId),
   ],
 );
 
