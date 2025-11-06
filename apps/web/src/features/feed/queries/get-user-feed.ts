@@ -47,7 +47,6 @@ export const getUserFeedQuery = ({
 
   const groupBy = viewerId ? [...baseGroupBy, schema.usersUrlsInteractions.userId] : baseGroupBy;
 
-  // Build query with conditional tag joins to avoid unnecessary joins when filtering by tags
   const includeTags = tagIds.length > 0;
 
   const query = db
@@ -69,16 +68,11 @@ export const getUserFeedQuery = ({
     .from(schema.feeds)
     .leftJoin(schema.usersUrls, orm.eq(schema.feeds.userUrlId, schema.usersUrls.id))
     .leftJoin(schema.urls, orm.eq(schema.usersUrls.urlId, schema.urls.id))
-    .leftJoin(schema.userProfiles, orm.eq(schema.usersUrls.userId, schema.userProfiles.userId));
-
-  // Only join tags tables if NOT filtering (when filtering, we use the subquery for efficiency)
-  if (!includeTags) {
-    query
-      .leftJoin(schema.userUrlsTags, orm.eq(schema.usersUrls.id, schema.userUrlsTags.userUrlId))
-      .leftJoin(schema.tags, orm.eq(schema.userUrlsTags.tagId, schema.tags.id));
-  }
-
-  query.groupBy(...groupBy).orderBy(orm.desc(schema.feeds.createdAt));
+    .leftJoin(schema.userUrlsTags, orm.eq(schema.usersUrls.id, schema.userUrlsTags.userUrlId))
+    .leftJoin(schema.tags, orm.eq(schema.userUrlsTags.tagId, schema.tags.id))
+    .leftJoin(schema.userProfiles, orm.eq(schema.usersUrls.userId, schema.userProfiles.userId))
+    .groupBy(...groupBy)
+    .orderBy(orm.desc(schema.feeds.createdAt));
 
   const userCondition = orm.eq(schema.feeds.userId, userId);
   const authorCondition = orm.eq(schema.userProfiles.userId, userId);
