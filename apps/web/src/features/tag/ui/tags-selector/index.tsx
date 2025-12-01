@@ -28,9 +28,7 @@ const createExplanation = (username: string) => {
     return "Filtering by tag will narrow down your URLs only, as tags are not shared, they are yours.";
   }
 
-  return `Filtering by tags will narrow down ${createPossessiveForm(
-    username,
-  )} URLs only, as tags are not shared.`;
+  return `Filtering by tags will narrow down ${createPossessiveForm(username)} URLs only, as tags are not shared.`;
 };
 
 const getSelectedTags = (tags: ReadonlyArray<TagDto>, searchParams: string): TagDto["id"][] => {
@@ -119,19 +117,11 @@ export const TagsSelector: FC<TagsSelectorProps> = ({ author, tags }) => {
               </PopoverTrigger>
               <PopoverContent className="bg-slate-100 text-sm">{createExplanation(author)}</PopoverContent>
             </Popover>
-            <DropdownMenuCheckboxItem
-              checked={allTagsChecked}
-              onClick={onAllTagsClick}
-              className="cursor-pointer"
-            >
+            <DropdownMenuCheckboxItem checked={allTagsChecked} onClick={onAllTagsClick} className="cursor-pointer">
               Any tag
             </DropdownMenuCheckboxItem>
             <DropdownMenuSeparator />
-            <TagPickerTagsList
-              className="p-2"
-              tags={tagPickerTags}
-              onTagSelectionChange={onTagSelectionChange}
-            />
+            <TagPickerTagsList className="p-2" tags={tagPickerTags} onTagSelectionChange={onTagSelectionChange} />
           </>
         ) : (
           <p className="p-2 text-sm">No tags here, yet</p>

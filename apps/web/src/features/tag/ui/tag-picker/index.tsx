@@ -40,10 +40,7 @@ export const TagPicker: FC<TagPickerProps> = ({
           </span>
         ) : null}
       </header>
-      <TagPickerTagsList
-        tags={tagPickerTags}
-        onTagSelectionChange={onTagSelectionChange}
-      />
+      <TagPickerTagsList tags={tagPickerTags} onTagSelectionChange={onTagSelectionChange} />
     </section>
   );
 };

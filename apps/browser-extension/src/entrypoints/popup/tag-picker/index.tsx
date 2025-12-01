@@ -10,12 +10,7 @@ type TagPickerProps = {
   description: string;
 };
 
-export const TagPicker: FC<TagPickerProps> = ({
-  tags,
-  selectedTags,
-  onTagSelectionChange,
-  description,
-}) => {
+export const TagPicker: FC<TagPickerProps> = ({ tags, selectedTags, onTagSelectionChange, description }) => {
   const tagPickerTags = tags.map((tag) => {
     return {
       ...tag,
@@ -28,10 +23,7 @@ export const TagPicker: FC<TagPickerProps> = ({
       <header className="flex items-center justify-between">
         <h3 className="text-xs font-light text-slate-400">{description}</h3>
       </header>
-      <TagPickerTagsList
-        tags={tagPickerTags}
-        onTagSelectionChange={onTagSelectionChange}
-      />
+      <TagPickerTagsList tags={tagPickerTags} onTagSelectionChange={onTagSelectionChange} />
     </section>
   );
 };

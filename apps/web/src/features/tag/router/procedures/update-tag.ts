@@ -3,10 +3,7 @@ import { TRPCError } from "@trpc/server";
 
 import { protectedProcedure } from "@/server/api/trpc";
 
-import {
-  type UpdateTagSchema,
-  updateTagSchema,
-} from "../../schemas/update-tag.schema";
+import { type UpdateTagSchema, updateTagSchema } from "../../schemas/update-tag.schema";
 
 // TODO: Split schema exports from server-only procedures for all router procedures to prevent client-side imports of server code
 export type { UpdateTagSchema };
@@ -31,8 +28,7 @@ export const updateTag = protectedProcedure
     }
 
     const maybeExists = await db.query.tags.findFirst({
-      where: (tags, { and, eq, not }) =>
-        and(eq(tags.userId, userId), eq(tags.name, name), not(eq(tags.id, id))),
+      where: (tags, { and, eq, not }) => and(eq(tags.userId, userId), eq(tags.name, name), not(eq(tags.id, id))),
     });
 
     if (maybeExists) {

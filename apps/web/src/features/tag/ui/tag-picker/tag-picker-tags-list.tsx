@@ -11,11 +11,7 @@ type TagPickerTagsListProps = {
   onTagSelectionChange: (id: TagDto["id"]) => void;
 };
 
-export const TagPickerTagsList: FC<TagPickerTagsListProps> = ({
-  className,
-  tags,
-  onTagSelectionChange,
-}) => {
+export const TagPickerTagsList: FC<TagPickerTagsListProps> = ({ className, tags, onTagSelectionChange }) => {
   return (
     <ul className={cn("flex flex-col gap-2", className)}>
       {tags.map(({ id, name, urlsCount, selected }) => {

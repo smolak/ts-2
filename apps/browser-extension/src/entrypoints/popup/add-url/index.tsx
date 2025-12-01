@@ -35,9 +35,7 @@ export const AddUrl: FC<AddUrlProps> = ({ apiKey, url, metadata }) => {
   const onTagSelectionChange = useCallback(
     (tagId: TagDto["id"]) => {
       const tagListed = selectedTags.indexOf(tagId) !== -1;
-      const newSelection = tagListed
-        ? selectedTags.filter((id) => tagId !== id)
-        : [...selectedTags, tagId];
+      const newSelection = tagListed ? selectedTags.filter((id) => tagId !== id) : [...selectedTags, tagId];
 
       setSelectedTags(newSelection);
     },

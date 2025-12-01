@@ -25,14 +25,7 @@ const createTagFilterSubquery = (tagIds: Tag["id"][]) => {
     .having(orm.sql`COUNT(DISTINCT ${schema.userUrlsTags.tagId}) >= ${tagIds.length}`);
 };
 
-export const getUserFeedQuery = ({
-  userId,
-  viewerId,
-  limit,
-  cursor,
-  feedSource,
-  tagIds,
-}: GetUserFeedQueryOptions) => {
+export const getUserFeedQuery = ({ userId, viewerId, limit, cursor, feedSource, tagIds }: GetUserFeedQueryOptions) => {
   const baseGroupBy = [
     schema.feeds.id,
     schema.userProfiles.username,
@@ -104,9 +97,7 @@ export const getUserFeedQuery = ({
       ),
     );
   } else {
-    query.where(
-      orm.and(userCondition, baseTagCondition, cursor ? orm.lt(schema.feeds.createdAt, cursor) : undefined),
-    );
+    query.where(orm.and(userCondition, baseTagCondition, cursor ? orm.lt(schema.feeds.createdAt, cursor) : undefined));
   }
 
   query.limit(limit);

@@ -26,20 +26,13 @@ type EditFeedItemProps = {
   feedItem: FeedDTO;
 };
 
-const prepareTags = ({
-  userTags,
-  selectedTagIds,
-}: {
-  userTags: TagDto[];
-  selectedTagIds: TagDto["id"][];
-}) =>
+const prepareTags = ({ userTags, selectedTagIds }: { userTags: TagDto[]; selectedTagIds: TagDto["id"][] }) =>
   userTags.map((tag) => ({
     ...tag,
     selected: selectedTagIds.indexOf(tag.id) >= 0,
   }));
 
-const getTagIds = (userUrlTags: { tagId: Tag["id"] }[]) =>
-  userUrlTags.map(({ tagId }) => tagId);
+const getTagIds = (userUrlTags: { tagId: Tag["id"] }[]) => userUrlTags.map(({ tagId }) => tagId);
 
 export const EditFeedItemModal: FC<EditFeedItemProps> = ({ open, onOpenChange, feedItem, onSuccess }) => {
   const userTags = useTagsStore(({ tags }) => tags);
@@ -64,9 +57,7 @@ export const EditFeedItemModal: FC<EditFeedItemProps> = ({ open, onOpenChange, f
   const onTagSelectionChange = useCallback(
     (tagId: Tag["id"]) => {
       const tagListed = selectedTagIds.indexOf(tagId) !== -1;
-      const newSelection = tagListed
-        ? selectedTagIds.filter((id) => tagId !== id)
-        : [...selectedTagIds, tagId];
+      const newSelection = tagListed ? selectedTagIds.filter((id) => tagId !== id) : [...selectedTagIds, tagId];
 
       setSelectedTagIds(newSelection);
     },
@@ -81,9 +72,7 @@ export const EditFeedItemModal: FC<EditFeedItemProps> = ({ open, onOpenChange, f
 
   useEffect(() => {
     if (updatedUserUrl) {
-      const newUserUrlTags = userTags
-        .filter((tag) => selectedTagIds.indexOf(tag.id) !== -1)
-        .map(({ name }) => name);
+      const newUserUrlTags = userTags.filter((tag) => selectedTagIds.indexOf(tag.id) !== -1).map(({ name }) => name);
 
       onSuccess(newUserUrlTags);
       setShouldRefetchTags(true);

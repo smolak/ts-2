@@ -8,10 +8,7 @@ import { Plus } from "lucide-react";
 import { type FC, useEffect } from "react";
 import { type FieldValues, useForm } from "react-hook-form";
 
-import {
-  type CreateTagSchema,
-  createTagSchema,
-} from "../../schemas/create-tag.schema";
+import { type CreateTagSchema, createTagSchema } from "../../schemas/create-tag.schema";
 
 export type Size = "default" | "small";
 

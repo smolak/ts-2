@@ -4,10 +4,7 @@ import { TRPCError } from "@trpc/server";
 
 import { protectedProcedure } from "@/server/api/trpc";
 
-import {
-  type CreateTagSchema,
-  createTagSchema,
-} from "../../schemas/create-tag.schema";
+import { type CreateTagSchema, createTagSchema } from "../../schemas/create-tag.schema";
 
 // TODO: Split schema exports from server-only procedures for all router procedures to prevent client-side imports of server code
 export type { CreateTagSchema };
@@ -35,10 +32,7 @@ export const createTag = protectedProcedure
       });
     }
 
-    const [result] = await db
-      .insert(schema.tags)
-      .values({ userId, name })
-      .returning({ insertedId: schema.tags.id });
+    const [result] = await db.insert(schema.tags).values({ userId, name }).returning({ insertedId: schema.tags.id });
 
     if (!result) {
       logger.error({ requestId, path }, `Tag ID not retrieved for created tag (${name}).`);

@@ -13,7 +13,9 @@
       "**/index.html",
       "**/vite.config.js",
       "**/*.json",
-      "!**/src/routeTree.gen.ts"
+      "!**/src/routeTree.gen.ts",
+      "!**/.wxt/**/*",
+      "!**/.next/**/*"
     ]
   },
   "formatter": {
@@ -56,6 +58,11 @@
   "javascript": {
     "formatter": {
       "quoteStyle": "double"
+    }
+  },
+  "css": {
+    "parser": {
+      "tailwindDirectives": true
     }
   }
 }

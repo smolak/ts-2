@@ -1,29 +1,29 @@
-import { type FC, useCallback } from "react"
-import type { FieldValues } from "react-hook-form"
+import { type FC, useCallback } from "react";
+import type { FieldValues } from "react-hook-form";
 
-import { useAddTag } from "../hooks/use-add-tag"
-import { AddTagForm } from "./add-tag-form"
+import { useAddTag } from "../hooks/use-add-tag";
+import { AddTagForm } from "./add-tag-form";
 
 type AddTagProps = {
-  apiKey: string
-  onSuccess: () => void
-}
+  apiKey: string;
+  onSuccess: () => void;
+};
 
 export const AddTag: FC<AddTagProps> = ({ apiKey, onSuccess }) => {
-  const { mutate, isPending, isSuccess, isError, reset } = useAddTag(apiKey, onSuccess)
+  const { mutate, isPending, isSuccess, isError, reset } = useAddTag(apiKey, onSuccess);
 
   const addTag = useCallback(
     (values: FieldValues) => {
-      const name = values.name as string
+      const name = values.name as string;
 
-      mutate({ name })
+      mutate({ name });
     },
-    [mutate]
-  )
+    [mutate],
+  );
 
   const onBlur = useCallback(() => {
-    reset()
-  }, [reset])
+    reset();
+  }, [reset]);
 
   return (
     <AddTagForm
@@ -34,5 +34,5 @@ export const AddTag: FC<AddTagProps> = ({ apiKey, onSuccess }) => {
       resetForm={isSuccess}
       errorResponse={isError ? "Could not add tag, try again." : undefined}
     />
-  )
-}
+  );
+};
