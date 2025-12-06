@@ -18,9 +18,10 @@ export const updateUserUrl = protectedProcedure
   .mutation(async ({ input: { userUrlId, tagIds }, ctx: { logger, requestId, userId, db } }) => {
     const path = "userUrl.updateUserUrl";
 
-    // Verify the userUrl belongs to the current user
+    // Verify the userUrl belongs to the current user and is not deleted
     const maybeUserUrl = await db.query.usersUrls.findFirst({
-      where: (usersUrls, { and, eq }) => and(eq(usersUrls.id, userUrlId), eq(usersUrls.userId, userId)),
+      where: (usersUrls, { and, eq }) =>
+        and(eq(usersUrls.id, userUrlId), eq(usersUrls.userId, userId), eq(usersUrls.isDeleted, false)),
     });
 
     if (!maybeUserUrl) {

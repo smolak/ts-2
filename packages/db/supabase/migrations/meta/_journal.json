@@ -36,6 +36,13 @@
       "when": 1765052077157,
       "tag": "0004_switch_from_cascade_delete_to_restricted",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1765056206021,
+      "tag": "0005_add_is_deleted_for_users_urls",
+      "breakpoints": true
     }
   ]
 }

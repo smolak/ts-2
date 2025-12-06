@@ -13,6 +13,19 @@ export const getUserUrlTags = publicProcedure
 
     logger.info({ requestId, path, userUrlId }, "Fetching user url's tags.");
 
+    // Verify the userUrl exists and is not deleted
+    const userUrl = await db.query.usersUrls.findFirst({
+      where: (usersUrls, { and, eq }) => and(eq(usersUrls.id, userUrlId), eq(usersUrls.isDeleted, false)),
+      columns: {
+        id: true,
+      },
+    });
+
+    if (!userUrl) {
+      logger.warn({ requestId, path, userUrlId }, "UserUrl not found or deleted.");
+      return [];
+    }
+
     const userUrlTags = await db.query.userUrlsTags.findMany({
       columns: {
         tagId: true,

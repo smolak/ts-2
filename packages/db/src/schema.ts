@@ -122,6 +122,7 @@
 import { type InferSelectModel, relations, sql } from "drizzle-orm";
 import {
   bigint,
+  boolean,
   char,
   index,
   integer,
@@ -275,6 +276,9 @@ export type UserProfile = InferSelectModel<typeof userProfiles>;
 
 /**
  * USERS URLS
+ *
+ * Represents a user's relationship with a URL. This is the primary table queried for user feeds.
+ * `isDeleted` indicates whether this user-URL relationship has been soft-deleted. Deleted entries should not appear in feeds.
  */
 export const usersUrls = pgTable(
   "users_urls",
@@ -292,8 +296,17 @@ export const usersUrls = pgTable(
       .notNull()
       .references(() => urls.id, { onDelete: "restrict" }),
     likesCount: integer("likes_count").default(0).notNull(),
+    isDeleted: boolean("is_deleted").default(false).notNull(),
   },
-  (table) => [index().on(table.userId), index().on(table.urlId)],
+  (table) => [
+    index().on(table.userId),
+    index().on(table.urlId),
+    // Partial index for non-deleted entries - most queries filter by isDeleted = false
+    // This index significantly improves feed query performance
+    index()
+      .on(table.id)
+      .where(sql`is_deleted = false`),
+  ],
 );
 
 export type UserUrl = InferSelectModel<typeof usersUrls>;

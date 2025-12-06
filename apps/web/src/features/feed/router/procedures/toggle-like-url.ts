@@ -31,6 +31,7 @@ export const toggleLikeUrl = protectedProcedure
 
       try {
         // Combine URL lookup and like status check into a single query with LEFT JOIN
+        // Filter out deleted user-URL relationships
         const [result] = await db
           .select({
             urlCreatorId: schema.usersUrls.userId,
@@ -46,7 +47,7 @@ export const toggleLikeUrl = protectedProcedure
               orm.eq(schema.usersUrlsInteractions.interactionTypeId, 1),
             ),
           )
-          .where(orm.eq(schema.usersUrls.id, userUrlId))
+          .where(orm.and(orm.eq(schema.usersUrls.id, userUrlId), orm.eq(schema.usersUrls.isDeleted, false)))
           .limit(1);
 
         if (!result) {

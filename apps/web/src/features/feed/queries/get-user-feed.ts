@@ -15,12 +15,19 @@ type GetUserFeedQueryOptions = {
 /**
  * Creates a subquery to efficiently filter user_urls that have ALL specified tags.
  * This approach filters early (before joins) to reduce intermediate result set size.
+ * Also filters out deleted user-URL relationships.
  */
 const createTagFilterSubquery = (tagIds: Tag["id"][]) => {
   return db
     .select({ userUrlId: schema.userUrlsTags.userUrlId })
     .from(schema.userUrlsTags)
-    .where(orm.inArray(schema.userUrlsTags.tagId, tagIds))
+    .innerJoin(schema.usersUrls, orm.eq(schema.userUrlsTags.userUrlId, schema.usersUrls.id))
+    .where(
+      orm.and(
+        orm.inArray(schema.userUrlsTags.tagId, tagIds),
+        orm.eq(schema.usersUrls.isDeleted, false),
+      ),
+    )
     .groupBy(schema.userUrlsTags.userUrlId)
     .having(orm.sql`COUNT(DISTINCT ${schema.userUrlsTags.tagId}) >= ${tagIds.length}`);
 };
@@ -59,7 +66,14 @@ export const getUserFeedQuery = ({ userId, viewerId, limit, cursor, feedSource, 
       tag_names: orm.sql<string | null>`STRING_AGG(DISTINCT ${schema.tags.name}, ', ' ORDER BY ${schema.tags.name})`,
     })
     .from(schema.feeds)
-    .leftJoin(schema.usersUrls, orm.eq(schema.feeds.userUrlId, schema.usersUrls.id))
+    // Use INNER JOIN since we always filter by isDeleted = false, filtering earlier improves performance
+    .innerJoin(
+      schema.usersUrls,
+      orm.and(
+        orm.eq(schema.feeds.userUrlId, schema.usersUrls.id),
+        orm.eq(schema.usersUrls.isDeleted, false),
+      ),
+    )
     .leftJoin(schema.urls, orm.eq(schema.usersUrls.urlId, schema.urls.id))
     .leftJoin(schema.userUrlsTags, orm.eq(schema.usersUrls.id, schema.userUrlsTags.userUrlId))
     .leftJoin(schema.tags, orm.eq(schema.userUrlsTags.tagId, schema.tags.id))
@@ -87,6 +101,9 @@ export const getUserFeedQuery = ({ userId, viewerId, limit, cursor, feedSource, 
     ? orm.inArray(schema.feeds.userUrlId, orm.sql`(${createTagFilterSubquery(tagIds)})`)
     : undefined;
 
+  // Note: isDeleted filter is now in the INNER JOIN condition above for better performance
+  // No need to filter again in WHERE clause
+
   if (feedSource === "author") {
     query.where(
       orm.and(
@@ -97,7 +114,13 @@ export const getUserFeedQuery = ({ userId, viewerId, limit, cursor, feedSource, 
       ),
     );
   } else {
-    query.where(orm.and(userCondition, baseTagCondition, cursor ? orm.lt(schema.feeds.createdAt, cursor) : undefined));
+    query.where(
+      orm.and(
+        userCondition,
+        baseTagCondition,
+        cursor ? orm.lt(schema.feeds.createdAt, cursor) : undefined,
+      ),
+    );
   }
 
   query.limit(limit);
