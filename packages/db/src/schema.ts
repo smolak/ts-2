@@ -1,3 +1,124 @@
+/**
+ * DATABASE SCHEMA DEPENDENCY GRAPH
+ *
+ * This graph shows the deletion dependency hierarchy for all tables.
+ * With onDelete: "restrict", tables must be deleted in bottom-up order (leaves → branches → roots).
+ *
+ * @auto-update-dependency-graph
+ * This directive indicates that the dependency graph below should be automatically updated
+ * whenever foreign key relationships are added, removed, or modified in this schema file.
+ * The graph must reflect the current state of all .references() calls and their onDelete behaviors.
+ *
+ * DEPENDENCY HIERARCHY (deletion order: bottom to top):
+ *
+ * Level 0 - ROOT TABLES (no dependencies, can be deleted independently if no children exist):
+ *   - users
+ *   - urls
+ *   - interactionTypes
+ *   - urlHashesCompoundHashesCounts
+ *
+ * Level 1 - DEPEND ON ROOTS:
+ *   - userProfiles → users (onDelete: restrict)
+ *   - tags → users (onDelete: no action)
+ *   - urlHashes → urls (onDelete: restrict)
+ *   - usersUrls → users (onDelete: restrict), urls (onDelete: restrict)
+ *   - follows → users (followerId: restrict, followingId: restrict)
+ *
+ * Level 2 - DEPEND ON LEVEL 1:
+ *   - userUrlsTags → usersUrls (onDelete: restrict), tags (onDelete: restrict)
+ *   - feeds → users (onDelete: restrict), usersUrls (onDelete: restrict)
+ *   - usersUrlsInteractions → usersUrls (onDelete: restrict), users (onDelete: restrict), interactionTypes (onDelete: no action)
+ *
+ * DELETION ORDER EXAMPLE (to delete a userUrl):
+ *   1. Delete from usersUrlsInteractions (where userUrlId = X)
+ *   2. Delete from feeds (where userUrlId = X)
+ *   3. Delete from userUrlsTags (where userUrlId = X)
+ *   4. Delete from usersUrls (id = X)
+ *
+ * COMPLETE DELETION SEQUENCE (to delete a user with id = X):
+ *
+ *   Step 1: Delete Level 2 dependencies (leaf nodes)
+ *   ─────────────────────────────────────────────────────────────
+ *   1. Delete from usersUrlsInteractions
+ *      WHERE userId = X
+ *         OR userUrlId IN (SELECT id FROM usersUrls WHERE userId = X)
+ *
+ *   2. Delete from feeds
+ *      WHERE userId = X
+ *         OR userUrlId IN (SELECT id FROM usersUrls WHERE userId = X)
+ *
+ *   3. Delete from userUrlsTags
+ *      WHERE userUrlId IN (SELECT id FROM usersUrls WHERE userId = X)
+ *
+ *   Step 2: Delete Level 1 dependencies (branches)
+ *   ─────────────────────────────────────────────────────────────
+ *   4. Delete from usersUrls WHERE userId = X
+ *
+ *   5. Delete from userUrlsTags
+ *      WHERE tagId IN (SELECT id FROM tags WHERE userId = X)
+ *
+ *   6. Delete from tags WHERE userId = X
+ *
+ *   7. Delete from follows
+ *      WHERE followerId = X OR followingId = X
+ *
+ *   Step 3: Delete direct user dependencies
+ *   ─────────────────────────────────────────────────────────────
+ *   8. Delete from userProfiles WHERE userId = X
+ *
+ *   Step 4: Delete the user
+ *   ─────────────────────────────────────────────────────────────
+ *   9. Delete from users WHERE id = X
+ *
+ *   Note: This sequence ensures all foreign key constraints are satisfied.
+ *         Each step must complete successfully before proceeding to the next.
+ *         Steps 3 and 5 handle userUrlsTags in two phases: first for userUrls,
+ *         then for tags, to handle cases where tags might be shared.
+ *
+ * VISUAL REPRESENTATION:
+ *
+ *   ┌─────────────────────────────────────────────────────────────────────┐
+ *   │                         ROOT TABLES                                 │
+ *   └─────────────────────────────────────────────────────────────────────┘
+ *
+ *        users              urls        interactionTypes
+ *          │                 │                │
+ *          │                 │                │
+ *   ┌──────┴─────────────────┴────────────────┴──────────────────────────┐
+ *   │                      LEVEL 1 TABLES                                │
+ *   └────────────────────────────────────────────────────────────────────┘
+ *
+ *          │
+ *          ├──► userProfiles
+ *          │
+ *          ├──► tags
+ *          │
+ *          ├──► usersUrls ────────► urlHashes
+ *          │
+ *          ├──► follows (followerId)
+ *          │
+ *          ├──► follows (followingId)
+ *          │
+ *          ├──► feeds
+ *          │
+ *          └──► usersUrlsInteractions
+ *
+ *   ┌─────────────────────────────────────────────────────────────────────┐
+ *   │                      LEVEL 2 TABLES                                 │
+ *   └─────────────────────────────────────────────────────────────────────┘
+ *
+ *        usersUrls
+ *          │
+ *          ├──► userUrlsTags ────► tags
+ *          │
+ *          ├──► feeds ────────────► users
+ *          │
+ *          └──► usersUrlsInteractions ──┬──► users
+ *                                       └──► interactionTypes
+ *
+ * @end-auto-update-dependency-graph
+ */
+
 import { type InferSelectModel, relations, sql } from "drizzle-orm";
 import {
   bigint,
@@ -75,7 +196,7 @@ export const urlHashes = pgTable(
     compoundHash: char("compound_hash", { length: 64 })
       .primaryKey()
       .notNull()
-      .references(() => urls.compoundHash, { onDelete: "cascade" }),
+      .references(() => urls.compoundHash, { onDelete: "restrict" }),
     // Hash of the URL alone, must not be unique, as the compound hash is the unique one
     urlHash: char("url_hash", { length: 40 }).notNull(),
     // How many times urlHash with combination of compoundHash has been used.
@@ -139,7 +260,7 @@ export const userProfiles = pgTable("user_profiles", {
   userId: char("user_id", { length: USER_ID_LENGTH })
     .notNull()
     .unique()
-    .references(() => users.id, { onDelete: "cascade" }),
+    .references(() => users.id, { onDelete: "restrict" }),
   username: varchar("username").unique().notNull(),
   usernameNormalized: varchar("username_normalized").unique().notNull(),
   imageUrl: text("image_url"),
@@ -166,10 +287,10 @@ export const usersUrls = pgTable(
     updatedAt: timestamp("updated_at", { withTimezone: true }).$onUpdate(() => new Date()),
     userId: char("user_id", { length: USER_ID_LENGTH })
       .notNull()
-      .references(() => users.id, { onDelete: "cascade" }),
+      .references(() => users.id, { onDelete: "restrict" }),
     urlId: char("url_id", { length: URL_ID_LENGTH })
       .notNull()
-      .references(() => urls.id, { onDelete: "cascade" }),
+      .references(() => urls.id, { onDelete: "restrict" }),
     likesCount: integer("likes_count").default(0).notNull(),
   },
   (table) => [index().on(table.userId), index().on(table.urlId)],
@@ -185,10 +306,10 @@ export const userUrlsTags = pgTable(
   {
     userUrlId: char("user_url_id", { length: USER_URL_ID_LENGTH })
       .notNull()
-      .references(() => usersUrls.id, { onDelete: "cascade" }),
+      .references(() => usersUrls.id, { onDelete: "restrict" }),
     tagId: char("tag_id", { length: TAG_ID_LENGTH })
       .notNull()
-      .references(() => tags.id, { onDelete: "cascade" }),
+      .references(() => tags.id, { onDelete: "restrict" }),
     tagOrder: smallint("tag_order").notNull(),
     createdAt: timestamp("created_at", { withTimezone: true }).default(sql`CURRENT_TIMESTAMP`).notNull(),
   },
@@ -208,10 +329,10 @@ export const follows = pgTable(
   {
     followerId: char("follower_id", { length: USER_ID_LENGTH })
       .notNull()
-      .references(() => users.id, { onDelete: "cascade" }),
+      .references(() => users.id, { onDelete: "restrict" }),
     followingId: char("following_id", { length: USER_ID_LENGTH })
       .notNull()
-      .references(() => users.id, { onDelete: "cascade" }),
+      .references(() => users.id, { onDelete: "restrict" }),
     createdAt: timestamp("created_at", { withTimezone: true }).default(sql`CURRENT_TIMESTAMP`).notNull(),
   },
   (table) => [
@@ -232,10 +353,10 @@ export const feeds = pgTable(
       .$defaultFn(() => generateFeedId()),
     userId: char("user_id", { length: USER_ID_LENGTH })
       .notNull()
-      .references(() => users.id, { onDelete: "cascade" }),
+      .references(() => users.id, { onDelete: "restrict" }),
     userUrlId: char("user_url_id", { length: USER_URL_ID_LENGTH })
       .notNull()
-      .references(() => usersUrls.id, { onDelete: "cascade" }),
+      .references(() => usersUrls.id, { onDelete: "restrict" }),
     createdAt: timestamp("created_at", { withTimezone: true }).notNull().default(sql`CURRENT_TIMESTAMP`),
     updatedAt: timestamp("updated_at", { withTimezone: true }).$onUpdate(() => new Date()),
   },
@@ -259,10 +380,10 @@ export const usersUrlsInteractions = pgTable(
   {
     userUrlId: char("user_url_id", { length: USER_URL_ID_LENGTH })
       .notNull()
-      .references(() => usersUrls.id, { onDelete: "cascade" }),
+      .references(() => usersUrls.id, { onDelete: "restrict" }),
     userId: char("user_id", { length: USER_ID_LENGTH })
       .notNull()
-      .references(() => users.id, { onDelete: "cascade" }),
+      .references(() => users.id, { onDelete: "restrict" }),
     interactionTypeId: smallint("interaction_type_id")
       .notNull()
       .references(() => interactionTypes.id),
