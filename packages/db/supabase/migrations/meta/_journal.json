@@ -29,6 +29,13 @@
       "when": 1762430828166,
       "tag": "0003_free_stephen_strange",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1765052077157,
+      "tag": "0004_switch_from_cascade_delete_to_restricted",
+      "breakpoints": true
     }
   ]
 }
