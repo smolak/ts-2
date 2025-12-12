@@ -22,12 +22,15 @@
  *   - tags → users (onDelete: no action)
  *   - urlHashes → urls (onDelete: restrict)
  *   - usersUrls → users (onDelete: restrict), urls (onDelete: restrict)
- *   - follows → users (followerId: restrict, followingId: restrict)
+ *   - follows → users (followerId: restrict, followingId: restrict) [DEPRECATED - to be removed]
+ *   - decks → users (onDelete: restrict)
  *
  * Level 2 - DEPEND ON LEVEL 1:
  *   - userUrlsTags → usersUrls (onDelete: restrict), tags (onDelete: restrict)
- *   - feeds → users (onDelete: restrict), usersUrls (onDelete: restrict)
+ *   - feeds → users (onDelete: restrict), usersUrls (onDelete: restrict), decks (onDelete: restrict)
  *   - usersUrlsInteractions → usersUrls (onDelete: restrict), users (onDelete: restrict), interactionTypes (onDelete: no action)
+ *   - deckUrls → decks (onDelete: restrict), usersUrls (onDelete: restrict)
+ *   - deckFollows → decks (onDelete: restrict), users (onDelete: restrict)
  *
  * DELETION ORDER EXAMPLE (to delete a userUrl):
  *   1. Delete from usersUrlsInteractions (where userUrlId = X)
@@ -95,9 +98,13 @@
  *          │
  *          ├──► usersUrls ────────► urlHashes
  *          │
- *          ├──► follows (followerId)
+ *          ├──► follows (followerId) [DEPRECATED]
  *          │
- *          ├──► follows (followingId)
+ *          ├──► follows (followingId) [DEPRECATED]
+ *          │
+ *          ├──► decks
+ *          │
+ *          ├──► deckFollows (followerId)
  *          │
  *          ├──► feeds
  *          │
@@ -111,10 +118,21 @@
  *          │
  *          ├──► userUrlsTags ────► tags
  *          │
- *          ├──► feeds ────────────► users
+ *          ├──► feeds ──────────┬─► users
+ *          │                    └─► decks
+ *          │
+ *          ├──► deckUrls ─────────► decks
  *          │
  *          └──► usersUrlsInteractions ──┬──► users
  *                                       └──► interactionTypes
+ *
+ *        decks
+ *          │
+ *          ├──► deckUrls ─────────► usersUrls
+ *          │
+ *          ├──► deckFollows ──────► users
+ *          │
+ *          └──► feeds ────────────► usersUrls, users
  *
  * @end-auto-update-dependency-graph
  */
@@ -127,6 +145,7 @@ import {
   index,
   integer,
   jsonb,
+  pgEnum,
   pgTable,
   primaryKey,
   smallint,
@@ -136,12 +155,25 @@ import {
   varchar,
 } from "drizzle-orm/pg-core";
 import { API_KEY_LENGTH } from "./constants";
+import { DECK_ID_LENGTH, generateDeckId } from "./id/deck-id";
 import { FEED_ID_LENGTH, generateFeedId } from "./id/feed-id";
 import { generateTagId, TAG_ID_LENGTH } from "./id/tag-id";
 import { generateUrlId, URL_ID_LENGTH } from "./id/url-id";
 import { generateUserId, USER_ID_LENGTH } from "./id/user-id";
 import { generateUserProfileId, USER_PROFILE_ID_LENGTH } from "./id/user-profile-id";
 import { generateUserUrlId, USER_URL_ID_LENGTH } from "./id/user-url-id";
+
+/**
+ * USER PLAN ENUM
+ *
+ * Defines the pricing plan tiers for users.
+ * - free: Default plan with limited decks (3 public, 1 private)
+ * - medium: Upgraded plan (10 public, 5 private decks)
+ * - pro: Unlimited decks
+ */
+export const userPlanEnum = pgEnum("user_plan", ["free", "medium", "pro"]);
+
+export type UserPlan = (typeof userPlanEnum.enumValues)[number];
 
 /**
  * TAGS
@@ -231,8 +263,6 @@ export type UrlHashesCompoundHashesCount = InferSelectModel<typeof urlHashesComp
 
 /**
  * USERS
- *
- * TODO: add role, as it will be used for basic/pro users
  */
 export const users = pgTable(
   "users",
@@ -245,6 +275,8 @@ export const users = pgTable(
     createdAt: timestamp("created_at", { withTimezone: true }).default(sql`CURRENT_TIMESTAMP`).notNull(),
     updatedAt: timestamp("updated_at", { withTimezone: true }).$onUpdate(() => new Date()),
     apiKey: char("api_key", { length: API_KEY_LENGTH }),
+    plan: userPlanEnum("plan").default("free").notNull(),
+    planUpdatedAt: timestamp("plan_updated_at", { withTimezone: true }),
   },
   (table) => [index().on(table.apiKey)],
 );
@@ -357,6 +389,118 @@ export const follows = pgTable(
 
 export type Follow = InferSelectModel<typeof follows>;
 
+/**
+ * DECKS
+ *
+ * A Deck is a named, curated collection of URLs with rich metadata.
+ * Users can create multiple decks, make them public or private,
+ * and let others follow specific decks.
+ *
+ * `metadata` is a JSONB object containing customizable appearance properties:
+ *   - description: string (optional) - Deck description
+ *   - imageUrl: string (optional) - Cover/hero image URL
+ *   - color: string (optional) - Accent color in hex format (#FF5733)
+ *   - ... extensible for future properties without migrations
+ */
+export const decks = pgTable(
+  "decks",
+  {
+    id: char("id", { length: DECK_ID_LENGTH })
+      .notNull()
+      .primaryKey()
+      .$defaultFn(() => generateDeckId()),
+    userId: char("user_id", { length: USER_ID_LENGTH })
+      .notNull()
+      .references(() => users.id, { onDelete: "restrict" }),
+
+    // Identity (core, frequently queried)
+    name: varchar("name", { length: 100 }).notNull(),
+    slug: varchar("slug", { length: 100 }).notNull(),
+
+    // Flexible metadata (validated at app layer via Zod schema)
+    metadata: jsonb("metadata").default({}).notNull(),
+
+    // Settings
+    isPublic: boolean("is_public").default(true).notNull(),
+
+    // Denormalized counts
+    urlsCount: integer("urls_count").default(0).notNull(),
+    followersCount: integer("followers_count").default(0).notNull(),
+
+    // Timestamps
+    createdAt: timestamp("created_at", { withTimezone: true }).default(sql`CURRENT_TIMESTAMP`).notNull(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).$onUpdate(() => new Date()),
+  },
+  (table) => [
+    unique().on(table.userId, table.slug),
+    index().on(table.userId),
+    index()
+      .on(table.isPublic)
+      .where(sql`is_public = true`),
+  ],
+);
+
+export type Deck = InferSelectModel<typeof decks>;
+
+/**
+ * DECK URLS
+ *
+ * Junction table: URLs in Decks.
+ * A URL can be in multiple decks.
+ */
+export const deckUrls = pgTable(
+  "deck_urls",
+  {
+    deckId: char("deck_id", { length: DECK_ID_LENGTH })
+      .notNull()
+      .references(() => decks.id, { onDelete: "restrict" }),
+    userUrlId: char("user_url_id", { length: USER_URL_ID_LENGTH })
+      .notNull()
+      .references(() => usersUrls.id, { onDelete: "restrict" }),
+    addedAt: timestamp("added_at", { withTimezone: true }).default(sql`CURRENT_TIMESTAMP`).notNull(),
+  },
+  (table) => [primaryKey({ columns: [table.deckId, table.userUrlId] }), index().on(table.userUrlId)],
+);
+
+export type DeckUrl = InferSelectModel<typeof deckUrls>;
+
+/**
+ * DECK FOLLOWS
+ *
+ * Users can follow public decks to see their URLs in their feed.
+ * Replaces the user-follows model with deck-follows for more granular control.
+ */
+export const deckFollows = pgTable(
+  "deck_follows",
+  {
+    deckId: char("deck_id", { length: DECK_ID_LENGTH })
+      .notNull()
+      .references(() => decks.id, { onDelete: "restrict" }),
+    followerId: char("follower_id", { length: USER_ID_LENGTH })
+      .notNull()
+      .references(() => users.id, { onDelete: "restrict" }),
+    createdAt: timestamp("created_at", { withTimezone: true }).default(sql`CURRENT_TIMESTAMP`).notNull(),
+  },
+  (table) => [
+    primaryKey({ columns: [table.deckId, table.followerId] }),
+    index().on(table.followerId),
+    index().on(table.deckId),
+  ],
+);
+
+export type DeckFollow = InferSelectModel<typeof deckFollows>;
+
+/**
+ * FEEDS
+ *
+ * Fan-out table for user feeds. When a URL is added to a public deck,
+ * feed entries are created for all deck followers.
+ *
+ * `deckId` tracks which deck the URL came from, enabling:
+ *   - Showing deck badge in feed ("From: Free Games")
+ *   - Filtering feed by deck
+ *   - Handling same URL in multiple followed decks (separate entries)
+ */
 export const feeds = pgTable(
   "feeds",
   {
@@ -370,10 +514,17 @@ export const feeds = pgTable(
     userUrlId: char("user_url_id", { length: USER_URL_ID_LENGTH })
       .notNull()
       .references(() => usersUrls.id, { onDelete: "restrict" }),
+    deckId: char("deck_id", { length: DECK_ID_LENGTH })
+      .notNull()
+      .references(() => decks.id, { onDelete: "restrict" }),
     createdAt: timestamp("created_at", { withTimezone: true }).notNull().default(sql`CURRENT_TIMESTAMP`),
     updatedAt: timestamp("updated_at", { withTimezone: true }).$onUpdate(() => new Date()),
   },
-  (table) => [index().on(table.userId, table.createdAt.desc()), index().on(table.userUrlId)],
+  (table) => [
+    index().on(table.userId, table.createdAt.desc()),
+    index().on(table.userUrlId),
+    index().on(table.userId, table.deckId), // Filter feed by deck
+  ],
 );
 
 export type Feed = InferSelectModel<typeof feeds>;
@@ -423,6 +574,10 @@ export const feedsRelations = relations(feeds, ({ one }) => ({
     fields: [feeds.userUrlId],
     references: [usersUrls.id],
   }),
+  deck: one(decks, {
+    fields: [feeds.deckId],
+    references: [decks.id],
+  }),
 }));
 
 export const usersRelations = relations(users, ({ one, many }) => ({
@@ -435,6 +590,8 @@ export const usersRelations = relations(users, ({ one, many }) => ({
   followers: many(follows, { relationName: "followers" }),
   following: many(follows, { relationName: "following" }),
   feeds: many(feeds),
+  decks: many(decks),
+  deckFollows: many(deckFollows),
 }));
 
 export const userProfilesRelations = relations(userProfiles, ({ one }) => ({
@@ -470,6 +627,7 @@ export const usersUrlsRelations = relations(usersUrls, ({ one, many }) => ({
   }),
   tags: many(userUrlsTags),
   feeds: many(feeds),
+  deckUrls: many(deckUrls),
 }));
 
 export const tagsRelations = relations(tags, ({ one, many }) => ({
@@ -501,6 +659,38 @@ export const followsRelations = relations(follows, ({ one }) => ({
     fields: [follows.followingId],
     references: [users.id],
     relationName: "following",
+  }),
+}));
+
+export const decksRelations = relations(decks, ({ one, many }) => ({
+  user: one(users, {
+    fields: [decks.userId],
+    references: [users.id],
+  }),
+  urls: many(deckUrls),
+  followers: many(deckFollows),
+  feeds: many(feeds),
+}));
+
+export const deckUrlsRelations = relations(deckUrls, ({ one }) => ({
+  deck: one(decks, {
+    fields: [deckUrls.deckId],
+    references: [decks.id],
+  }),
+  userUrl: one(usersUrls, {
+    fields: [deckUrls.userUrlId],
+    references: [usersUrls.id],
+  }),
+}));
+
+export const deckFollowsRelations = relations(deckFollows, ({ one }) => ({
+  deck: one(decks, {
+    fields: [deckFollows.deckId],
+    references: [decks.id],
+  }),
+  follower: one(users, {
+    fields: [deckFollows.followerId],
+    references: [users.id],
   }),
 }));
 

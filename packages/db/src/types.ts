@@ -1,4 +1,7 @@
 export type {
+  Deck,
+  DeckFollow,
+  DeckUrl,
   Feed,
   Follow,
   InteractionType,
@@ -7,6 +10,7 @@ export type {
   UrlHashes,
   UrlHashesCompoundHashesCount,
   User,
+  UserPlan,
   UserProfile,
   UserUrl,
   UserUrlInteraction,
