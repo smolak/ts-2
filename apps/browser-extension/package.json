@@ -21,7 +21,7 @@
     "@repo/tag": "workspace:*",
     "@repo/ui": "workspace:*",
     "@repo/user": "workspace:*",
-    "@tailwindcss/vite": "^4.1.17",
+    "@tailwindcss/vite": "^4.1.18",
     "@tanstack/react-query": "catalog:",
     "axios": "^1.13.2",
     "lucide-react": "catalog:",
