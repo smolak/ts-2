@@ -17,6 +17,7 @@
 9. [Testing Strategy](#testing-strategy)
 10. [Edge Cases & Considerations](#edge-cases--considerations)
 11. [Security Fixes (Priority)](#security-fixes-priority)
+12. [Phase 9: Integration Tests Infrastructure](#phase-9-integration-tests-infrastructure-for-trpc-procedures)
 
 ---
 
@@ -1428,6 +1429,116 @@ WHERE uh.url_hash = ?
 ```
 
 The existing index on `url_hashes.url_hash` ensures this query is efficient.
+
+---
+
+## Phase 9: Integration Tests Infrastructure for tRPC Procedures
+
+> **Status**: Pending
+> **Priority**: Medium
+> **Dependencies**: None (can be done independently)
+
+### Overview
+
+Implement integration tests for tRPC procedures using a real test database instead of mocking database queries. This aligns with the CODING-GUIDELINE.md which states:
+- "Database queries: Use test database with real data" (don't mock them)
+- "Business logic: Test the actual implementation"
+
+### Approach
+
+Use `createCallerFactory` from tRPC to call procedures directly with a test context that includes:
+- **Real test database** (not mocks) - insert actual test data, verify actual DB state
+- **Mocked auth** (`ctx.auth`) - simulate authenticated/unauthenticated users
+- **Mocked logger** (`ctx.logger`) - verify logging calls
+- **Real request ID** generation
+
+### Files to Create
+
+Test utilities:
+- [ ] `apps/web/src/test-utils/create-test-context.ts` - Factory for creating test tRPC context
+- [ ] `apps/web/src/test-utils/test-db.ts` - Test database setup/teardown helpers
+- [ ] `apps/web/src/test-utils/index.ts` - Barrel exports
+
+Procedure tests (start with tag procedures as reference implementation):
+- [ ] `apps/web/src/features/tag/router/procedures/delete-tag.test.ts`
+- [ ] `apps/web/src/features/tag/router/procedures/update-tag.test.ts`
+- [ ] `apps/web/src/features/tag/router/procedures/create-tag.test.ts`
+- [ ] `apps/web/src/features/tag/router/procedures/get-user-tags.test.ts`
+
+### Test Structure Example
+
+```typescript
+// delete-tag.test.ts
+import { describe, expect, it, beforeEach, afterEach } from "vitest";
+import { TRPCError } from "@trpc/server";
+import { createCallerFactory, createTRPCRouter } from "@/server/api/trpc";
+import { deleteTag } from "./delete-tag";
+import { createTestContext, cleanupTestData } from "@/test-utils";
+import { schema } from "@repo/db/db";
+
+const testRouter = createTRPCRouter({ deleteTag });
+const createCaller = createCallerFactory(testRouter);
+
+describe("deleteTag procedure", () => {
+  let ctx: TestContext;
+
+  beforeEach(async () => {
+    ctx = await createTestContext();
+  });
+
+  afterEach(async () => {
+    await cleanupTestData(ctx.db);
+  });
+
+  it("should delete a tag that exists and belongs to the user", async () => {
+    const [tag] = await ctx.db.insert(schema.tags).values({
+      userId: ctx.userId,
+      name: "Test Tag",
+    }).returning();
+    const caller = createCaller(ctx);
+
+    await caller.deleteTag({ id: tag.id });
+
+    const result = await ctx.db.query.tags.findFirst({
+      where: (tags, { eq }) => eq(tags.id, tag.id),
+    });
+    expect(result).toBeNull();
+  });
+
+  it("should throw BAD_REQUEST when tag doesn't exist", async () => {
+    const caller = createCaller(ctx);
+
+    await expect(caller.deleteTag({ id: "tag_nonexistent123" }))
+      .rejects.toThrow(TRPCError);
+  });
+
+  it("should not delete a tag belonging to another user", async () => {
+    const [otherUserTag] = await ctx.db.insert(schema.tags).values({
+      userId: "user_other_user_id",
+      name: "Other User Tag",
+    }).returning();
+    const caller = createCaller(ctx);
+
+    await expect(caller.deleteTag({ id: otherUserTag.id }))
+      .rejects.toThrow(TRPCError);
+  });
+});
+```
+
+### Test Database Strategy
+
+Options to evaluate:
+1. **Supabase local** - Use local Supabase instance for tests
+2. **PostgreSQL container** - Use Testcontainers for isolated test DB
+3. **Transaction rollback** - Wrap each test in transaction, rollback after
+
+### Verification
+
+After implementation:
+- [ ] All tag procedure tests pass
+- [ ] Security fix tests from Issue #1-#4 are covered
+- [ ] Pattern documented for other procedure tests
+- [ ] CI pipeline runs integration tests
 
 ---
 
