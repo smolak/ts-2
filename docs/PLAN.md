@@ -1314,11 +1314,12 @@ Already handled by `feeds` table structure (one entry per user-userUrl).
 
 ## Security Fixes (Priority)
 
-> **Status**: Pending
+> **Status**: ✅ Complete
 > **Identified**: December 18, 2025
+> **Completed**: December 18, 2025
 > **Severity**: Medium (counter manipulation), Low (TOCTOU)
 
-The following security issues were identified during a code audit and should be addressed before the Decks feature implementation.
+The following security issues were identified during a code audit and have been addressed.
 
 ### Issue #1: Tag Update - Missing `userId` in UPDATE (Low)
 
@@ -1326,7 +1327,7 @@ The following security issues were identified during a code audit and should be 
 
 **Problem**: The UPDATE clause only filters by `id`, not `userId`, creating a TOCTOU vulnerability.
 
-- [ ] Fix: Add `userId` filter to UPDATE WHERE clause:
+- [x] Fix: Add `userId` filter to UPDATE WHERE clause:
   ```typescript
   .where(orm.and(orm.eq(schema.tags.id, id), orm.eq(schema.tags.userId, userId)))
   ```
@@ -1337,7 +1338,7 @@ The following security issues were identified during a code audit and should be 
 
 **Problem**: The DELETE clause only filters by `id`, not `userId`.
 
-- [ ] Fix: Add `userId` filter to DELETE WHERE clause:
+- [x] Fix: Add `userId` filter to DELETE WHERE clause:
   ```typescript
   await db.delete(schema.tags).where(
     orm.and(orm.eq(schema.tags.id, id), orm.eq(schema.tags.userId, userId))
@@ -1350,7 +1351,7 @@ The following security issues were identified during a code audit and should be 
 
 **Problem**: Tag `urlsCount` updates don't verify that the `tagIds` belong to the current user. An attacker could manipulate other users' tag counters.
 
-- [ ] Fix: Add `userId` filter to both increment and decrement tag counter updates:
+- [x] Fix: Add `userId` filter to both increment and decrement tag counter updates:
   ```typescript
   .where(orm.and(
     orm.inArray(schema.tags.id, decrement),
@@ -1358,7 +1359,7 @@ The following security issues were identified during a code audit and should be 
   ))
   ```
 
-- [ ] Alternative: Validate tag ownership before operation:
+- [x] Alternative: Validate tag ownership before operation:
   ```typescript
   const userTags = await db.query.tags.findMany({
     where: (tags, { and, eq, inArray }) => 
@@ -1376,7 +1377,7 @@ The following security issues were identified during a code audit and should be 
 
 **Problem**: Same as Issue #3 - external API accepts arbitrary `tagIds` and updates counters without ownership verification.
 
-- [ ] Fix: Add `userId` filter to tag counter update:
+- [x] Fix: Add `userId` filter to tag counter update:
   ```typescript
   .where(orm.and(
     orm.inArray(schema.tags.id, tagIds),

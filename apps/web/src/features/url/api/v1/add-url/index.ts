@@ -95,12 +95,13 @@ export const addUrl: AddUrl = async ({ tagIds, metadata, userId }) => {
 
       await tx.insert(schema.userUrlsTags).values(dataToAdd);
 
+      // Increment urlsCount only for user's own tags
       await tx
         .update(schema.tags)
         .set({
           urlsCount: orm.sql`${schema.tags.urlsCount} + 1`,
         })
-        .where(orm.inArray(schema.tags.id, tagIds));
+        .where(orm.and(orm.inArray(schema.tags.id, tagIds), orm.eq(schema.tags.userId, userId)));
     }
 
     await tx

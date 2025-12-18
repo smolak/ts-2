@@ -27,7 +27,7 @@ export const deleteTag = protectedProcedure
       });
     }
 
-    await db.delete(schema.tags).where(orm.eq(schema.tags.id, id));
+    await db.delete(schema.tags).where(orm.and(orm.eq(schema.tags.id, id), orm.eq(schema.tags.userId, userId)));
 
     logger.info({ requestId, path, id }, `Tag (${id})} deleted.`);
   });

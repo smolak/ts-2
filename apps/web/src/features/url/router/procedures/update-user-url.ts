@@ -61,13 +61,13 @@ export const updateUserUrl = protectedProcedure
             ),
           );
 
-        // Decrement urlsCount for removed tags
+        // Decrement urlsCount for removed tags (only for user's own tags)
         await tx
           .update(schema.tags)
           .set({
             urlsCount: orm.sql`${schema.tags.urlsCount} - 1`,
           })
-          .where(orm.inArray(schema.tags.id, decrement));
+          .where(orm.and(orm.inArray(schema.tags.id, decrement), orm.eq(schema.tags.userId, userId)));
       }
 
       // Add new tags
@@ -80,13 +80,13 @@ export const updateUserUrl = protectedProcedure
 
         await tx.insert(schema.userUrlsTags).values(dataToAdd);
 
-        // Increment urlsCount for added tags
+        // Increment urlsCount for added tags (only for user's own tags)
         await tx
           .update(schema.tags)
           .set({
             urlsCount: orm.sql`${schema.tags.urlsCount} + 1`,
           })
-          .where(orm.inArray(schema.tags.id, increment));
+          .where(orm.and(orm.inArray(schema.tags.id, increment), orm.eq(schema.tags.userId, userId)));
       }
     });
 

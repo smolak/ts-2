@@ -45,7 +45,7 @@ export const updateTag = protectedProcedure
       .set({
         name,
       })
-      .where(orm.eq(schema.tags.id, id))
+      .where(orm.and(orm.eq(schema.tags.id, id), orm.eq(schema.tags.userId, userId)))
       .returning();
 
     logger.info({ requestId, path, name }, "Tag updated.");
