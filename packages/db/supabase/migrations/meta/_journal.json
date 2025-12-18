@@ -43,6 +43,13 @@
       "when": 1765056206021,
       "tag": "0005_add_is_deleted_for_users_urls",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1766087634016,
+      "tag": "0006_add_decks_schema",
+      "breakpoints": true
     }
   ]
 }

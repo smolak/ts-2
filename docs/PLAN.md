@@ -16,6 +16,7 @@
 8. [Decisions Made](#decisions-made)
 9. [Testing Strategy](#testing-strategy)
 10. [Edge Cases & Considerations](#edge-cases--considerations)
+11. [Security Fixes (Priority)](#security-fixes-priority)
 
 ---
 
@@ -832,10 +833,8 @@ type GetFollowedDecksResult = Array<{
 - [x] `packages/db/src/schema.ts` - Add `deckId` to `feeds` table (for deck filtering/display)
 - [x] `packages/db/src/schema.ts` - Update `feedsRelations` to include deck
 - [x] `packages/db/src/types.ts` - Export `Deck`, `DeckUrl`, `DeckFollow`, `UserPlan` types
-- [ ] `packages/db/supabase/migrations/XXXX_add_user_plan.sql` - Migration for user plan
-- [ ] `packages/db/supabase/migrations/XXXX_add_decks.sql` - Migration for decks tables
-- [ ] `packages/db/supabase/migrations/XXXX_add_deck_id_to_feeds.sql` - Add deck_id to feeds
-- [ ] Run `pnpm db:generate` and `pnpm db:push` to apply
+- [x] `packages/db/supabase/migrations/0006_add_decks_schema.sql` - Migration for user plan, decks tables, and deck_id in feeds
+- [x] Run `pnpm db:generate` and `pnpm db:migrate` to apply
 
 **Verification:**
 ```bash
@@ -1310,6 +1309,124 @@ apps/web/src/features/deck/router/procedures/*.test.ts
 
 If same URL is in multiple decks user follows, show once in feed.
 Already handled by `feeds` table structure (one entry per user-userUrl).
+
+---
+
+## Security Fixes (Priority)
+
+> **Status**: Pending
+> **Identified**: December 18, 2025
+> **Severity**: Medium (counter manipulation), Low (TOCTOU)
+
+The following security issues were identified during a code audit and should be addressed before the Decks feature implementation.
+
+### Issue #1: Tag Update - Missing `userId` in UPDATE (Low)
+
+**File**: `apps/web/src/features/tag/router/procedures/update-tag.ts`
+
+**Problem**: The UPDATE clause only filters by `id`, not `userId`, creating a TOCTOU vulnerability.
+
+- [ ] Fix: Add `userId` filter to UPDATE WHERE clause:
+  ```typescript
+  .where(orm.and(orm.eq(schema.tags.id, id), orm.eq(schema.tags.userId, userId)))
+  ```
+
+### Issue #2: Tag Delete - Missing `userId` in DELETE (Low)
+
+**File**: `apps/web/src/features/tag/router/procedures/delete-tag.ts`
+
+**Problem**: The DELETE clause only filters by `id`, not `userId`.
+
+- [ ] Fix: Add `userId` filter to DELETE WHERE clause:
+  ```typescript
+  await db.delete(schema.tags).where(
+    orm.and(orm.eq(schema.tags.id, id), orm.eq(schema.tags.userId, userId))
+  );
+  ```
+
+### Issue #3: URL Tags Update - Tag Counter Manipulation (Medium)
+
+**File**: `apps/web/src/features/url/router/procedures/update-user-url.ts`
+
+**Problem**: Tag `urlsCount` updates don't verify that the `tagIds` belong to the current user. An attacker could manipulate other users' tag counters.
+
+- [ ] Fix: Add `userId` filter to both increment and decrement tag counter updates:
+  ```typescript
+  .where(orm.and(
+    orm.inArray(schema.tags.id, decrement),
+    orm.eq(schema.tags.userId, userId)
+  ))
+  ```
+
+- [ ] Alternative: Validate tag ownership before operation:
+  ```typescript
+  const userTags = await db.query.tags.findMany({
+    where: (tags, { and, eq, inArray }) => 
+      and(eq(tags.userId, userId), inArray(tags.id, tagIds)),
+    columns: { id: true }
+  });
+  if (userTags.length !== tagIds.length) {
+    throw new TRPCError({ code: "BAD_REQUEST", message: "Invalid tag IDs" });
+  }
+  ```
+
+### Issue #4: Add URL - Tag Counter Manipulation (Medium)
+
+**File**: `apps/web/src/features/url/api/v1/add-url/index.ts`
+
+**Problem**: Same as Issue #3 - external API accepts arbitrary `tagIds` and updates counters without ownership verification.
+
+- [ ] Fix: Add `userId` filter to tag counter update:
+  ```typescript
+  .where(orm.and(
+    orm.inArray(schema.tags.id, tagIds),
+    orm.eq(schema.tags.userId, userId)
+  ))
+  ```
+
+### Testing Requirements
+
+After fixes, add tests to verify:
+
+- [ ] Test: Cannot update tag belonging to another user
+- [ ] Test: Cannot delete tag belonging to another user
+- [ ] Test: Cannot manipulate tag counters via crafted `tagIds` in `updateUserUrl`
+- [ ] Test: Cannot manipulate tag counters via crafted `tagIds` in `addUrl` API
+
+---
+
+## Future: URL Hashes Tables Usage
+
+The `url_hashes` and `url_hashes_compound_hashes_counts` tables are currently populated but not consumed for display/analytics. They are designed for future features:
+
+### Table Purposes
+
+| Table | Tracks | Future Use Cases |
+|-------|--------|------------------|
+| `url_hashes` | How many times each exact URL+metadata combo was shared (`count`) | Share count display, trending URLs, popularity ranking |
+| `url_hashes_compound_hashes_counts` | How many different metadata versions exist per URL (`compoundHashesCount`) | Detecting stale/conflicting metadata, prompting merge/update |
+
+### Planned Features
+
+- [ ] Show "shared X times" on URL cards
+- [ ] Trending URLs feature based on share counts
+- [ ] Alert when `compoundHashesCount > 1` (same URL, different metadata - possible stale data)
+- [ ] Admin/user tool to merge duplicate URL entries with conflicting metadata
+
+### Useful Query for Conflict Detection
+
+```sql
+-- Find all metadata versions for a URL with conflicts
+SELECT uh.compound_hash, u.metadata 
+FROM url_hashes uh
+JOIN urls u ON uh.compound_hash = u.compound_hash
+WHERE uh.url_hash = ?
+  AND (SELECT compound_hashes_count 
+       FROM url_hashes_compound_hashes_counts 
+       WHERE url_hash = uh.url_hash) > 1;
+```
+
+The existing index on `url_hashes.url_hash` ensures this query is efficient.
 
 ---
 
