@@ -847,15 +847,16 @@ pnpm db:studio  # Check tables in Drizzle Studio
 
 **Files to create:**
 
-- [ ] `packages/deck/package.json` - Package config
-- [ ] `packages/deck/tsconfig.json` - TypeScript config (extend base)
-- [ ] `packages/deck/src/schemas/deck-name.schema.ts`
-- [ ] `packages/deck/src/schemas/deck-slug.schema.ts`
-- [ ] `packages/deck/src/schemas/deck-metadata.schema.ts` - Unified metadata (description, imageUrl, color, ...)
-- [ ] `packages/deck/src/config/deck-limits.ts` - Plan limits & enforcement functions
-- [ ] `packages/deck/src/config/deck-limits.test.ts` - Tests for limit logic
-- [ ] `packages/deck/src/dto/deck.dto.ts`
-- [ ] `packages/deck/src/index.ts` - Barrel exports
+- [x] `packages/deck/package.json` - Package config
+- [x] `packages/deck/tsconfig.json` - TypeScript config (extend base)
+- [x] `packages/deck/vitest.config.ts` - Vitest config
+- [x] `packages/deck/README.md` - Package documentation
+- [x] `packages/deck/src/schemas/deck-name.schema.ts` - With tests
+- [x] `packages/deck/src/schemas/deck-slug.schema.ts` - With tests
+- [x] `packages/deck/src/schemas/deck-metadata.schema.ts` - Unified metadata (description, imageUrl, color, ...) with tests
+- [x] `packages/deck/src/config/deck-limits.ts` - Plan limits & enforcement functions
+- [x] `packages/deck/src/config/deck-limits.test.ts` - Tests for limit logic
+- [x] `packages/deck/src/dto/deck.dto.ts`
 
 ### Phase 3: Backend API
 
