@@ -430,6 +430,10 @@ export const decks = pgTable(
     // Timestamps
     createdAt: timestamp("created_at", { withTimezone: true }).default(sql`CURRENT_TIMESTAMP`).notNull(),
     updatedAt: timestamp("updated_at", { withTimezone: true }).$onUpdate(() => new Date()),
+
+    // Pending deletion (soft delete with grace period)
+    // NULL = active deck, timestamp = scheduled for hard deletion after this time
+    scheduledForDeletionAt: timestamp("scheduled_for_deletion_at", { withTimezone: true }),
   },
   (table) => [
     unique().on(table.userId, table.slug),
@@ -437,6 +441,10 @@ export const decks = pgTable(
     index()
       .on(table.isPublic)
       .where(sql`is_public = true`),
+    // Partial index for active (non-pending-deletion) decks
+    index()
+      .on(table.id)
+      .where(sql`scheduled_for_deletion_at IS NULL`),
   ],
 );
 
@@ -500,6 +508,10 @@ export type DeckFollow = InferSelectModel<typeof deckFollows>;
  *   - Showing deck badge in feed ("From: Free Games")
  *   - Filtering feed by deck
  *   - Handling same URL in multiple followed decks (separate entries)
+ *
+ * NOTE: deckId is nullable during transition period (Phase 3-4) to support
+ * both old user-follows (no deck context) and new deck-follows.
+ * Will be made NOT NULL after Phase 8 migration when all feeds have deck association.
  */
 export const feeds = pgTable(
   "feeds",
@@ -514,9 +526,8 @@ export const feeds = pgTable(
     userUrlId: char("user_url_id", { length: USER_URL_ID_LENGTH })
       .notNull()
       .references(() => usersUrls.id, { onDelete: "restrict" }),
-    deckId: char("deck_id", { length: DECK_ID_LENGTH })
-      .notNull()
-      .references(() => decks.id, { onDelete: "restrict" }),
+    // Nullable during transition - old user-follows don't have deck context
+    deckId: char("deck_id", { length: DECK_ID_LENGTH }).references(() => decks.id, { onDelete: "restrict" }),
     createdAt: timestamp("created_at", { withTimezone: true }).notNull().default(sql`CURRENT_TIMESTAMP`),
     updatedAt: timestamp("updated_at", { withTimezone: true }).$onUpdate(() => new Date()),
   },

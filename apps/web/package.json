@@ -5,13 +5,15 @@
   "scripts": {
     "dev": "next dev --turbopack",
     "build": "next build --turbopack",
-    "start": "next start"
+    "start": "next start",
+    "typecheck": "tsc --noEmit"
   },
   "dependencies": {
     "@clerk/nextjs": "^6.36.2",
     "@hookform/resolvers": "catalog:",
     "@repo/crypto": "workspace:*",
     "@repo/db": "workspace:*",
+    "@repo/deck": "workspace:*",
     "@repo/metadata-scrapper": "workspace:*",
     "@repo/shared": "workspace:*",
     "@repo/tag": "workspace:*",

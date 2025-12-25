@@ -3,11 +3,7 @@ import { TRPCError } from "@trpc/server";
 
 import { protectedProcedure } from "@/server/api/trpc";
 
-import { type DeleteTagSchema, deleteTagSchema } from "../../schemas/delete-tag.schema";
-
-// TODO: Split schema exports from server-only procedures for all router procedures to prevent client-side imports of server code
-export type { DeleteTagSchema };
-export { deleteTagSchema };
+import { deleteTagSchema } from "../../schemas/delete-tag.schema";
 
 export const deleteTag = protectedProcedure
   .input(deleteTagSchema)

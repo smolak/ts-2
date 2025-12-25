@@ -9,7 +9,7 @@
     "lint": "echo 'Add lint script here'"
   },
   "exports": {
-    "./*": "./src/*.ts"
+    "./api-key/*": "./src/api-key/*.ts"
   },
   "dependencies": {
     "@repo/shared": "workspace:*",

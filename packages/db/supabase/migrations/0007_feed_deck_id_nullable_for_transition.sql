@@ -1,0 +1,1 @@
+ALTER TABLE "feeds" ALTER COLUMN "deck_id" DROP NOT NULL;

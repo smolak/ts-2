@@ -4,11 +4,7 @@ import { TRPCError } from "@trpc/server";
 
 import { protectedProcedure } from "@/server/api/trpc";
 
-import { type CreateTagSchema, createTagSchema } from "../../schemas/create-tag.schema";
-
-// TODO: Split schema exports from server-only procedures for all router procedures to prevent client-side imports of server code
-export type { CreateTagSchema };
-export { createTagSchema };
+import { createTagSchema } from "../../schemas/create-tag.schema";
 
 type CreateTagResult = {
   tagId: Tag["id"];

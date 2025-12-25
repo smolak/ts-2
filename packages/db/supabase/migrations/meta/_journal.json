@@ -50,6 +50,13 @@
       "when": 1766087634016,
       "tag": "0006_add_decks_schema",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1766092153320,
+      "tag": "0007_feed_deck_id_nullable_for_transition",
+      "breakpoints": true
     }
   ]
 }

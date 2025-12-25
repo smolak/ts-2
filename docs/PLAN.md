@@ -18,6 +18,8 @@
 10. [Edge Cases & Considerations](#edge-cases--considerations)
 11. [Security Fixes (Priority)](#security-fixes-priority)
 12. [Phase 9: Integration Tests Infrastructure](#phase-9-integration-tests-infrastructure-for-trpc-procedures)
+13. [User Account Deletion Strategy](#user-account-deletion-strategy)
+14. [Refactor: Rename usernameNormalized to slug](#refactor-rename-usernamenormalized-to-slug-in-user-profiles)
 
 ---
 
@@ -863,29 +865,32 @@ pnpm db:studio  # Check tables in Drizzle Studio
 **Files to create:**
 
 Router setup:
-- [ ] `apps/web/src/features/deck/router/decks.ts` - Router aggregation
-- [ ] `apps/web/src/server/api/root.ts` - Register `decksRouter`
+- [x] `apps/web/src/features/deck/router/decks.ts` - Router aggregation
+- [x] `apps/web/src/server/api/root.ts` - Register `decksRouter`
 
 Schemas:
-- [ ] `apps/web/src/features/deck/schemas/create-deck.schema.ts`
-- [ ] `apps/web/src/features/deck/schemas/update-deck.schema.ts`
-- [ ] `apps/web/src/features/deck/schemas/delete-deck.schema.ts`
+- [x] `apps/web/src/features/deck/schemas/create-deck.schema.ts`
+- [x] `apps/web/src/features/deck/schemas/update-deck.schema.ts`
+- [x] `apps/web/src/features/deck/schemas/delete-deck.schema.ts`
 
 Procedures (in order of dependency):
-- [ ] `apps/web/src/features/deck/router/procedures/create-deck.ts`
-- [ ] `apps/web/src/features/deck/router/procedures/update-deck.ts`
-- [ ] `apps/web/src/features/deck/router/procedures/delete-deck.ts`
-- [ ] `apps/web/src/features/deck/router/procedures/get-user-decks.ts`
-- [ ] `apps/web/src/features/deck/router/procedures/get-deck-by-slug.ts`
-- [ ] `apps/web/src/features/deck/router/procedures/add-url-to-deck.ts`
-- [ ] `apps/web/src/features/deck/router/procedures/remove-url-from-deck.ts`
-- [ ] `apps/web/src/features/deck/router/procedures/get-deck-urls.ts`
-- [ ] `apps/web/src/features/deck/router/procedures/toggle-follow-deck.ts`
-- [ ] `apps/web/src/features/deck/router/procedures/get-followed-decks.ts`
+- [x] `apps/web/src/features/deck/router/procedures/create-deck.ts`
+- [x] `apps/web/src/features/deck/router/procedures/update-deck.ts`
+- [x] `apps/web/src/features/deck/router/procedures/delete-deck.ts`
+- [x] `apps/web/src/features/deck/router/procedures/get-user-decks.ts`
+- [x] `apps/web/src/features/deck/router/procedures/get-deck-by-slug.ts`
+- [x] `apps/web/src/features/deck/router/procedures/get-public-decks.ts`
+- [x] `apps/web/src/features/deck/router/procedures/add-url-to-deck.ts`
+- [x] `apps/web/src/features/deck/router/procedures/remove-url-from-deck.ts`
+- [x] `apps/web/src/features/deck/router/procedures/get-deck-urls.ts`
+- [x] `apps/web/src/features/deck/router/procedures/toggle-follow-deck.ts`
+- [x] `apps/web/src/features/deck/router/procedures/get-followed-decks.ts`
 
 Feed integration:
 - [ ] `apps/web/src/features/feed/queries/get-user-feed.ts` - Add deck filtering
-- [ ] Update feed population in `add-url-to-deck.ts` (fan-out to followers)
+- [x] Update feed population in `add-url-to-deck.ts` (fan-out to followers)
+
+**Note:** Made `deckId` nullable in feeds table during transition period to support both old user-follows (no deck context) and new deck-follows. Will be made NOT NULL after Phase 8 migration.
 
 ### Phase 4: Web UI - Settings
 
@@ -1543,13 +1548,309 @@ After implementation:
 
 ---
 
+## User Account Deletion Strategy
+
+> **Status**: Planning
+> **Priority**: Medium
+> **Dependencies**: Background job infrastructure
+
+### Overview
+
+User account deletion should follow the **pending deletion pattern** (similar to decks, but with a longer grace period). This aligns with GDPR requirements and provides a safety net for accidental deletions.
+
+### Why Pending Deletion for Users
+
+| Factor | User Deletion | Deck Deletion |
+|--------|---------------|---------------|
+| Stakes | Very high (entire account) | Medium (one collection) |
+| Recovery importance | Critical | Nice to have |
+| Regulatory | GDPR requires grace period | None |
+| Common UX pattern | Gmail, Google, Facebook all use it | Less common |
+| Deletion complexity | 10+ tables across 3 levels | 3 tables |
+
+### Schema Change
+
+Add to `users` table:
+
+```typescript
+scheduledForDeletionAt: timestamp("scheduled_for_deletion_at", { withTimezone: true }),
+```
+
+### User Flow
+
+```
+User clicks "Delete Account" → Confirmation required (password/2FA)
+        ↓
+users.scheduledForDeletionAt = now() + 30 days
+        ↓
+Email sent: "Your account will be deleted on [date]"
+        ↓
+User can log in and click "Cancel Deletion" within 30 days
+        ↓
+Background job (daily) finds users WHERE scheduledForDeletionAt < now()
+        ↓
+Hard deletes in dependency order + notifies Clerk
+```
+
+### Behavior During Grace Period
+
+| Feature | Behavior |
+|---------|----------|
+| Login | Allowed (to cancel deletion) |
+| View data | Allowed |
+| Add new URLs | Blocked |
+| Create decks | Blocked |
+| Public profile | Hidden from search/discovery |
+| Followers see posts | No (filter by `scheduledForDeletionAt`) |
+| API access | Blocked |
+
+### Deletion Dependency Order
+
+Based on schema dependency graph, deletion must happen in this order:
+
+```
+Step 1: Level 2 dependencies (leaf nodes)
+├── usersUrlsInteractions (user's + on user's URLs)
+├── feeds (user's feed + entries for user's URLs)
+├── userUrlsTags (tags on user's URLs)
+├── deckUrls (URLs in user's decks)
+└── deckFollows (followers of user's decks + user's follows)
+
+Step 2: Level 1 dependencies (branches)
+├── usersUrls (user's URLs)
+├── tags (user's tags)
+├── follows (user following + followers)
+├── decks (user's decks)
+└── userProfiles (user's profile)
+
+Step 3: Level 0 (root)
+└── users (the user record)
+
+Step 4: External systems
+└── Clerk user deletion
+```
+
+### API Procedures
+
+#### `scheduleAccountDeletion`
+
+```typescript
+export const scheduleAccountDeletion = protectedProcedure
+  .mutation(async ({ ctx: { userId, db } }) => {
+    const scheduledForDeletionAt = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
+    
+    await db
+      .update(schema.users)
+      .set({ scheduledForDeletionAt })
+      .where(orm.eq(schema.users.id, userId));
+    
+    // TODO: Send confirmation email
+    // TODO: Notify Clerk to restrict user capabilities
+    
+    return { scheduledForDeletionAt };
+  });
+```
+
+#### `cancelAccountDeletion`
+
+```typescript
+export const cancelAccountDeletion = protectedProcedure
+  .mutation(async ({ ctx: { userId, db } }) => {
+    await db
+      .update(schema.users)
+      .set({ scheduledForDeletionAt: null })
+      .where(orm.and(
+        orm.eq(schema.users.id, userId),
+        orm.isNotNull(schema.users.scheduledForDeletionAt)
+      ));
+    
+    return { cancelled: true };
+  });
+```
+
+### Background Job
+
+Run daily to process scheduled deletions:
+
+```typescript
+async function processScheduledUserDeletions() {
+  const usersToDelete = await db.query.users.findMany({
+    where: (users, { and, isNotNull, lt }) =>
+      and(
+        isNotNull(users.scheduledForDeletionAt),
+        lt(users.scheduledForDeletionAt, new Date())
+      ),
+    columns: { id: true, clerkUserId: true },
+  });
+
+  for (const user of usersToDelete) {
+    await db.transaction(async (tx) => {
+      const userId = user.id;
+      
+      // Level 2 - Leaf tables
+      // ... (delete in dependency order)
+      
+      // Level 1 - Branch tables
+      // ... (delete in dependency order)
+      
+      // Level 0 - Root
+      await tx.delete(schema.users).where(orm.eq(schema.users.id, userId));
+    });
+    
+    // External: Delete from Clerk
+    await clerkClient.users.deleteUser(user.clerkUserId);
+  }
+}
+```
+
+### Query Updates Required
+
+Queries that need to filter out pending-deletion users:
+
+- [ ] `get-user-feed.ts` - Hide URLs from users pending deletion
+- [ ] `get-public-decks.ts` - Hide decks from users pending deletion
+- [ ] `get-deck-by-slug.ts` - Return null for pending-deletion users
+- [ ] User search/discovery features (future)
+
+### Comparison: Deck vs User Deletion
+
+| Aspect | Deck | User |
+|--------|------|------|
+| Grace period | 30 minutes | 30 days |
+| Schema change | 1 column on `decks` | 1 column on `users` |
+| Background job frequency | Every 5 min | Daily |
+| Background job complexity | 4 deletes | 10+ deletes with subqueries |
+| External systems | None | Clerk user deletion |
+| Email notifications | Optional | Required |
+
+### Implementation Phases
+
+1. **Schema**: Add `scheduledForDeletionAt` to users table
+2. **API**: Create `scheduleAccountDeletion` and `cancelAccountDeletion` procedures
+3. **UI**: Settings page with "Delete Account" flow and cancel option
+4. **Background Job**: Implement daily cleanup job
+5. **Queries**: Update all relevant queries to filter pending-deletion users
+6. **Notifications**: Email confirmation and reminder system
+
+### Open Questions
+
+- [ ] What background job infrastructure to use? (Cron, queue, Supabase Edge Functions?)
+- [ ] Send reminder email before final deletion? (e.g., 7 days before, 1 day before)
+- [ ] Should pending-deletion users count toward follower counts?
+- [ ] Export data option before deletion? (GDPR requirement)
+
+---
+
+## Refactor: Rename `usernameNormalized` to `slug` in User Profiles
+
+> **Status**: Planning
+> **Priority**: Low
+> **Dependencies**: None
+
+### Overview
+
+The `user_profiles.usernameNormalized` column is currently named after **how** it was created (a normalized version of the username), rather than **what** it's used for (a URL-safe identifier). Since its primary purpose is to serve as the URL segment for user profile pages (e.g., `/{slug}`), it should be renamed to `slug` for consistency with the deck pattern.
+
+### Rationale
+
+| Current | Proposed |
+|---------|----------|
+| `usernameNormalized` describes **how** it was created | `slug` describes **what** it's used for |
+
+Benefits:
+- **Consistency** with `decks.slug` pattern (both are URL identifiers)
+- **Clarity of intent** — it's a URL segment, not just a normalized copy
+- **Web conventions** — "slug" is the standard term for URL-safe identifiers
+
+The `user_profiles` table would then have:
+- `username` — display name (preserves casing: "JohnDoe")
+- `slug` — URL identifier (lowercase: "johndoe")
+
+This mirrors the deck pattern of `name` + `slug`.
+
+### Migration Steps
+
+#### 1. Database Migration
+
+Create migration file `packages/db/supabase/migrations/XXXX_rename_username_normalized_to_slug.sql`:
+
+```sql
+-- Rename column
+ALTER TABLE user_profiles RENAME COLUMN username_normalized TO slug;
+
+-- Rename constraint (if exists)
+ALTER TABLE user_profiles RENAME CONSTRAINT user_profiles_username_normalized_unique TO user_profiles_slug_unique;
+```
+
+#### 2. Schema Update
+
+Update `packages/db/src/schema.ts`:
+
+```typescript
+export const userProfiles = pgTable("user_profiles", {
+  // ... other fields ...
+  username: varchar("username").unique().notNull(),
+  slug: varchar("slug").unique().notNull(),  // renamed from usernameNormalized
+  // ...
+});
+```
+
+#### 3. File Renames
+
+| Current Path | New Path |
+|--------------|----------|
+| `packages/user-profile/src/utils/normalize-username.ts` | `packages/user-profile/src/utils/generate-slug.ts` (or keep as-is if still called "normalize") |
+| `packages/user-profile/src/utils/normalize-username.test.ts` | `packages/user-profile/src/utils/generate-slug.test.ts` |
+
+**Alternative**: Keep the file names as-is since "normalize username" accurately describes the transformation. The function `normalizeUsername()` still makes sense — it takes a username and normalizes it to produce a slug.
+
+#### 4. Code Updates
+
+Files that reference `usernameNormalized`:
+
+| File | Change Required |
+|------|-----------------|
+| `packages/db/src/schema.ts` | Rename field to `slug` |
+| `apps/web/src/features/deck/router/procedures/get-deck-by-slug.ts` | Change `.usernameNormalized` to `.slug` |
+| `apps/web/src/features/deck/router/procedures/get-public-decks.ts` | Change `.usernameNormalized` to `.slug` |
+| `apps/web/src/features/user-profile/router/procedures/username-check.ts` | Change `.usernameNormalized` to `.slug` |
+| `apps/web/src/features/user-profile/router/procedures/get-public-user-profile.ts` | Change `.usernameNormalized` to `.slug` |
+| `apps/web/src/features/user-profile/router/procedures/create-user-profile.ts` | Change `.usernameNormalized` to `.slug` |
+| `apps/web/src/features/user-profile/dto/public-user-profile.dto.ts` | Change field name if exposed |
+| `apps/web/src/app/[username]/page.tsx` | Change `.usernameNormalized` to `.slug` |
+
+#### 5. Update Migration Snapshots
+
+Run `pnpm db:generate` to update Drizzle snapshots after schema change.
+
+#### 6. Verification
+
+```bash
+# Run all tests to ensure nothing breaks
+pnpm test
+
+# Verify TypeScript compiles
+pnpm typecheck
+
+# Run linter
+pnpm lint
+```
+
+### Notes
+
+- The `normalizeUsername()` function can keep its name — it accurately describes the transformation (username → slug)
+- Alternatively, rename to `generateSlug()` or `usernameToSlug()` for clarity
+- No breaking changes to public APIs if the DTO already uses a different field name
+
+---
+
 ## References
 
 - [ARCHITECTURE.md](./ARCHITECTURE.md) - System architecture
 - [CODING-GUIDELINE.md](./CODING-GUIDELINE.md) - Development standards
 - [DESIGN.md](./DESIGN.md) - UX specifications
+- [deck-deletion-analysis.md](./deck-deletion-analysis.md) - Detailed analysis of deletion strategies
 
 ---
 
 *This plan was developed through iterative discussion. See conversation history for detailed rationale.*
-

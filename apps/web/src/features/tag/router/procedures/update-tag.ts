@@ -3,11 +3,7 @@ import { TRPCError } from "@trpc/server";
 
 import { protectedProcedure } from "@/server/api/trpc";
 
-import { type UpdateTagSchema, updateTagSchema } from "../../schemas/update-tag.schema";
-
-// TODO: Split schema exports from server-only procedures for all router procedures to prevent client-side imports of server code
-export type { UpdateTagSchema };
-export { updateTagSchema };
+import { updateTagSchema } from "../../schemas/update-tag.schema";
 
 export const updateTag = protectedProcedure
   .input(updateTagSchema)
