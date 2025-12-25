@@ -1,5 +1,5 @@
 import { db, orm, schema } from "@repo/db/db";
-import type { Feed, Tag, User } from "@repo/db/types";
+import type { Deck, Feed, Tag, User } from "@repo/db/types";
 
 import type { FeedSourceValue } from "../shared/feed-source";
 
@@ -10,6 +10,7 @@ type GetUserFeedQueryOptions = {
   cursor?: Feed["createdAt"];
   feedSource?: FeedSourceValue;
   tagIds: Tag["id"][];
+  deckId?: Deck["id"];
 };
 
 /**
@@ -32,7 +33,15 @@ const createTagFilterSubquery = (tagIds: Tag["id"][]) => {
     .having(orm.sql`COUNT(DISTINCT ${schema.userUrlsTags.tagId}) >= ${tagIds.length}`);
 };
 
-export const getUserFeedQuery = ({ userId, viewerId, limit, cursor, feedSource, tagIds }: GetUserFeedQueryOptions) => {
+export const getUserFeedQuery = ({
+  userId,
+  viewerId,
+  limit,
+  cursor,
+  feedSource,
+  tagIds,
+  deckId,
+}: GetUserFeedQueryOptions) => {
   const baseGroupBy = [
     schema.feeds.id,
     schema.userProfiles.username,
@@ -43,6 +52,9 @@ export const getUserFeedQuery = ({ userId, viewerId, limit, cursor, feedSource, 
     schema.urls.metadata,
     schema.usersUrls.likesCount,
     schema.feeds.userUrlId,
+    schema.decks.id,
+    schema.decks.name,
+    schema.decks.slug,
   ];
 
   const groupBy = viewerId ? [...baseGroupBy, schema.usersUrlsInteractions.userId] : baseGroupBy;
@@ -64,6 +76,9 @@ export const getUserFeedQuery = ({ userId, viewerId, limit, cursor, feedSource, 
         "userUrl_liked",
       ),
       tag_names: orm.sql<string | null>`STRING_AGG(DISTINCT ${schema.tags.name}, ', ' ORDER BY ${schema.tags.name})`,
+      deck_id: schema.decks.id,
+      deck_name: schema.decks.name,
+      deck_slug: schema.decks.slug,
     })
     .from(schema.feeds)
     // Use INNER JOIN since we always filter by isDeleted = false, filtering earlier improves performance
@@ -74,10 +89,13 @@ export const getUserFeedQuery = ({ userId, viewerId, limit, cursor, feedSource, 
         orm.eq(schema.usersUrls.isDeleted, false),
       ),
     )
-    .leftJoin(schema.urls, orm.eq(schema.usersUrls.urlId, schema.urls.id))
+    // INNER JOIN: usersUrls.urlId is NOT NULL with FK constraint - URL must exist
+    .innerJoin(schema.urls, orm.eq(schema.usersUrls.urlId, schema.urls.id))
     .leftJoin(schema.userUrlsTags, orm.eq(schema.usersUrls.id, schema.userUrlsTags.userUrlId))
     .leftJoin(schema.tags, orm.eq(schema.userUrlsTags.tagId, schema.tags.id))
-    .leftJoin(schema.userProfiles, orm.eq(schema.usersUrls.userId, schema.userProfiles.userId))
+    // INNER JOIN: users who have feed entries must have profiles (business logic requirement)
+    .innerJoin(schema.userProfiles, orm.eq(schema.usersUrls.userId, schema.userProfiles.userId))
+    .leftJoin(schema.decks, orm.eq(schema.feeds.deckId, schema.decks.id))
     .groupBy(...groupBy)
     .orderBy(orm.desc(schema.feeds.createdAt));
 
@@ -101,6 +119,9 @@ export const getUserFeedQuery = ({ userId, viewerId, limit, cursor, feedSource, 
     ? orm.inArray(schema.feeds.userUrlId, orm.sql`(${createTagFilterSubquery(tagIds)})`)
     : undefined;
 
+  // Deck filter condition - filter feed entries by specific deck
+  const deckCondition = deckId ? orm.eq(schema.feeds.deckId, deckId) : undefined;
+
   // Note: isDeleted filter is now in the INNER JOIN condition above for better performance
   // No need to filter again in WHERE clause
 
@@ -110,6 +131,7 @@ export const getUserFeedQuery = ({ userId, viewerId, limit, cursor, feedSource, 
         userCondition,
         authorCondition,
         baseTagCondition,
+        deckCondition,
         cursor ? orm.lt(schema.feeds.createdAt, cursor) : undefined,
       ),
     );
@@ -118,6 +140,7 @@ export const getUserFeedQuery = ({ userId, viewerId, limit, cursor, feedSource, 
       orm.and(
         userCondition,
         baseTagCondition,
+        deckCondition,
         cursor ? orm.lt(schema.feeds.createdAt, cursor) : undefined,
       ),
     );
@@ -125,15 +148,15 @@ export const getUserFeedQuery = ({ userId, viewerId, limit, cursor, feedSource, 
 
   query.limit(limit);
 
-  // Uncomment to debug generated SQL query and verify query plan
-  const { sql, params } = query.toSQL();
-
-  const formattedSQL = sql.replace(/\$(\d+)/g, (_, index) => {
-    const value = params[parseInt(index, 10) - 1]; // Convert 1-based index to 0-based
-    return typeof value === "string" ? `'${value}'` : String(value);
-  });
-
-  console.log("getUserFeedQuery SQL:", formattedSQL);
+  // Debug logging - only in development
+  if (process.env.NODE_ENV === "development") {
+    const { sql, params } = query.toSQL();
+    const formattedSQL = sql.replace(/\$(\d+)/g, (_, index) => {
+      const value = params[parseInt(index, 10) - 1];
+      return typeof value === "string" ? `'${value}'` : String(value);
+    });
+    console.log("getUserFeedQuery SQL:", formattedSQL);
+  }
 
   return query;
 };

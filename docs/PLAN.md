@@ -887,7 +887,7 @@ Procedures (in order of dependency):
 - [x] `apps/web/src/features/deck/router/procedures/get-followed-decks.ts`
 
 Feed integration:
-- [ ] `apps/web/src/features/feed/queries/get-user-feed.ts` - Add deck filtering
+- [x] `apps/web/src/features/feed/queries/get-user-feed.ts` - Add deck filtering
 - [x] Update feed population in `add-url-to-deck.ts` (fan-out to followers)
 
 **Note:** Made `deckId` nullable in feeds table during transition period to support both old user-follows (no deck context) and new deck-follows. Will be made NOT NULL after Phase 8 migration.

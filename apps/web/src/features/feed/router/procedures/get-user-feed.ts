@@ -1,3 +1,4 @@
+import { deckIdSchema } from "@repo/db/id/deck-id";
 import { tagIdSchema } from "@repo/db/id/tag-id";
 import { userIdSchema } from "@repo/db/id/user-id";
 import { TRPCError } from "@trpc/server";
@@ -16,6 +17,7 @@ const querySchema = z.object({
   userId: userIdSchema,
   feedSource: feedSourceSchema,
   tagIds: z.array(tagIdSchema).optional().default([]),
+  deckId: deckIdSchema.optional(),
 });
 
 export type GetUserFeedResponse = {
@@ -44,6 +46,7 @@ export const getUserFeed = protectedProcedure
         cursor: input.cursor,
         feedSource: input.feedSource,
         tagIds: input.tagIds,
+        deckId: input.deckId,
       });
 
       const feed = feedRawEntries.map((entry) => toFeedDTO(entry));
