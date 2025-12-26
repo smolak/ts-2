@@ -78,6 +78,5 @@ export const removeUrlFromDeck = protectedProcedure
       logger.info({ requestId, path, deckId, userUrlId, urlsCount: newUrlsCount }, "URL removed from deck.");
 
       return { removed: true, urlsCount: newUrlsCount };
-    }
+    },
   );
-

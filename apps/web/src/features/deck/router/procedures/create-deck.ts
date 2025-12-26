@@ -45,7 +45,7 @@ export const createDeck = protectedProcedure
 
     if (!canCreate.allowed) {
       logger.warn({ requestId, path, userId, plan: user.plan }, canCreate.reason);
-      
+
       throw new TRPCError({
         code: "FORBIDDEN",
         message: canCreate.reason,
@@ -60,7 +60,7 @@ export const createDeck = protectedProcedure
 
     if (existingDeck) {
       logger.error({ requestId, path }, `Deck with slug (${slug}) already exists.`);
-      
+
       throw new TRPCError({
         code: "BAD_REQUEST",
         message: "Deck with this slug already exists.",
@@ -91,4 +91,3 @@ export const createDeck = protectedProcedure
 
     return { deckId: result.insertedId, slug: result.slug };
   });
-

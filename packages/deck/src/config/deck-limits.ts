@@ -22,15 +22,13 @@ export type DeckLimits = (typeof DECK_LIMITS)[UserPlan];
 
 export const getDeckLimits = (plan: UserPlan): DeckLimits => DECK_LIMITS[plan];
 
-export type CanCreateDeckResult =
-  | { allowed: true }
-  | { allowed: false; reason: string };
+export type CanCreateDeckResult = { allowed: true } | { allowed: false; reason: string };
 
 export const canCreateDeck = (
   plan: UserPlan,
   currentPublicCount: number,
   currentPrivateCount: number,
-  isPublic: boolean
+  isPublic: boolean,
 ): CanCreateDeckResult => {
   const limits = getDeckLimits(plan);
   const currentTotal = currentPublicCount + currentPrivateCount;
@@ -59,16 +57,14 @@ export const canCreateDeck = (
   return { allowed: true };
 };
 
-export type CanChangeDeckVisibilityResult =
-  | { allowed: true }
-  | { allowed: false; reason: string };
+export type CanChangeDeckVisibilityResult = { allowed: true } | { allowed: false; reason: string };
 
 export const canChangeDeckVisibility = (
   plan: UserPlan,
   currentPublicCount: number,
   currentPrivateCount: number,
   currentlyPublic: boolean,
-  newIsPublic: boolean
+  newIsPublic: boolean,
 ): CanChangeDeckVisibilityResult => {
   if (currentlyPublic === newIsPublic) {
     return { allowed: true };
@@ -96,4 +92,3 @@ export const canChangeDeckVisibility = (
 
   return { allowed: true };
 };
-

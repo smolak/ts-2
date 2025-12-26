@@ -13,4 +13,3 @@ export const updateDeckSchema = z.object({
 });
 
 export type UpdateDeckSchema = z.infer<typeof updateDeckSchema>;
-

@@ -26,4 +26,3 @@ export const decksRouter = createTRPCRouter({
   toggleFollowDeck,
   getFollowedDecks,
 });
-

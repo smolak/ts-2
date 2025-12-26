@@ -70,6 +70,5 @@ export const getFollowedDecks = protectedProcedure.query<GetFollowedDecksResult>
         },
       };
     });
-  }
+  },
 );
-

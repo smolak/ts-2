@@ -19,6 +19,5 @@ export const getUserDecks = protectedProcedure.query<GetUserDecksResult>(
     logger.info({ requestId, path, userId, count: decks.length }, "User's decks fetched.");
 
     return decks.map(toDeckDto);
-  }
+  },
 );
-

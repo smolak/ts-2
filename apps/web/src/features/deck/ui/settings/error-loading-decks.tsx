@@ -1,0 +1,18 @@
+export const ErrorLoadingDecks = () => {
+  return (
+    <section className="p-5 sm:px-0 sm:py-20">
+      <h1 className="mb-8 font-bold text-2xl text-gray-900 tracking-tight sm:text-3xl md:text-4xl">
+        <span className="inline">We couldn&apos;t load your decks, sorry 😞</span>{" "}
+      </h1>
+      <div className="flex flex-col gap-3 p-4">
+        <p className="flex gap-2">
+          <span>✅</span> We log those things and are aware of the problem.
+        </p>
+        <p className="flex gap-2">
+          <span>💡</span> Try refreshing the page. If that won&apos;t work, be patient, we&apos;re most likely working
+          on that already.
+        </p>
+      </div>
+    </section>
+  );
+};

@@ -7,4 +7,3 @@ export const deckNameSchema = z
   .trim()
   .min(1, "Deck name is required.")
   .max(DECK_NAME_MAX_LENGTH, `Deck name cannot exceed ${DECK_NAME_MAX_LENGTH} characters.`);
-

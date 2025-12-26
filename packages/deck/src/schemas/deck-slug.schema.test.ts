@@ -89,6 +89,14 @@ describe("deckSlugSchema", () => {
       });
     });
 
+    it("should reject slugs with consecutive hyphens", () => {
+      const invalidSlugs = ["free--games", "my---deck", "a--b", "test----slug"];
+
+      invalidSlugs.forEach((slug) => {
+        expect(() => deckSlugSchema.parse(slug)).toThrow();
+      });
+    });
+
     it("should reject non-string inputs", () => {
       const nonStringInputs = [null, undefined, 123, true, false, {}, [], () => {}];
 
@@ -120,13 +128,6 @@ describe("deckSlugSchema", () => {
       expect(deckSlugSchema.parse(slug)).toBe(slug);
     });
 
-    it("should handle multiple consecutive hyphens", () => {
-      const slug = "a--b";
-
-      expect(() => deckSlugSchema.parse(slug)).not.toThrow();
-      expect(deckSlugSchema.parse(slug)).toBe(slug);
-    });
-
     it("should handle numbers only", () => {
       const slug = "123456";
 
@@ -151,4 +152,3 @@ describe("deckSlugSchema", () => {
     });
   });
 });
-

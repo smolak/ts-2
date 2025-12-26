@@ -95,7 +95,7 @@ export const getDeckUrls = publicProcedure
     // 6. Determine next cursor
     const hasMore = activeUrls.length > limit;
     const items = hasMore ? activeUrls.slice(0, limit) : activeUrls;
-    const nextCursor = hasMore ? items[items.length - 1]?.addedAt.toISOString() ?? null : null;
+    const nextCursor = hasMore ? (items[items.length - 1]?.addedAt.toISOString() ?? null) : null;
 
     logger.info({ requestId, path, deckId, count: items.length, hasMore }, "Deck URLs fetched.");
 
@@ -110,4 +110,3 @@ export const getDeckUrls = publicProcedure
       nextCursor,
     };
   });
-

@@ -19,4 +19,3 @@ export const deckMetadataSchema = z.object({
 });
 
 export type DeckMetadata = z.infer<typeof deckMetadataSchema>;
-

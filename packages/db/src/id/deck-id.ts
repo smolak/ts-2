@@ -13,4 +13,3 @@ export const deckIdSchema = z
   .trim()
   .startsWith(DECK_ID_PREFIX, { message: "ID passed is not a deck ID." })
   .length(DECK_ID_PREFIX.length + DEFAULT_ID_LENGTH, { message: "Wrong ID size." });
-

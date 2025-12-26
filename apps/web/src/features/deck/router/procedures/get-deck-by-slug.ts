@@ -53,7 +53,7 @@ export const getDeckBySlug = publicProcedure
         where: (users, { eq }) => eq(users.clerkUserId, auth.userId!),
         columns: { id: true },
       });
-      
+
       viewerUserId = viewer?.id ?? null;
     }
 
@@ -85,8 +85,7 @@ export const getDeckBySlug = publicProcedure
     let isFollowing = false;
     if (viewerUserId && !isOwner) {
       const follow = await db.query.deckFollows.findFirst({
-        where: (follows, { and, eq }) =>
-          and(eq(follows.deckId, deck.id), eq(follows.followerId, viewerUserId!)),
+        where: (follows, { and, eq }) => and(eq(follows.deckId, deck.id), eq(follows.followerId, viewerUserId!)),
         columns: { deckId: true },
       });
       isFollowing = !!follow;
@@ -109,4 +108,3 @@ export const getDeckBySlug = publicProcedure
       isFollowing,
     };
   });
-

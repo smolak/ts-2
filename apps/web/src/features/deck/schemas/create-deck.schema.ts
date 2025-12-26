@@ -7,8 +7,7 @@ export const createDeckSchema = z.object({
   name: deckNameSchema,
   slug: deckSlugSchema,
   metadata: deckMetadataSchema.optional(),
-  isPublic: z.boolean().default(true),
+  isPublic: z.boolean(),
 });
 
 export type CreateDeckSchema = z.infer<typeof createDeckSchema>;
-

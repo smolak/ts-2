@@ -6,4 +6,3 @@ export const restoreDeckSchema = z.object({
 });
 
 export type RestoreDeckSchema = z.infer<typeof restoreDeckSchema>;
-

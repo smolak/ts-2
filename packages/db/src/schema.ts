@@ -438,9 +438,7 @@ export const decks = pgTable(
   (table) => [
     unique().on(table.userId, table.slug),
     index().on(table.userId),
-    index()
-      .on(table.isPublic)
-      .where(sql`is_public = true`),
+    index().on(table.isPublic).where(sql`is_public = true`),
     // Partial index for active (non-pending-deletion) decks
     index()
       .on(table.id)

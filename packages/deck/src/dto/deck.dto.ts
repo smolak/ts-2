@@ -1,7 +1,10 @@
 import type { Deck } from "@repo/db/types";
 import type { DeckMetadata } from "../schemas/deck-metadata.schema";
 
-export type DeckDto = Pick<Deck, "id" | "name" | "slug" | "isPublic" | "urlsCount" | "followersCount"> & {
+export type DeckDto = Pick<
+  Deck,
+  "id" | "name" | "slug" | "isPublic" | "urlsCount" | "followersCount" | "scheduledForDeletionAt"
+> & {
   metadata: DeckMetadata;
 };
 
@@ -13,6 +16,7 @@ export const toDeckDto = ({
   urlsCount,
   followersCount,
   metadata,
+  scheduledForDeletionAt,
 }: Deck): DeckDto => {
   return {
     id,
@@ -22,6 +26,6 @@ export const toDeckDto = ({
     urlsCount,
     followersCount,
     metadata: metadata as DeckMetadata,
+    scheduledForDeletionAt,
   };
 };
-

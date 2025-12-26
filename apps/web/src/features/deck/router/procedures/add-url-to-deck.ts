@@ -94,7 +94,7 @@ export const addUrlToDeck = protectedProcedure
               userId: follower.followerId,
               userUrlId,
               deckId,
-            }))
+            })),
           );
 
           logger.info({ requestId, path, deckId, followersCount: followers.length }, "Feed fan-out completed.");

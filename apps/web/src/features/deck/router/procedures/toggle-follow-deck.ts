@@ -121,7 +121,7 @@ export const toggleFollowDeck = protectedProcedure
             userId,
             userUrlId: du.userUrlId,
             deckId,
-          }))
+          })),
         );
       }
 
@@ -139,4 +139,3 @@ export const toggleFollowDeck = protectedProcedure
 
     return { status: "following", deckId, followersCount: newFollowersCount };
   });
-

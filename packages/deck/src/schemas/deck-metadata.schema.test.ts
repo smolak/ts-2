@@ -128,16 +128,7 @@ describe("deckMetadataSchema", () => {
     });
 
     it("should reject invalid hex colors", () => {
-      const invalidColors = [
-        "FF5733",
-        "#FFF",
-        "#FFFFFFF",
-        "#GGGGGG",
-        "rgb(255, 87, 51)",
-        "red",
-        "#FF573",
-        "#FF57333",
-      ];
+      const invalidColors = ["FF5733", "#FFF", "#FFFFFFF", "#GGGGGG", "rgb(255, 87, 51)", "red", "#FF573", "#FF57333"];
 
       invalidColors.forEach((color) => {
         expect(() => deckMetadataSchema.parse({ color })).toThrow();
@@ -174,4 +165,3 @@ describe("deckMetadataSchema", () => {
     });
   });
 });
-

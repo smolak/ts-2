@@ -23,12 +23,7 @@ const createTagFilterSubquery = (tagIds: Tag["id"][]) => {
     .select({ userUrlId: schema.userUrlsTags.userUrlId })
     .from(schema.userUrlsTags)
     .innerJoin(schema.usersUrls, orm.eq(schema.userUrlsTags.userUrlId, schema.usersUrls.id))
-    .where(
-      orm.and(
-        orm.inArray(schema.userUrlsTags.tagId, tagIds),
-        orm.eq(schema.usersUrls.isDeleted, false),
-      ),
-    )
+    .where(orm.and(orm.inArray(schema.userUrlsTags.tagId, tagIds), orm.eq(schema.usersUrls.isDeleted, false)))
     .groupBy(schema.userUrlsTags.userUrlId)
     .having(orm.sql`COUNT(DISTINCT ${schema.userUrlsTags.tagId}) >= ${tagIds.length}`);
 };
@@ -84,10 +79,7 @@ export const getUserFeedQuery = ({
     // Use INNER JOIN since we always filter by isDeleted = false, filtering earlier improves performance
     .innerJoin(
       schema.usersUrls,
-      orm.and(
-        orm.eq(schema.feeds.userUrlId, schema.usersUrls.id),
-        orm.eq(schema.usersUrls.isDeleted, false),
-      ),
+      orm.and(orm.eq(schema.feeds.userUrlId, schema.usersUrls.id), orm.eq(schema.usersUrls.isDeleted, false)),
     )
     // INNER JOIN: usersUrls.urlId is NOT NULL with FK constraint - URL must exist
     .innerJoin(schema.urls, orm.eq(schema.usersUrls.urlId, schema.urls.id))

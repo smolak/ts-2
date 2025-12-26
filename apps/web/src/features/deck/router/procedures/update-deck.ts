@@ -9,7 +9,9 @@ import { updateDeckSchema } from "../../schemas/update-deck.schema";
 
 type UpdateDeckResult = {
   deckId: Deck["id"];
+  name: Deck["name"];
   slug: Deck["slug"];
+  isPublic: Deck["isPublic"];
 };
 
 export const updateDeck = protectedProcedure
@@ -62,13 +64,7 @@ export const updateDeck = protectedProcedure
 
       const { publicCount, privateCount } = deckCounts[0] ?? { publicCount: 0, privateCount: 0 };
 
-      const canChange = canChangeDeckVisibility(
-        user.plan,
-        publicCount,
-        privateCount,
-        existingDeck.isPublic,
-        isPublic
-      );
+      const canChange = canChangeDeckVisibility(user.plan, publicCount, privateCount, existingDeck.isPublic, isPublic);
 
       if (!canChange.allowed) {
         logger.warn({ requestId, path, userId, plan: user.plan }, canChange.reason);
@@ -114,7 +110,12 @@ export const updateDeck = protectedProcedure
       .update(schema.decks)
       .set(updateData)
       .where(orm.and(orm.eq(schema.decks.id, deckId), orm.eq(schema.decks.userId, userId)))
-      .returning({ deckId: schema.decks.id, slug: schema.decks.slug });
+      .returning({
+        deckId: schema.decks.id,
+        name: schema.decks.name,
+        slug: schema.decks.slug,
+        isPublic: schema.decks.isPublic,
+      });
 
     if (!updatedDeck) {
       logger.error({ requestId, path }, "Deck could not be updated.");
@@ -128,4 +129,3 @@ export const updateDeck = protectedProcedure
 
     return updatedDeck;
   });
-

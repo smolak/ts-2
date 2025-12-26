@@ -8,4 +8,3 @@ describe("generateDeckId", () => {
     expect(id).toMatch(/^deck_[a-zA-Z0-9]{22}$/);
   });
 });
-
