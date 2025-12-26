@@ -92,7 +92,7 @@ deck_follows (follower_id → deck_id)
 | Purpose | Fine-grained categorization | Curated "playlists" |
 | Metadata | Just a name | Title, description, image, etc. |
 | Followable | No | Yes (if public) |
-| Public page | No | Yes (`/@username/decks/slug`) |
+| Public page | No | Yes (`/@username/slug`) |
 
 Users can use both: A "Free Games" deck where URLs are also tagged `#epic`, `#steam`, `#gog`.
 
@@ -559,7 +559,7 @@ apps/web/src/features/deck/
     ├── deck-picker/              # For URL sharing flow
     │   ├── index.tsx
     │   └── deck-picker-list.tsx
-    └── public-deck/              # /@username/decks/slug page
+    └── public-deck/              # /@username/slug page
         ├── deck-header.tsx
         ├── deck-url-list.tsx
         └── follow-deck-button.tsx
@@ -896,16 +896,16 @@ Feed integration:
 
 **Files to create:**
 
-- [ ] `apps/web/src/features/deck/stores/use-decks-store.ts` - Zustand store
-- [ ] `apps/web/src/features/deck/ui/settings/index.tsx` - Settings page wrapper
-- [ ] `apps/web/src/features/deck/ui/settings/deck-list.tsx`
-- [ ] `apps/web/src/features/deck/ui/settings/deck-list-item.tsx`
-- [ ] `apps/web/src/features/deck/ui/settings/create-deck-form.tsx`
-- [ ] `apps/web/src/features/deck/ui/settings/edit-deck-form.tsx`
-- [ ] `apps/web/src/features/deck/ui/settings/delete-deck-dialog.tsx`
-- [ ] `apps/web/src/features/deck/ui/settings/deck-limits-usage.tsx` - Shows current usage vs limits
-- [ ] `apps/web/src/features/deck/ui/settings/upgrade-prompt.tsx` - CTA when at limit
-- [ ] `apps/web/src/app/settings/decks/page.tsx` - Route page
+- [x] `apps/web/src/features/deck/stores/use-decks-store.ts` - Zustand store
+- [x] `apps/web/src/features/deck/ui/settings/index.tsx` - Settings page wrapper
+- [x] `apps/web/src/features/deck/ui/settings/deck-list.tsx`
+- [x] `apps/web/src/features/deck/ui/settings/deck-list-item.tsx`
+- [x] `apps/web/src/features/deck/ui/settings/create-deck-form.tsx`
+- [x] `apps/web/src/features/deck/ui/settings/edit-deck.tsx` (renamed from edit-deck-form.tsx)
+- [x] `apps/web/src/features/deck/ui/settings/delete-deck.tsx` (renamed from delete-deck-dialog.tsx)
+- [x] `apps/web/src/features/deck/ui/settings/deck-limits-usage.tsx` - Shows current usage vs limits
+- [ ] `apps/web/src/features/deck/ui/settings/upgrade-prompt.tsx` - CTA when at limit (deferred)
+- [x] `apps/web/src/app/settings/decks/page.tsx` - Route page
 
 **Limit enforcement in UI:**
 - Show usage indicator: "Public Decks: 2 / 3"
@@ -918,10 +918,10 @@ Feed integration:
 
 **Files to create:**
 
-- [ ] `apps/web/src/features/deck/ui/public-deck/deck-header.tsx`
-- [ ] `apps/web/src/features/deck/ui/public-deck/deck-url-list.tsx`
-- [ ] `apps/web/src/features/deck/ui/public-deck/follow-deck-button.tsx`
-- [ ] `apps/web/src/app/[username]/decks/[slug]/page.tsx` - Route page
+- [x] `apps/web/src/features/deck/ui/public-deck/deck-header.tsx`
+- [x] `apps/web/src/features/deck/ui/public-deck/deck-url-list.tsx`
+- [x] `apps/web/src/features/deck/ui/public-deck/follow-deck-button.tsx`
+- [x] `apps/web/src/app/[username]/[slug]/page.tsx` - Route page
 
 ### Phase 6: Web UI - Deck Picker & Integration
 
@@ -1184,7 +1184,7 @@ if (input.isPublic !== undefined && input.isPublic !== existingDeck.isPublic) {
 
 ### Naming
 - [x] Feature name: **Deck** (brand alignment with LinkDeck)
-- [x] URL pattern: `/@username/decks/slug` (clear, readable)
+- [x] URL pattern: `/@username/slug` (shorter, cleaner)
 
 ### Default Behavior (Recommended)
 - [x] New users: **No default deck** - users create decks intentionally
