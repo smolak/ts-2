@@ -81,6 +81,7 @@
 - **Trailing Commas**: Use in objects and arrays
 - **Blank Lines**: One blank line between functions/classes
 - **Import Organization**: BiomeJS will auto-organize imports
+- **Numeric Separators**: Use underscores for thousands in large numbers (e.g., `1_000` instead of `1000`, `2_600_255` instead of `2600255`)
 
 ## Naming Conventions
 
