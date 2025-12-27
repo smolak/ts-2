@@ -40,6 +40,7 @@ export const InfiniteUserFeed: FC<InfiniteUserFeedProps> = ({ userId, from, view
   const tagsString = qs.parse(searchParams.toString()).tags;
   const tagIdsInSearchParams = typeof tagsString === "string" ? tagsString.split(",") : [];
   const source = feedSourceSchema.parse(searchParams.get("source"));
+  const deckId = searchParams.get("deck") ?? undefined;
   const initialCursor = from ? new Date(from) : undefined;
 
   const { data, isLoading, isError, fetchNextPage, isFetchingNextPage } = api.feeds.getUserFeed.useInfiniteQuery(
@@ -47,6 +48,7 @@ export const InfiniteUserFeed: FC<InfiniteUserFeedProps> = ({ userId, from, view
       userId,
       feedSource: source,
       tagIds: tagIdsInSearchParams,
+      deckId,
     },
     {
       getNextPageParam: (lastPage) => lastPage.nextCursor,

@@ -927,14 +927,19 @@ Feed integration:
 
 **Files to create:**
 
-- [ ] `apps/web/src/features/deck/ui/deck-picker/index.tsx`
-- [ ] `apps/web/src/features/deck/ui/deck-picker/deck-picker-list.tsx`
+- [x] `apps/web/src/features/deck/ui/deck-picker/index.tsx`
+- [x] `apps/web/src/features/deck/ui/deck-picker/deck-picker-list.tsx`
+- [x] `apps/web/src/features/deck/ui/public-decks-grid.tsx` - Public decks grid for profile page
+- [x] `apps/web/src/features/deck/ui/deck-selector/index.tsx` - Deck filter for feed
+- [x] `apps/web/src/features/deck/router/procedures/get-url-decks.ts` - Get which decks contain a URL
 
 **Files to modify:**
 
-- [ ] Update URL sharing modal to include deck picker
-- [ ] `apps/web/src/app/[username]/page.tsx` - Show public decks grid on profile
-- [ ] Add deck filter to feed sidebar
+- [x] `apps/web/src/features/feed/ui/user-feed-list/edit-feed-item-modal.tsx` - Include deck picker
+- [x] `apps/web/src/app/[username]/page.tsx` - Show public decks grid on profile
+- [x] `apps/web/src/features/feed/ui/feed-list-filters.tsx` - Add deck filter
+- [x] `apps/web/src/features/feed/ui/user-feed-list/infinite-user-feed.tsx` - Handle deck query param
+- [x] `apps/web/src/features/home-page/logged-in-user-content.tsx` - Fetch and pass decks to filters
 
 ### Phase 7: Browser Extension
 
