@@ -1415,10 +1415,10 @@ The following security issues were identified during a code audit and have been 
 
 After fixes, add tests to verify:
 
-- [ ] Test: Cannot update tag belonging to another user
-- [ ] Test: Cannot delete tag belonging to another user
-- [ ] Test: Cannot manipulate tag counters via crafted `tagIds` in `updateUserUrl`
-- [ ] Test: Cannot manipulate tag counters via crafted `tagIds` in `addUrl` API
+- [x] Test: Cannot update tag belonging to another user (covered in `update-tag.test.ts`)
+- [x] Test: Cannot delete tag belonging to another user (covered in `delete-tag.test.ts`)
+- [ ] Test: Cannot manipulate tag counters via crafted `tagIds` in `updateUserUrl` (**BLOCKED** - see Phase 9 Known Issue)
+- [ ] Test: Cannot manipulate tag counters via crafted `tagIds` in `addUrl` API (**BLOCKED** - see Phase 9 Known Issue)
 
 ---
 
@@ -1572,6 +1572,81 @@ After implementation:
 - [x] Security fix tests from Issue #1-#2 are covered (delete/update tag belonging to another user)
 - [x] Pattern documented for other procedure tests (see test files for examples)
 - [ ] CI pipeline runs integration tests (requires CI configuration)
+
+### Known Issue: Multi-Table Procedure Tests Fail
+
+> **Status**: Unresolved
+> **Discovered**: December 27, 2025
+> **Affects**: Testing procedures that involve multiple tables (e.g., `updateUserUrl`)
+
+#### Problem Description
+
+The test infrastructure works for simple single-table procedures (tag CRUD) but fails for procedures that operate on multiple tables.
+
+#### Observed Behavior
+
+**Working test pattern (single table - tags):**
+```typescript
+it("should delete a tag", async () => {
+  const tag = await createTestTag(ctx.db, ctx.userId, "Test Tag");
+  const caller = createCaller(ctx.trpcContext);
+  
+  await caller.deleteTag({ id: tag.id });
+  
+  const result = await ctx.db.query.tags.findFirst({...});
+  expect(result).toBeUndefined(); // ✓ PASSES - tag was deleted
+});
+```
+
+**Failing test pattern (multi-table - userUrl + tags):**
+```typescript
+it("should add a tag to a userUrl", async () => {
+  const userUrl = await createTestUserUrl(ctx.db, ctx.userId);
+  const tag = await createTestTag(ctx.db, ctx.userId, "Test Tag");
+  const caller = createCaller(ctx.trpcContext);
+  
+  await caller.updateUserUrl({ userUrlId: userUrl.id, tagIds: [tag.id] });
+  
+  // Query immediately after - WITHIN THE SAME TEST
+  const association = await ctx.db.query.userUrlsTags.findFirst({...});
+  expect(association).toBeDefined(); // ✗ FAILS - returns undefined
+});
+```
+
+The procedure returns `{ success: true }`, but the data it inserted into `userUrlsTags` is not visible when querying with `ctx.db` immediately after.
+
+#### Suspected Root Cause
+
+The test context setup and tRPC middleware may be using different user contexts:
+
+1. **Test setup** (`createTestContext`):
+   - Creates user with `clerkUserId` via `createTestUser(db, clerkUserId)`
+   - Stores internal `user.id` as `ctx.userId`
+   - Creates mock auth with `auth.userId = clerkUserId`
+
+2. **Procedure execution** (via `isAuthenticated` middleware in `trpc.ts`):
+   - Gets `clerkUserId` from `ctx.auth.userId`
+   - Upserts user: `INSERT INTO users ... ON CONFLICT DO UPDATE ... RETURNING`
+   - Uses `ctx.db._.fullSchema.users` (not `schema.users`)
+
+**Hypothesis**: The middleware's upsert via `ctx.db._.fullSchema.users` may return a different user object/ID than the one created by `createTestUser`, causing the procedure to operate on a different user's context than expected.
+
+#### What Needs Investigation
+
+1. Verify that `ctx.db._.fullSchema.users` and `schema.users` reference the same table definition
+2. Add logging to the middleware to confirm which `userId` it resolves
+3. Compare the `userId` from middleware vs `ctx.userId` from test setup
+4. Check if there's a transaction isolation issue between procedure and test queries
+
+#### Temporary Workaround
+
+The security tests for Issues #3-#4 (tag counter manipulation in `updateUserUrl` and `addUrl`) remain uncovered. The security fixes are implemented in the code but lack test verification.
+
+#### Files Involved
+
+- `apps/web/src/test-utils/create-test-context.ts` - Test context factory
+- `apps/web/src/server/api/trpc.ts` - `isAuthenticated` middleware (lines 122-149)
+- `apps/web/src/features/url/router/procedures/update-user-url.ts` - Procedure under test
 
 ---
 
