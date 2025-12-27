@@ -1,6 +1,5 @@
 import { decksRouter } from "@/features/deck/router/decks";
 import { feedsRouter } from "@/features/feed/router/feeds";
-import { followUserRouter } from "@/features/follow-user/router/follow-user";
 import { tagsRouter } from "@/features/tag/router/tags";
 import { urlsRouter } from "@/features/url/router/urls";
 import { usersRouter } from "@/features/user/router/users";
@@ -15,7 +14,6 @@ import { createCallerFactory, createTRPCRouter } from "./trpc";
 export const appRouter = createTRPCRouter({
   decks: decksRouter,
   tags: tagsRouter,
-  followUser: followUserRouter,
   users: usersRouter,
   userProfiles: userProfilesRouter,
   feeds: feedsRouter,

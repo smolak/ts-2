@@ -46,8 +46,6 @@ export default async function Page({
     }),
   ]);
 
-  const canFollow = true; // Boolean(user?.id) && userProfile.id !== user?.id;
-
   const formattedDecks = publicDecks.map((deck) => ({
     id: deck.id,
     name: deck.name,
@@ -80,7 +78,7 @@ export default async function Page({
         </main>
       </div>
       <div className="inline-block w-1/4">
-        <UserProfileCard publicUserProfileData={userProfile} canFollow={canFollow} />
+        <UserProfileCard publicUserProfileData={userProfile} />
       </div>
     </>
   );

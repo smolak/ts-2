@@ -25,14 +25,6 @@ export const addUrl: AddUrl = async ({ tagIds, deckIds, metadata, userId }) => {
     where: (urlHashesCompoundHashesCounts, { eq }) => eq(urlHashesCompoundHashesCounts.urlHash, urlHash),
   });
 
-  const followers = await db.query.follows.findMany({
-    where: (follows, { eq }) => eq(follows.followingId, userId),
-    columns: {
-      followerId: true,
-    },
-    orderBy: (follows, { asc }) => [asc(follows.createdAt)],
-  });
-
   const result = await db.transaction(async (tx) => {
     let urlId: Url["id"];
 
@@ -155,23 +147,11 @@ export const addUrl: AddUrl = async ({ tagIds, deckIds, metadata, userId }) => {
       .set({ urlsCount: orm.sql`${schema.userProfiles.urlsCount} + 1` })
       .where(orm.eq(schema.userProfiles.userId, userId));
 
-    const feedData = [
-      {
-        userId,
-        userUrlId: userUrl.id,
-      },
-    ];
-
-    if (followers.length > 0) {
-      const followersData = followers.map((follower) => ({
-        userId: follower.followerId,
-        userUrlId: userUrl.id,
-      }));
-
-      feedData.push(...followersData);
-    }
-
-    await tx.insert(schema.feeds).values(feedData);
+    // Add URL to owner's own feed (they always see their own URLs)
+    await tx.insert(schema.feeds).values({
+      userId,
+      userUrlId: userUrl.id,
+    });
 
     return userUrl;
   });

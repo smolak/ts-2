@@ -369,6 +369,22 @@ export const userUrlsTags = pgTable(
 
 export type UserUrlTag = InferSelectModel<typeof userUrlsTags>;
 
+/**
+ * @deprecated This table is deprecated and will be removed in a future release.
+ *
+ * User-follows have been replaced by deck-follows (see `deckFollows` table).
+ * Following now happens at the deck level, not the user level.
+ *
+ * DO NOT add new code that writes to this table.
+ * DO NOT add new code that reads from this table.
+ *
+ * The `userProfiles.followersCount` now represents unique deck followers
+ * (users who follow at least one of this user's public decks).
+ *
+ * Migration status:
+ * - Phase 8 (in progress): UI removed, router removed, deprecation added
+ * - Phase 9 (future): Drop this table and its relations
+ */
 export const follows = pgTable(
   "follows",
   {
@@ -387,6 +403,9 @@ export const follows = pgTable(
   ],
 );
 
+/**
+ * @deprecated See deprecation note on `follows` table above.
+ */
 export type Follow = InferSelectModel<typeof follows>;
 
 /**

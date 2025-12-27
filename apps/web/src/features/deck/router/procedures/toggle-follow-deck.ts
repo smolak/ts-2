@@ -1,5 +1,5 @@
-import { deckIdSchema } from "@repo/db/id/deck-id";
 import { orm, schema } from "@repo/db/db";
+import { deckIdSchema } from "@repo/db/id/deck-id";
 import type { Deck } from "@repo/db/types";
 import { TRPCError } from "@trpc/server";
 import { z } from "zod";
@@ -85,6 +85,27 @@ export const toggleFollowDeck = protectedProcedure
             .where(orm.and(orm.eq(schema.deckFollows.deckId, deckId), orm.eq(schema.deckFollows.followerId, userId))),
         ]);
 
+        // Check if user still follows any other deck from this owner (for deduplicated count)
+        // After the delete, check remaining follows
+        const remainingFollows = await tx.query.deckFollows.findMany({
+          where: (follows, { eq }) => eq(follows.followerId, userId),
+          with: { deck: { columns: { userId: true } } },
+        });
+        const stillFollowingOwner = remainingFollows.some((f) => f.deck.userId === deck.userId);
+
+        // If not following any other deck from this owner, decrement their profile followers count
+        if (!stillFollowingOwner) {
+          await tx
+            .update(schema.userProfiles)
+            .set({ followersCount: orm.sql`GREATEST(${schema.userProfiles.followersCount} - 1, 0)` })
+            .where(orm.eq(schema.userProfiles.userId, deck.userId));
+
+          logger.info(
+            { requestId, path, deckOwnerId: deck.userId },
+            "Decremented deck owner's profile followers count.",
+          );
+        }
+
         return {
           followersCount: updatedDeck?.followersCount ?? Math.max(deck.followersCount - 1, 0),
         };
@@ -97,6 +118,14 @@ export const toggleFollowDeck = protectedProcedure
       return { status: "unfollowed", deckId, followersCount: newFollowersCount };
     }
 
+    // Check if this is the first deck from this owner that the user is following
+    // (for deduplicated profile followers count)
+    const currentFollows = await db.query.deckFollows.findMany({
+      where: (follows, { eq }) => eq(follows.followerId, userId),
+      with: { deck: { columns: { userId: true } } },
+    });
+    const wasFollowingOwnerBefore = currentFollows.some((f) => f.deck.userId === deck.userId);
+
     // Follow
     const { followersCount: newFollowersCount, urlsAdded } = await db.transaction(async (tx) => {
       const [[updatedDeck]] = await Promise.all([
@@ -108,6 +137,16 @@ export const toggleFollowDeck = protectedProcedure
 
         tx.insert(schema.deckFollows).values({ deckId, followerId: userId }),
       ]);
+
+      // If this is the first deck from this owner, increment their profile followers count
+      if (!wasFollowingOwnerBefore) {
+        await tx
+          .update(schema.userProfiles)
+          .set({ followersCount: orm.sql`${schema.userProfiles.followersCount} + 1` })
+          .where(orm.eq(schema.userProfiles.userId, deck.userId));
+
+        logger.info({ requestId, path, deckOwnerId: deck.userId }, "Incremented deck owner's profile followers count.");
+      }
 
       // Populate feed with existing deck URLs
       const deckUrls = await tx.query.deckUrls.findMany({

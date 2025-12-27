@@ -1000,10 +1000,12 @@ JOIN decks d ON d.user_id = f.following_id AND d.is_public = true;
 
 **Deprecation steps:**
 
-- [ ] Remove "Follow User" button from UI
-- [ ] Update `userProfiles.followersCount` to reflect deck followers
-- [ ] Add deprecation warning to `follows` table queries
-- [ ] (Future release) Drop `follows` table
+- [x] Remove "Follow User" button from UI
+- [x] Update `userProfiles.followersCount` to reflect deck followers (deduplicated)
+- [x] Add deprecation warning to `follows` table schema
+- [x] Remove `followUserRouter` from API
+- [x] Delete `apps/web/src/features/follow-user/` directory
+- [ ] (Future release) Drop `follows` table and its Drizzle relations
 
 ---
 
