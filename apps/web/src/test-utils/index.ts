@@ -9,7 +9,7 @@
  *
  * @example
  * ```typescript
- * import { createTestContext, createTestTag, cleanupTags } from "@/test-utils";
+ * import { createTestContext, createTestDeck, createTestTag } from "@/test-utils";
  * import { createCallerFactory, createTRPCRouter } from "@/server/api/trpc";
  * import { deleteTag } from "./delete-tag";
  *
@@ -28,7 +28,8 @@
  *   });
  *
  *   it("should delete a tag", async () => {
- *     const tag = await createTestTag(ctx.db, ctx.userId, "Test Tag");
+ *     const deck = await createTestDeck(ctx.db, ctx.userId, "Test Deck");
+ *     const tag = await createTestTag(ctx.db, deck.id, "Test Tag");
  *     const caller = createCaller(ctx.trpcContext);
  *
  *     await caller.deleteTag({ id: tag.id });
@@ -49,4 +50,4 @@ export {
   createTestContext,
   type TestContext,
 } from "./create-test-context";
-export { cleanupTags, cleanupUser, createTestTag, createTestUser } from "./test-db";
+export { cleanupTags, cleanupUser, createTestDeck, createTestTag, createTestUser } from "./test-db";

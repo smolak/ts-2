@@ -16,9 +16,9 @@ import { cn } from "@repo/ui/lib/utils";
 import { type FC, useCallback, useEffect, useState } from "react";
 import { useDecksStore } from "@/features/deck/stores/use-decks-store";
 import { DeckPickerList } from "@/features/deck/ui/deck-picker/deck-picker-list";
+import { useTagsStore } from "@/features/tag/stores/use-tags-store";
+import { TagPickerTagsList } from "@/features/tag/ui/tag-picker/tag-picker-tags-list";
 import { api } from "@/trpc/react";
-import { useTagsStore } from "../../../tag/stores/use-tags-store";
-import { TagPickerTagsList } from "../../../tag/ui/tag-picker/tag-picker-tags-list";
 import type { FeedDTO } from "../../dto/feed.dto";
 
 export type OnSuccess = (tagNames: Tag["name"][]) => void;

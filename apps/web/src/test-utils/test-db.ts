@@ -11,12 +11,14 @@
  */
 
 import { type Db, orm, schema } from "@repo/db/db";
+import type { DeckId } from "@repo/db/id/deck-id";
+import type { UserId } from "@repo/db/id/user-id";
 
 /**
- * Cleanup tags created during tests
+ * Cleanup tags created during tests (by deck)
  */
-export async function cleanupTags(db: Db, userId: string): Promise<void> {
-  await db.delete(schema.tags).where(orm.eq(schema.tags.userId, userId));
+export async function cleanupTags(db: Db, deckId: string): Promise<void> {
+  await db.delete(schema.tags).where(orm.eq(schema.tags.deckId, deckId));
 }
 
 /**
@@ -24,16 +26,18 @@ export async function cleanupTags(db: Db, userId: string): Promise<void> {
  * Follows the dependency order from schema.ts
  */
 export async function cleanupUser(db: Db, userId: string): Promise<void> {
-  // Level 2: Delete leaf dependencies first
+  // Level 3: Delete deepest leaf dependencies first
+  // deckUrlsTags references deckUrls which references decks
   await db
-    .delete(schema.userUrlsTags)
+    .delete(schema.deckUrlsTags)
     .where(
       orm.inArray(
-        schema.userUrlsTags.userUrlId,
-        db.select({ id: schema.usersUrls.id }).from(schema.usersUrls).where(orm.eq(schema.usersUrls.userId, userId)),
+        schema.deckUrlsTags.deckId,
+        db.select({ id: schema.decks.id }).from(schema.decks).where(orm.eq(schema.decks.userId, userId)),
       ),
     );
 
+  // Level 2: Delete leaf dependencies
   await db.delete(schema.feeds).where(orm.eq(schema.feeds.userId, userId));
 
   await db.delete(schema.usersUrlsInteractions).where(orm.eq(schema.usersUrlsInteractions.userId, userId));
@@ -43,6 +47,16 @@ export async function cleanupUser(db: Db, userId: string): Promise<void> {
     .where(
       orm.inArray(
         schema.deckUrls.deckId,
+        db.select({ id: schema.decks.id }).from(schema.decks).where(orm.eq(schema.decks.userId, userId)),
+      ),
+    );
+
+  // Tags now belong to decks, not users
+  await db
+    .delete(schema.tags)
+    .where(
+      orm.inArray(
+        schema.tags.deckId,
         db.select({ id: schema.decks.id }).from(schema.decks).where(orm.eq(schema.decks.userId, userId)),
       ),
     );
@@ -59,7 +73,6 @@ export async function cleanupUser(db: Db, userId: string): Promise<void> {
 
   // Level 1: Delete branch dependencies
   await db.delete(schema.usersUrls).where(orm.eq(schema.usersUrls.userId, userId));
-  await db.delete(schema.tags).where(orm.eq(schema.tags.userId, userId));
   await db.delete(schema.decks).where(orm.eq(schema.decks.userId, userId));
   await db
     .delete(schema.follows)
@@ -90,14 +103,40 @@ export async function createTestUser(db: Db, clerkUserId?: string) {
 }
 
 /**
- * Create a test tag in the database
+ * Create a test deck in the database
  */
-export async function createTestTag(db: Db, userId: string, name: string) {
-  const [tag] = await db
-    .insert(schema.tags)
+export async function createTestDeck(db: Db, userId: UserId, name = "Test Deck") {
+  const slug = name.toLowerCase().replace(/\s+/g, "-");
+  const [deck] = await db
+    .insert(schema.decks)
     .values({
       userId,
       name,
+      slug,
+    })
+    .returning();
+
+  if (!deck) {
+    throw new Error("Failed to create test deck");
+  }
+
+  return deck;
+}
+
+/**
+ * Create a test tag in the database
+ * Tags now belong to decks, not users
+ * @param displayName - The display name for the tag (stored as-is)
+ */
+export async function createTestTag(db: Db, deckId: DeckId, displayName: string) {
+  const name = displayName.toLowerCase().trim(); // Normalized name for uniqueness
+
+  const [tag] = await db
+    .insert(schema.tags)
+    .values({
+      deckId,
+      name,
+      displayName,
     })
     .returning();
 

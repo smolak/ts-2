@@ -2,6 +2,7 @@ export type {
   Deck,
   DeckFollow,
   DeckUrl,
+  DeckUrlTag,
   Feed,
   Follow,
   InteractionType,
@@ -14,5 +15,4 @@ export type {
   UserProfile,
   UserUrl,
   UserUrlInteraction,
-  UserUrlTag,
 } from "./schema";

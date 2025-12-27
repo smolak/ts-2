@@ -8,6 +8,7 @@ export default defineConfig({
   test: {
     globals: true,
     setupFiles: "../../packages/tests-setup/src/index.ts",
+    hookTimeout: 20_000, // Increased for database connection cold starts
   },
   resolve: {
     alias: {

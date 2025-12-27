@@ -2,7 +2,7 @@
  * DATABASE SCHEMA DEPENDENCY GRAPH
  *
  * This graph shows the deletion dependency hierarchy for all tables.
- * With onDelete: "restrict", tables must be deleted in bottom-up order (leaves → branches → roots).
+ * Entries in tables must be deleted in bottom-up order (leaves → branches → roots).
  *
  * @auto-update-dependency-graph
  * This directive indicates that the dependency graph below should be automatically updated
@@ -19,73 +19,65 @@
  *
  * Level 1 - DEPEND ON ROOTS:
  *   - userProfiles → users (onDelete: restrict)
- *   - tags → users (onDelete: no action)
  *   - urlHashes → urls (onDelete: restrict)
  *   - usersUrls → users (onDelete: restrict), urls (onDelete: restrict)
  *   - follows → users (followerId: restrict, followingId: restrict) [DEPRECATED - to be removed]
  *   - decks → users (onDelete: restrict)
  *
  * Level 2 - DEPEND ON LEVEL 1:
- *   - userUrlsTags → usersUrls (onDelete: restrict), tags (onDelete: restrict)
+ *   - tags → decks (onDelete: cascade)
  *   - feeds → users (onDelete: restrict), usersUrls (onDelete: restrict), decks (onDelete: restrict)
  *   - usersUrlsInteractions → usersUrls (onDelete: restrict), users (onDelete: restrict), interactionTypes (onDelete: no action)
  *   - deckUrls → decks (onDelete: restrict), usersUrls (onDelete: restrict)
  *   - deckFollows → decks (onDelete: restrict), users (onDelete: restrict)
  *
- * DELETION ORDER EXAMPLE (to delete a userUrl):
- *   1. Delete from usersUrlsInteractions (where userUrlId = X)
- *   2. Delete from feeds (where userUrlId = X)
- *   3. Delete from userUrlsTags (where userUrlId = X)
- *   4. Delete from usersUrls (id = X)
+ * Level 3 - DEPEND ON LEVEL 2:
+ *   - deckUrlsTags → deckUrls (composite: deckId, userUrlId), tags (onDelete: cascade)
+ *
+ * DELETION ORDER EXAMPLE (to delete a deck with id = X):
+ *   1. Delete from deckUrlsTags (where deckId = X)
+ *   2. Delete from deckUrls (where deckId = X)
+ *   3. Delete from tags (where deckId = X) - or CASCADE handles this
+ *   4. Delete from deckFollows (where deckId = X)
+ *   5. Delete from feeds (where deckId = X)
+ *   6. Delete from decks (id = X)
  *
  * COMPLETE DELETION SEQUENCE (to delete a user with id = X):
  *
- *   Step 1: Delete Level 2 dependencies (leaf nodes)
+ *   Step 1: For each deck owned by user:
  *   ─────────────────────────────────────────────────────────────
- *   1. Delete from usersUrlsInteractions
+ *   1. Delete from deckUrlsTags (where deckId IN user's decks)
+ *   2. Delete from deckUrls (where deckId IN user's decks)
+ *   3. Delete from tags (where deckId IN user's decks) - CASCADE handles
+ *   4. Delete from deckFollows (where deckId IN user's decks)
+ *   5. Delete from feeds (where deckId IN user's decks)
+ *   6. Delete from decks (where userId = X)
+ *
+ *   Step 2: Delete user's URLs and interactions:
+ *   ─────────────────────────────────────────────────────────────
+ *   7. Delete from usersUrlsInteractions
  *      WHERE userId = X
  *         OR userUrlId IN (SELECT id FROM usersUrls WHERE userId = X)
+ *   8. Delete from feeds (where userId = X) - own feed entries
+ *   9. Delete from usersUrls WHERE userId = X
  *
- *   2. Delete from feeds
- *      WHERE userId = X
- *         OR userUrlId IN (SELECT id FROM usersUrls WHERE userId = X)
- *
- *   3. Delete from userUrlsTags
- *      WHERE userUrlId IN (SELECT id FROM usersUrls WHERE userId = X)
- *
- *   Step 2: Delete Level 1 dependencies (branches)
+ *   Step 3: Delete follows and profile:
  *   ─────────────────────────────────────────────────────────────
- *   4. Delete from usersUrls WHERE userId = X
+ *   10. Delete from deckFollows (where followerId = X) - user's follows
+ *   11. Delete from follows (where followerId = X OR followingId = X)
+ *   12. Delete from userProfiles WHERE userId = X
  *
- *   5. Delete from userUrlsTags
- *      WHERE tagId IN (SELECT id FROM tags WHERE userId = X)
- *
- *   6. Delete from tags WHERE userId = X
- *
- *   7. Delete from follows
- *      WHERE followerId = X OR followingId = X
- *
- *   Step 3: Delete direct user dependencies
+ *   Step 4: Delete the user:
  *   ─────────────────────────────────────────────────────────────
- *   8. Delete from userProfiles WHERE userId = X
- *
- *   Step 4: Delete the user
- *   ─────────────────────────────────────────────────────────────
- *   9. Delete from users WHERE id = X
- *
- *   Note: This sequence ensures all foreign key constraints are satisfied.
- *         Each step must complete successfully before proceeding to the next.
- *         Steps 3 and 5 handle userUrlsTags in two phases: first for userUrls,
- *         then for tags, to handle cases where tags might be shared.
+ *   13. Delete from users WHERE id = X
  *
  * VISUAL REPRESENTATION:
  *
  *   ┌─────────────────────────────────────────────────────────────────────┐
- *   │                         ROOT TABLES                                 │
+ *   │                         ROOT TABLES (Level 0)                       │
  *   └─────────────────────────────────────────────────────────────────────┘
  *
  *        users              urls        interactionTypes
- *          │                 │                │
  *          │                 │                │
  *   ┌──────┴─────────────────┴────────────────┴──────────────────────────┐
  *   │                      LEVEL 1 TABLES                                │
@@ -94,45 +86,41 @@
  *          │
  *          ├──► userProfiles
  *          │
- *          ├──► tags
- *          │
  *          ├──► usersUrls ────────► urlHashes
  *          │
- *          ├──► follows (followerId) [DEPRECATED]
+ *          ├──► follows [DEPRECATED]
  *          │
- *          ├──► follows (followingId) [DEPRECATED]
- *          │
- *          ├──► decks
- *          │
- *          ├──► deckFollows (followerId)
- *          │
- *          ├──► feeds
- *          │
- *          └──► usersUrlsInteractions
+ *          └──► decks
  *
  *   ┌─────────────────────────────────────────────────────────────────────┐
  *   │                      LEVEL 2 TABLES                                 │
  *   └─────────────────────────────────────────────────────────────────────┘
  *
- *        usersUrls
- *          │
- *          ├──► userUrlsTags ────► tags
- *          │
- *          ├──► feeds ──────────┬─► users
- *          │                    └─► decks
- *          │
- *          ├──► deckUrls ─────────► decks
- *          │
- *          └──► usersUrlsInteractions ──┬──► users
- *                                       └──► interactionTypes
- *
  *        decks
+ *          │
+ *          ├──► tags (onDelete: cascade)
  *          │
  *          ├──► deckUrls ─────────► usersUrls
  *          │
  *          ├──► deckFollows ──────► users
  *          │
  *          └──► feeds ────────────► usersUrls, users
+ *
+ *        usersUrls
+ *          │
+ *          ├──► deckUrls ─────────► decks
+ *          │
+ *          ├──► feeds ────────────► users, decks
+ *          │
+ *          └──► usersUrlsInteractions ──► users, interactionTypes
+ *
+ *   ┌─────────────────────────────────────────────────────────────────────┐
+ *   │                      LEVEL 3 TABLES                                 │
+ *   └─────────────────────────────────────────────────────────────────────┘
+ *
+ *        deckUrls + tags
+ *          │
+ *          └──► deckUrlsTags (composite FK to deckUrls, FK to tags)
  *
  * @end-auto-update-dependency-graph
  */
@@ -174,32 +162,6 @@ import { generateUserUrlId, USER_URL_ID_LENGTH } from "./id/user-url-id";
 export const userPlanEnum = pgEnum("user_plan", ["free", "medium", "pro"]);
 
 export type UserPlan = (typeof userPlanEnum.enumValues)[number];
-
-/**
- * TAGS
- *
- * Users can create tags and assign them to urls.
- * URLs can have multiple tags.
- */
-export const tags = pgTable(
-  "tags",
-  {
-    id: char("id", { length: TAG_ID_LENGTH })
-      .notNull()
-      .primaryKey()
-      .$defaultFn(() => generateTagId()),
-    userId: char("user_id", { length: USER_ID_LENGTH })
-      .notNull()
-      .references(() => users.id),
-    createdAt: timestamp("created_at", { withTimezone: true }).default(sql`CURRENT_TIMESTAMP`).notNull(),
-    updatedAt: timestamp("updated_at", { withTimezone: true }).$onUpdate(() => new Date()),
-    name: varchar("name").notNull(),
-    urlsCount: integer("urls_count").default(0).notNull(),
-  },
-  (table) => [unique().on(table.userId, table.name), index().on(table.userId)],
-);
-
-export type Tag = InferSelectModel<typeof tags>;
 
 /**
  * URLS
@@ -344,32 +306,6 @@ export const usersUrls = pgTable(
 export type UserUrl = InferSelectModel<typeof usersUrls>;
 
 /**
- * USER URLS TAGS
- */
-export const userUrlsTags = pgTable(
-  "user_urls_tags",
-  {
-    userUrlId: char("user_url_id", { length: USER_URL_ID_LENGTH })
-      .notNull()
-      .references(() => usersUrls.id, { onDelete: "restrict" }),
-    tagId: char("tag_id", { length: TAG_ID_LENGTH })
-      .notNull()
-      .references(() => tags.id, { onDelete: "restrict" }),
-    tagOrder: smallint("tag_order").notNull(),
-    createdAt: timestamp("created_at", { withTimezone: true }).default(sql`CURRENT_TIMESTAMP`).notNull(),
-  },
-  (table) => [
-    primaryKey({ columns: [table.userUrlId, table.tagId] }),
-    index().on(table.userUrlId),
-    index().on(table.tagId),
-    // Composite index optimized for tag filtering subquery (tag_id IN (...) GROUP BY user_url_id)
-    index().on(table.tagId, table.userUrlId),
-  ],
-);
-
-export type UserUrlTag = InferSelectModel<typeof userUrlsTags>;
-
-/**
  * @deprecated This table is deprecated and will be removed in a future release.
  *
  * User-follows have been replaced by deck-follows (see `deckFollows` table).
@@ -382,8 +318,8 @@ export type UserUrlTag = InferSelectModel<typeof userUrlsTags>;
  * (users who follow at least one of this user's public decks).
  *
  * Migration status:
- * - Phase 8 (in progress): UI removed, router removed, deprecation added
- * - Phase 9 (future): Drop this table and its relations
+ * - Phase 8 (complete): UI removed, router removed, deprecation added, feeds.deckId NOT NULL
+ * - Phase 10 (future): Drop this table and its relations
  */
 export const follows = pgTable(
   "follows",
@@ -468,6 +404,42 @@ export const decks = pgTable(
 export type Deck = InferSelectModel<typeof decks>;
 
 /**
+ * TAGS
+ *
+ * Tags belong to decks (not users). Each deck has its own independent tag set.
+ * This enables different tags for different contexts (e.g., gaming deck vs cooking deck).
+ *
+ * `name` is normalized (lowercase, trimmed) for global search across all decks.
+ * `displayName` preserves the original casing for display purposes.
+ *
+ * Global search example: WHERE tags.name = 'gaming' finds all decks with that tag.
+ */
+export const tags = pgTable(
+  "tags",
+  {
+    id: char("id", { length: TAG_ID_LENGTH })
+      .notNull()
+      .primaryKey()
+      .$defaultFn(() => generateTagId()),
+    deckId: char("deck_id", { length: DECK_ID_LENGTH })
+      .notNull()
+      .references(() => decks.id, { onDelete: "cascade" }),
+    createdAt: timestamp("created_at", { withTimezone: true }).default(sql`CURRENT_TIMESTAMP`).notNull(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).$onUpdate(() => new Date()),
+    name: varchar("name", { length: 50 }).notNull(), // normalized: lowercase, trimmed
+    displayName: varchar("display_name", { length: 50 }).notNull(), // original casing
+    urlsCount: integer("urls_count").default(0).notNull(),
+  },
+  (table) => [
+    unique().on(table.deckId, table.name),
+    index().on(table.deckId),
+    index().on(table.name), // for global tag search
+  ],
+);
+
+export type Tag = InferSelectModel<typeof tags>;
+
+/**
  * DECK URLS
  *
  * Junction table: URLs in Decks.
@@ -488,6 +460,35 @@ export const deckUrls = pgTable(
 );
 
 export type DeckUrl = InferSelectModel<typeof deckUrls>;
+
+/**
+ * DECK URLS TAGS
+ *
+ * Junction table linking tags to deck-URL associations.
+ * Tags are now per deck-URL, not per userUrl, enabling different tags
+ * for the same URL in different decks.
+ */
+export const deckUrlsTags = pgTable(
+  "deck_urls_tags",
+  {
+    deckId: char("deck_id", { length: DECK_ID_LENGTH }).notNull(),
+    userUrlId: char("user_url_id", { length: USER_URL_ID_LENGTH }).notNull(),
+    tagId: char("tag_id", { length: TAG_ID_LENGTH })
+      .notNull()
+      .references(() => tags.id, { onDelete: "cascade" }),
+    tagOrder: smallint("tag_order").notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true }).default(sql`CURRENT_TIMESTAMP`).notNull(),
+  },
+  (table) => [
+    primaryKey({ columns: [table.deckId, table.userUrlId, table.tagId] }),
+    // Composite FK to deck_urls - ensures deck-URL association exists
+    // Note: Drizzle doesn't support composite FK directly, enforced at DB level
+    index().on(table.deckId, table.userUrlId),
+    index().on(table.tagId),
+  ],
+);
+
+export type DeckUrlTag = InferSelectModel<typeof deckUrlsTags>;
 
 /**
  * DECK FOLLOWS
@@ -525,10 +526,6 @@ export type DeckFollow = InferSelectModel<typeof deckFollows>;
  *   - Showing deck badge in feed ("From: Free Games")
  *   - Filtering feed by deck
  *   - Handling same URL in multiple followed decks (separate entries)
- *
- * NOTE: deckId is nullable during transition period (Phase 3-4) to support
- * both old user-follows (no deck context) and new deck-follows.
- * Will be made NOT NULL after Phase 8 migration when all feeds have deck association.
  */
 export const feeds = pgTable(
   "feeds",
@@ -543,8 +540,9 @@ export const feeds = pgTable(
     userUrlId: char("user_url_id", { length: USER_URL_ID_LENGTH })
       .notNull()
       .references(() => usersUrls.id, { onDelete: "restrict" }),
-    // Nullable during transition - old user-follows don't have deck context
-    deckId: char("deck_id", { length: DECK_ID_LENGTH }).references(() => decks.id, { onDelete: "restrict" }),
+    deckId: char("deck_id", { length: DECK_ID_LENGTH })
+      .notNull()
+      .references(() => decks.id, { onDelete: "restrict" }),
     createdAt: timestamp("created_at", { withTimezone: true }).notNull().default(sql`CURRENT_TIMESTAMP`),
     updatedAt: timestamp("updated_at", { withTimezone: true }).$onUpdate(() => new Date()),
   },
@@ -614,7 +612,6 @@ export const usersRelations = relations(users, ({ one, many }) => ({
     references: [userProfiles.userId],
   }),
   urls: many(usersUrls),
-  tags: many(tags),
   followers: many(follows, { relationName: "followers" }),
   following: many(follows, { relationName: "following" }),
   feeds: many(feeds),
@@ -653,26 +650,25 @@ export const usersUrlsRelations = relations(usersUrls, ({ one, many }) => ({
     fields: [usersUrls.urlId],
     references: [urls.id],
   }),
-  tags: many(userUrlsTags),
   feeds: many(feeds),
   deckUrls: many(deckUrls),
 }));
 
 export const tagsRelations = relations(tags, ({ one, many }) => ({
-  user: one(users, {
-    fields: [tags.userId],
-    references: [users.id],
+  deck: one(decks, {
+    fields: [tags.deckId],
+    references: [decks.id],
   }),
-  urls: many(userUrlsTags),
+  deckUrls: many(deckUrlsTags),
 }));
 
-export const userUrlsTagsRelations = relations(userUrlsTags, ({ one }) => ({
-  usersUrl: one(usersUrls, {
-    fields: [userUrlsTags.userUrlId],
-    references: [usersUrls.id],
+export const deckUrlsTagsRelations = relations(deckUrlsTags, ({ one }) => ({
+  deckUrl: one(deckUrls, {
+    fields: [deckUrlsTags.deckId, deckUrlsTags.userUrlId],
+    references: [deckUrls.deckId, deckUrls.userUrlId],
   }),
   tag: one(tags, {
-    fields: [userUrlsTags.tagId],
+    fields: [deckUrlsTags.tagId],
     references: [tags.id],
   }),
 }));
@@ -696,11 +692,12 @@ export const decksRelations = relations(decks, ({ one, many }) => ({
     references: [users.id],
   }),
   urls: many(deckUrls),
+  tags: many(tags),
   followers: many(deckFollows),
   feeds: many(feeds),
 }));
 
-export const deckUrlsRelations = relations(deckUrls, ({ one }) => ({
+export const deckUrlsRelations = relations(deckUrls, ({ one, many }) => ({
   deck: one(decks, {
     fields: [deckUrls.deckId],
     references: [decks.id],
@@ -709,6 +706,7 @@ export const deckUrlsRelations = relations(deckUrls, ({ one }) => ({
     fields: [deckUrls.userUrlId],
     references: [usersUrls.id],
   }),
+  tags: many(deckUrlsTags),
 }));
 
 export const deckFollowsRelations = relations(deckFollows, ({ one }) => ({

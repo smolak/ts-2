@@ -5,8 +5,8 @@ import { z } from "zod";
 
 export const addUrlRequestBodySchema = z.object({
   metadata: metadataSchema,
+  deckId: deckIdSchema,
   tagIds: z.array(tagIdSchema).default([]),
-  deckIds: z.array(deckIdSchema).default([]),
 });
 
 export type AddUrlRequestBody = z.infer<typeof addUrlRequestBodySchema>;

@@ -10,15 +10,15 @@ import { API_BASE_URL } from "../utils/constants";
 type AddUrlParams = {
   metadata: ScrappedMetadata;
   tagIds: TagId[];
-  deckIds: DeckId[];
+  deckId: DeckId;
 };
 
 export const useAddUrl = (apiKey: ApiKey) =>
   useMutation({
-    mutationFn: ({ metadata, tagIds, deckIds }: AddUrlParams) =>
+    mutationFn: ({ metadata, tagIds, deckId }: AddUrlParams) =>
       axios.post(
         `${API_BASE_URL}/v1/url`,
-        { metadata, tagIds, deckIds },
+        { metadata, tagIds, deckId },
         {
           headers: {
             Authorization: `Bearer ${apiKey}`,

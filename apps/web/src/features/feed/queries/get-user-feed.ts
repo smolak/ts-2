@@ -14,18 +14,31 @@ type GetUserFeedQueryOptions = {
 };
 
 /**
- * Creates a subquery to efficiently filter user_urls that have ALL specified tags.
+ * Creates a subquery to efficiently filter deck-URLs that have ALL specified tags.
+ * Tags are now per deck-URL via deckUrlsTags table.
  * This approach filters early (before joins) to reduce intermediate result set size.
- * Also filters out deleted user-URL relationships.
  */
-const createTagFilterSubquery = (tagIds: Tag["id"][]) => {
+const createTagFilterSubquery = (tagIds: Tag["id"][], deckId?: Deck["id"]) => {
+  const baseCondition = orm.inArray(schema.deckUrlsTags.tagId, tagIds);
+  const deckCondition = deckId ? orm.eq(schema.deckUrlsTags.deckId, deckId) : undefined;
+
   return db
-    .select({ userUrlId: schema.userUrlsTags.userUrlId })
-    .from(schema.userUrlsTags)
-    .innerJoin(schema.usersUrls, orm.eq(schema.userUrlsTags.userUrlId, schema.usersUrls.id))
-    .where(orm.and(orm.inArray(schema.userUrlsTags.tagId, tagIds), orm.eq(schema.usersUrls.isDeleted, false)))
-    .groupBy(schema.userUrlsTags.userUrlId)
-    .having(orm.sql`COUNT(DISTINCT ${schema.userUrlsTags.tagId}) >= ${tagIds.length}`);
+    .select({
+      deckId: schema.deckUrlsTags.deckId,
+      userUrlId: schema.deckUrlsTags.userUrlId,
+    })
+    .from(schema.deckUrlsTags)
+    .innerJoin(
+      schema.deckUrls,
+      orm.and(
+        orm.eq(schema.deckUrlsTags.deckId, schema.deckUrls.deckId),
+        orm.eq(schema.deckUrlsTags.userUrlId, schema.deckUrls.userUrlId),
+      ),
+    )
+    .innerJoin(schema.usersUrls, orm.eq(schema.deckUrls.userUrlId, schema.usersUrls.id))
+    .where(orm.and(baseCondition, deckCondition, orm.eq(schema.usersUrls.isDeleted, false)))
+    .groupBy(schema.deckUrlsTags.deckId, schema.deckUrlsTags.userUrlId)
+    .having(orm.sql`COUNT(DISTINCT ${schema.deckUrlsTags.tagId}) >= ${tagIds.length}`);
 };
 
 export const getUserFeedQuery = ({
@@ -70,12 +83,17 @@ export const getUserFeedQuery = ({
       userUrl_liked: orm.sql<boolean>`COALESCE(${schema.usersUrlsInteractions.userId} IS NOT NULL, FALSE)`.as(
         "userUrl_liked",
       ),
-      tag_names: orm.sql<string | null>`STRING_AGG(DISTINCT ${schema.tags.name}, ', ' ORDER BY ${schema.tags.name})`,
+      // Tags are now per deck-URL - show displayName from tags in this deck
+      tag_names: orm.sql<
+        string | null
+      >`STRING_AGG(DISTINCT ${schema.tags.displayName}, ', ' ORDER BY ${schema.tags.displayName})`,
       deck_id: schema.decks.id,
       deck_name: schema.decks.name,
       deck_slug: schema.decks.slug,
     })
     .from(schema.feeds)
+    // INNER JOIN: feeds.deckId is now NOT NULL, deck must exist
+    .innerJoin(schema.decks, orm.eq(schema.feeds.deckId, schema.decks.id))
     // Use INNER JOIN since we always filter by isDeleted = false, filtering earlier improves performance
     .innerJoin(
       schema.usersUrls,
@@ -83,11 +101,17 @@ export const getUserFeedQuery = ({
     )
     // INNER JOIN: usersUrls.urlId is NOT NULL with FK constraint - URL must exist
     .innerJoin(schema.urls, orm.eq(schema.usersUrls.urlId, schema.urls.id))
-    .leftJoin(schema.userUrlsTags, orm.eq(schema.usersUrls.id, schema.userUrlsTags.userUrlId))
-    .leftJoin(schema.tags, orm.eq(schema.userUrlsTags.tagId, schema.tags.id))
+    // Tags are now per deck-URL via deckUrlsTags
+    .leftJoin(
+      schema.deckUrlsTags,
+      orm.and(
+        orm.eq(schema.feeds.deckId, schema.deckUrlsTags.deckId),
+        orm.eq(schema.feeds.userUrlId, schema.deckUrlsTags.userUrlId),
+      ),
+    )
+    .leftJoin(schema.tags, orm.eq(schema.deckUrlsTags.tagId, schema.tags.id))
     // INNER JOIN: users who have feed entries must have profiles (business logic requirement)
     .innerJoin(schema.userProfiles, orm.eq(schema.usersUrls.userId, schema.userProfiles.userId))
-    .leftJoin(schema.decks, orm.eq(schema.feeds.deckId, schema.decks.id))
     .groupBy(...groupBy)
     .orderBy(orm.desc(schema.feeds.createdAt));
 
@@ -107,12 +131,13 @@ export const getUserFeedQuery = ({
   }
 
   // Build WHERE conditions with efficient tag filtering
+  // Tag filtering now uses deckUrlsTags and requires deck context
   const baseTagCondition = includeTags
-    ? orm.inArray(schema.feeds.userUrlId, orm.sql`(${createTagFilterSubquery(tagIds)})`)
+    ? orm.sql`(${schema.feeds.deckId}, ${schema.feeds.userUrlId}) IN (${createTagFilterSubquery(tagIds, deckId)})`
     : undefined;
 
   // Deck filter condition - filter feed entries by specific deck
-  const deckCondition = deckId ? orm.eq(schema.feeds.deckId, deckId) : undefined;
+  const deckConditionWhere = deckId ? orm.eq(schema.feeds.deckId, deckId) : undefined;
 
   // Note: isDeleted filter is now in the INNER JOIN condition above for better performance
   // No need to filter again in WHERE clause
@@ -123,7 +148,7 @@ export const getUserFeedQuery = ({
         userCondition,
         authorCondition,
         baseTagCondition,
-        deckCondition,
+        deckConditionWhere,
         cursor ? orm.lt(schema.feeds.createdAt, cursor) : undefined,
       ),
     );
@@ -132,7 +157,7 @@ export const getUserFeedQuery = ({
       orm.and(
         userCondition,
         baseTagCondition,
-        deckCondition,
+        deckConditionWhere,
         cursor ? orm.lt(schema.feeds.createdAt, cursor) : undefined,
       ),
     );

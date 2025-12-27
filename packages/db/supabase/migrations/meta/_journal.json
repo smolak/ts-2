@@ -57,6 +57,13 @@
       "when": 1766092153320,
       "tag": "0007_feed_deck_id_nullable_for_transition",
       "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1766867430566,
+      "tag": "0008_tags_per_deck",
+      "breakpoints": true
     }
   ]
 }

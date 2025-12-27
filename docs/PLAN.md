@@ -18,9 +18,14 @@
 10. [Edge Cases & Considerations](#edge-cases--considerations)
 11. [Security Fixes (Priority)](#security-fixes-priority)
 12. [Phase 9: Integration Tests Infrastructure](#phase-9-integration-tests-infrastructure-for-trpc-procedures)
-13. [User Account Deletion Strategy](#user-account-deletion-strategy)
-14. [Phase 10: Drop Deprecated follows Table](#phase-10-drop-deprecated-follows-table)
-15. [Refactor: Rename usernameNormalized to slug](#refactor-rename-usernamenormalized-to-slug-in-user-profiles)
+13. [Feed Query Cleanup: Remove Tag Filtering](#feed-query-cleanup-remove-tag-filtering)
+14. [User Account Deletion Strategy](#user-account-deletion-strategy)
+15. [Phase 10: Drop Deprecated follows Table](#phase-10-drop-deprecated-follows-table)
+16. [Refactor: Rename usernameNormalized to slug](#refactor-rename-usernamenormalized-to-slug-in-user-profiles)
+17. [Refactor: Standardize name / display_name Column Convention](#refactor-standardize-name--display_name-column-convention)
+18. [Cleanup: Remove Unnecessary Defensive Checks After Drizzle Inserts](#cleanup-remove-unnecessary-defensive-checks-after-drizzle-inserts)
+19. [Utility: International Display Name Normalization](#utility-international-display-name-normalization)
+20. [Convention: Keep Procedure Schemas Inline](#convention-keep-procedure-schemas-inline)
 
 ---
 
@@ -891,7 +896,7 @@ Feed integration:
 - [x] `apps/web/src/features/feed/queries/get-user-feed.ts` - Add deck filtering
 - [x] Update feed population in `add-url-to-deck.ts` (fan-out to followers)
 
-**Note:** Made `deckId` nullable in feeds table during transition period to support both old user-follows (no deck context) and new deck-follows. Will be made NOT NULL after Phase 8 migration.
+**Note:** Phase 8 migration complete - `feeds.deckId` is now NOT NULL. All feed entries must be associated with a deck.
 
 ### Phase 4: Web UI - Settings
 
@@ -1006,6 +1011,7 @@ JOIN decks d ON d.user_id = f.following_id AND d.is_public = true;
 - [x] Add deprecation warning to `follows` table schema
 - [x] Remove `followUserRouter` from API
 - [x] Delete `apps/web/src/features/follow-user/` directory
+- [x] Make `feeds.deckId` NOT NULL (schema change complete)
 - [ ] (Future release) Drop `follows` table and its Drizzle relations → See [Phase 10](#phase-10-drop-deprecated-follows-table)
 
 ---
@@ -1302,7 +1308,7 @@ apps/web/src/features/deck/router/procedures/*.test.ts
 5. **Edge Cases**
    - User deletes account (cascade to decks)
    - User deletes URL that's in deck (deck_urls cleanup)
-   - Deck made private while has followers (unfollow all?)
+   - Deck made private while has followers (remove all followers - see [When Deck is Made Private](#when-deck-is-made-private))
 
 ---
 
@@ -1310,14 +1316,91 @@ apps/web/src/features/deck/router/procedures/*.test.ts
 
 ### When Deck is Made Private
 
-**Option A (Recommended):** Keep existing followers, stop new follows
-- Existing followers continue to see future URLs (grandfathered)
-- No new followers can follow
-- Display: "Following (private)" badge
+> **Status**: Not implemented
+> **Decision**: Option B (Remove all followers)
 
-**Option B:** Remove all followers
-- Automatic unfollow when made private
-- Cleaner but more disruptive
+#### Background
+
+When a deck owner changes their deck from public to private, the system must handle existing followers and their feed entries. Two approaches were considered:
+
+| Aspect | Option A: Grandfather | Option B: Remove All |
+|--------|----------------------|---------------------|
+| Existing followers | Keep, can see future URLs | Remove all |
+| New followers | Blocked | Blocked |
+| Feed entries | Keep showing | Keep (historical record) |
+| Complexity | Higher (special "private but following" state) | Lower (clean break) |
+| User expectation | Confusing ("why can some people still see?") | Clear ("private means private") |
+
+**Chosen: Option B** — When a deck becomes private, all followers are removed. This provides a clean, predictable privacy model where "private" means no one else can see the content.
+
+#### Implementation Steps
+
+When `updateDeck` changes `isPublic` from `true` to `false`:
+
+**1. Remove all follow relationships**
+```typescript
+// In updateDeck procedure, after updating deck visibility
+if (existingDeck.isPublic && isPublic === false) {
+  // Get all followers before deletion (for profile count updates)
+  const followers = await tx.query.deckFollows.findMany({
+    where: (follows, { eq }) => eq(follows.deckId, deckId),
+    columns: { followerId: true },
+  });
+
+  // Delete all deck_follows entries
+  await tx.delete(schema.deckFollows)
+    .where(orm.eq(schema.deckFollows.deckId, deckId));
+
+  // Reset followers count on deck
+  await tx.update(schema.decks)
+    .set({ followersCount: 0 })
+    .where(orm.eq(schema.decks.id, deckId));
+}
+```
+
+**2. Update profile followers count (deduplicated)**
+```typescript
+// For each unique follower, check if they still follow other decks from this owner
+for (const { followerId } of followers) {
+  const stillFollowingOwner = await tx.query.deckFollows.findFirst({
+    where: (follows, { eq }) => eq(follows.followerId, followerId),
+    with: { deck: { columns: { userId: true } } },
+  });
+
+  const stillFollows = stillFollowingOwner?.deck.userId === existingDeck.userId;
+
+  if (!stillFollows) {
+    await tx.update(schema.userProfiles)
+      .set({ followersCount: orm.sql`GREATEST(${schema.userProfiles.followersCount} - 1, 0)` })
+      .where(orm.eq(schema.userProfiles.userId, existingDeck.userId));
+  }
+}
+```
+
+**3. Feed entries handling**
+- **Decision**: Keep existing feed entries as historical record
+- Rationale: Consistent with unfollow behavior which also keeps feed entries
+- The URLs were legitimately shared when the deck was public
+- No cleanup needed for `feeds` table
+
+**4. New follows blocked**
+- Already enforced in `toggleFollowDeck` which checks `deck.isPublic`
+- No additional changes needed
+
+#### Implementation Location
+
+- `apps/web/src/features/deck/router/procedures/update-deck.ts`
+- Add cleanup logic inside transaction after visibility change
+
+#### Test Cases
+
+- [ ] Deck with followers made private → all `deck_follows` entries deleted
+- [ ] Deck with followers made private → `deck.followersCount` reset to 0
+- [ ] Profile `followersCount` decremented for owner (when follower no longer follows any of their decks)
+- [ ] Profile `followersCount` NOT decremented (when follower still follows other decks from same owner)
+- [ ] Feed entries remain after deck made private (historical record)
+- [ ] Cannot follow deck after it becomes private
+- [ ] Can follow again after deck is made public again
 
 ### When URL is Deleted (soft delete)
 
@@ -1647,6 +1730,101 @@ The security tests for Issues #3-#4 (tag counter manipulation in `updateUserUrl`
 - `apps/web/src/test-utils/create-test-context.ts` - Test context factory
 - `apps/web/src/server/api/trpc.ts` - `isAuthenticated` middleware (lines 122-149)
 - `apps/web/src/features/url/router/procedures/update-user-url.ts` - Procedure under test
+
+---
+
+## Feed Query Cleanup: Remove Tag Filtering
+
+> **Status**: Todo
+> **Priority**: High
+> **Identified**: December 27, 2025
+
+### Overview
+
+The feed query (`getUserFeedQuery`) currently supports tag filtering, but this functionality should be disabled for feeds. Tag filtering should only be available when viewing a specific deck, not when browsing the general feed.
+
+**Rationale**: Tags are per deck-URL, making it impossible to filter the feed effectively by tags since:
+- The same URL can have different tags in different decks
+- A feed entry from a followed deck may have tags that don't match the user's own deck tags
+- Tag filtering in feeds creates confusion about which context the tags apply to
+
+### Current Implementation (To Be Removed)
+
+The tag filtering is implemented at multiple levels:
+
+#### 1. Query Level (`apps/web/src/features/feed/queries/get-user-feed.ts`)
+
+```typescript
+// Lines 21-42: Tag filter subquery (to be removed)
+const createTagFilterSubquery = (tagIds: Tag["id"][], deckId?: Deck["id"]) => { ... };
+
+// Line 12: tagIds in options type
+tagIds: Tag["id"][];
+
+// Lines 70, 135-137: Tag filtering logic
+const includeTags = tagIds.length > 0;
+const baseTagCondition = includeTags ? orm.sql`...` : undefined;
+```
+
+Also removes unnecessary LEFT JOINs to `deckUrlsTags` and `tags` tables (lines 105-112) unless tag names still need to be displayed.
+
+#### 2. Procedure Level (`apps/web/src/features/feed/router/procedures/get-user-feed.ts`)
+
+```typescript
+// Line 19: tagIds in schema
+tagIds: z.array(tagIdSchema).optional().default([]),
+
+// Line 48: tagIds passed to query
+tagIds: input.tagIds,
+```
+
+#### 3. UI Level (`apps/web/src/features/feed/ui/user-feed-list/infinite-user-feed.tsx`)
+
+```typescript
+// Lines 40-41: Tag parsing from URL
+const tagsString = qs.parse(searchParams.toString()).tags;
+const tagIdsInSearchParams = typeof tagsString === "string" ? tagsString.split(",") : [];
+
+// Line 50: tagIds passed to query
+tagIds: tagIdsInSearchParams,
+```
+
+### Implementation Steps
+
+- [ ] **Query cleanup** (`get-user-feed.ts`):
+  - Remove `createTagFilterSubquery` function entirely
+  - Remove `tagIds` from `GetUserFeedQueryOptions` type
+  - Remove `includeTags` variable and `baseTagCondition`
+  - Keep LEFT JOINs to `deckUrlsTags`/`tags` only if displaying tag names in feed items (review if needed)
+
+- [ ] **Procedure cleanup** (`procedures/get-user-feed.ts`):
+  - Remove `tagIds` from `querySchema`
+  - Remove `tagIds` from `getUserFeedQuery` call
+
+- [ ] **UI cleanup** (`infinite-user-feed.tsx`):
+  - Remove `tagsString` and `tagIdsInSearchParams` parsing
+  - Remove `tagIds` from query input
+
+- [ ] **Filter UI cleanup** (if applicable):
+  - Remove tag filter from `feed-list-filters.tsx` if present for feeds
+  - Keep tag filtering only in deck-specific views
+
+### Performance Impact
+
+Removing tag filtering will:
+- Eliminate the complex IN subquery with GROUP BY/HAVING
+- Reduce JOIN operations (potentially remove 2 LEFT JOINs if tag names aren't displayed)
+- Simplify the overall query execution plan
+- Reduce memory usage from the GROUP BY aggregation
+
+### Notes
+
+- **Deck views retain tag filtering**: When browsing a specific deck (e.g., `/@username/deck-slug`), users can filter by tags that belong to that deck. This makes sense because:
+  - Tags are scoped to a deck (each deck has its own tag set)
+  - The user is viewing content from a single context where tag filtering is meaningful
+  - The tag filter UI should show only tags used in that specific deck
+- The `tag_names` aggregation with STRING_AGG may still be useful for displaying tags on feed items — evaluate if this is needed
+- If tag display is removed from feed items, the query simplifies significantly
 
 ---
 
@@ -2044,6 +2222,476 @@ pnpm lint
 - The `normalizeUsername()` function can keep its name — it accurately describes the transformation (username → slug)
 - Alternatively, rename to `generateSlug()` or `usernameToSlug()` for clarity
 - No breaking changes to public APIs if the DTO already uses a different field name
+
+---
+
+## Refactor: Standardize `name` / `display_name` Column Convention
+
+> **Status**: Planning
+> **Priority**: Low
+> **Dependencies**: None
+
+### Overview
+
+The DB schema has inconsistent patterns for storing normalized values vs display values across tables. This refactor aims to standardize on a `name` + `display_name` convention for consistency.
+
+### Current Patterns
+
+| Table | Normalized Column | Display Column | Pattern Used |
+|-------|-------------------|----------------|--------------|
+| `tags` | `name` | `displayName` | ✅ `name` / `display_name` |
+| `decks` | `slug` | `name` | URL slug (different use case) |
+| `userProfiles` | `usernameNormalized` | `username` | ❌ Inconsistent |
+
+### Recommended Convention
+
+For tables that need both a normalized value (for search/uniqueness) and a display value (preserving casing):
+
+- **`name`**: Normalized value (lowercase, trimmed) — used for lookups, uniqueness constraints, global search
+- **`display_name`**: Original value with preserved casing — used for UI display
+
+### Tables to Review
+
+1. **`userProfiles`** (already planned in [Refactor: Rename usernameNormalized to slug](#refactor-rename-usernamenormalized-to-slug-in-user-profiles))
+   - Currently: `username` (display) + `usernameNormalized` (normalized)
+   - Decision: Since this is used as a URL identifier, use `slug` pattern instead of `name`/`display_name`
+
+2. **`tags`** — Already follows the convention ✅
+   - `name` (normalized) + `displayName` (display)
+
+3. **`decks`** — Uses `name` + `slug` pattern
+   - `name` is the display value, `slug` is the URL-safe identifier
+   - This is correct for URL routing purposes, no change needed
+
+### Notes
+
+- The `name`/`display_name` pattern is for **searchable/comparable values**
+- The `name`/`slug` pattern (as in `decks`) is for **URL identifiers**
+- Don't confuse these patterns — they serve different purposes
+- When adding new tables with normalized + display columns, prefer `name`/`display_name`
+
+---
+
+## Cleanup: Remove Unnecessary Defensive Checks After Drizzle Inserts
+
+> **Status**: Planning
+> **Priority**: Low
+> **Dependencies**: None
+
+### Overview
+
+The codebase has inconsistent defensive checks after Drizzle `.returning()` calls. These checks are unnecessary because Drizzle throws an exception on insert failures rather than returning an empty array.
+
+### Current Pattern (Unnecessary)
+
+```typescript
+const [url] = await tx
+  .insert(schema.urls)
+  .values({ ... })
+  .returning();
+
+if (!url) {
+  throw new Error("Failed to create URL entry.");
+}
+```
+
+### Why Remove
+
+1. **Unreachable code** — Drizzle throws exceptions on insert failures, so these checks never execute
+2. **Trust the ORM** — Drizzle's error handling provides detailed database error messages
+3. **Less noise** — Cleaner code without impossible branches
+4. **Type safety** — TypeScript with Drizzle guarantees the return type when `.returning()` succeeds
+
+### Files to Update
+
+| File | Location | Check to Remove |
+|------|----------|-----------------|
+| `apps/web/src/features/url/api/v1/add-url/index.ts` | Line ~74 | `if (!url)` |
+| `apps/web/src/features/url/api/v1/add-url/index.ts` | Line ~103 | `if (!userUrl)` |
+| `apps/web/src/test-utils/test-db.ts` | `createTestUser` | `if (!user)` |
+| `apps/web/src/test-utils/test-db.ts` | `createTestDeck` | `if (!deck)` |
+| `apps/web/src/test-utils/test-db.ts` | `createTestTag` | `if (!tag)` |
+| `apps/web/src/server/api/trpc.ts` | User upsert | `if (!user)` |
+
+### Exception
+
+If using `.onConflictDoNothing()` with `.returning()`, defensive checks ARE necessary since conflicts return empty arrays. Currently no code uses this pattern.
+
+---
+
+## Utility: International Display Name Normalization
+
+> **Status**: Planning
+> **Priority**: Medium
+> **Dependencies**: None (foundational utility)
+
+### Overview
+
+The current normalization for display names (tags, etc.) uses simple `.toLowerCase().trim()` which has significant limitations with international text and Unicode.
+
+### Current Implementation
+
+```typescript
+// In create-tag.ts, update-tag.ts, route.ts
+const name = displayName.toLowerCase().trim();
+```
+
+**Current `tagNameSchema`** (`packages/tag/src/name/tag-name.schema.ts`):
+
+```typescript
+export const TAG_NAME_MAX_LENGTH = 30;
+
+export const tagNameSchema = z
+  .string()
+  .trim()
+  .min(1)
+  .max(TAG_NAME_MAX_LENGTH)  // Uses JS string.length (UTF-16 code units)
+  .refine((val) => !val.includes(","), {
+    message: `Tag name can't include comma "," character.`,
+  });
+```
+
+### Problems with Current Approach
+
+| Problem | Example | Impact |
+|---------|---------|--------|
+| Case folding incomplete | German "ß" → should be "ss", Turkish "İ" → "i" (dot issue) | Duplicate tags possible |
+| Unicode equivalence not handled | "é" (U+00E9) vs "é" (e + combining acute) treated as different | Same visual tag creates duplicates |
+| No script validation | Emoji, symbols, control chars all allowed | Security risks, search issues |
+| Length mismatch JS vs PostgreSQL | "👨‍👩‍👧‍👦".length = 11 in JS, but 7 codepoints in PG | Validation bypasses possible |
+
+### Storage Schema Analysis
+
+```typescript
+// packages/db/src/schema.ts
+name: varchar("name", { length: 50 }).notNull(),        // normalized
+displayName: varchar("display_name", { length: 50 }).notNull(), // original
+```
+
+**PostgreSQL `VARCHAR(n)`** counts by characters (codepoints), not bytes. However:
+
+| Issue | Example | Count |
+|-------|---------|-------|
+| Basic emoji | "🔥" | 1 codepoint, 2 JS length |
+| ZWJ sequence | "👨‍👩‍👧‍👦" | 7 codepoints, 11 JS length |
+| Combining marks | "é" (e + ́) | 2 codepoints, 2 JS length |
+
+### Recommendation: Disallow Emoji
+
+For tags (categorization labels), emoji add complexity without significant value:
+
+| Approach | Pros | Cons |
+|----------|------|------|
+| **Disallow emoji** | Simple length validation, consistent search, predictable sorting | Less "expressive" |
+| **Allow emoji** | More expressive | Grapheme counting required, search issues, sorting problems |
+
+**Decision**: Disallow emoji and non-letter/number symbols. Tags are for organization, not decoration.
+
+### Proposed Solution
+
+Create a two-function pattern in `packages/shared/`:
+
+#### 1. `normalizeDisplayName()` — Safe normalization
+
+```typescript
+/**
+ * Normalizes a display name for storage and uniqueness checks.
+ * 
+ * Steps:
+ * 1. Trim whitespace
+ * 2. Unicode NFC normalization (canonical composition)
+ * 3. Case fold using proper Unicode rules
+ * 
+ * @example
+ * normalizeDisplayName("  Café  ") // "café"
+ * normalizeDisplayName("STRAßE")   // "strasse"
+ * normalizeDisplayName("ПРИВЕТ")   // "привет"
+ */
+export function normalizeDisplayName(displayName: string): string {
+  return displayName
+    .trim()
+    .normalize("NFC")           // Canonical composition
+    .toLocaleLowerCase('und');  // Unicode-aware case folding
+}
+```
+
+#### 2. `validateDisplayName()` — Security and format checks
+
+```typescript
+/**
+ * Validates that a display name is safe and well-formed.
+ * 
+ * Checks:
+ * - Not empty after trim
+ * - No emoji or extended pictographics
+ * - No control characters
+ * - No zero-width characters (homoglyph attack prevention)
+ * - Only letters, numbers, spaces, and limited punctuation
+ * - Within length limits
+ */
+export function validateDisplayName(
+  displayName: string, 
+  options: { maxLength: number; minLength?: number }
+): { valid: true } | { valid: false; reason: string };
+```
+
+### Validation Rules
+
+#### Allowed Characters
+
+```typescript
+// Unicode categories to ALLOW:
+// \p{L}  - Letters (any script: Latin, Cyrillic, Greek, CJK, Arabic, etc.)
+// \p{N}  - Numbers
+// \p{Zs} - Space separators
+// Limited punctuation: - _ . (configurable)
+
+const ALLOWED_PATTERN = /^[\p{L}\p{N}\p{Zs}\-_.]+$/u;
+```
+
+#### Blocked Characters
+
+```typescript
+// Patterns to REJECT:
+const BLOCKED_PATTERNS = [
+  /\p{Extended_Pictographic}/u,  // Emoji
+  /[\u200B-\u200F]/,             // Zero-width chars
+  /[\u2028\u2029]/,              // Line/paragraph separators
+  /\p{Cc}/u,                     // Control characters
+  /\p{Co}/u,                     // Private use
+];
+```
+
+### Test Cases
+
+```typescript
+describe("normalizeDisplayName", () => {
+  // Basic normalization
+  it("trims whitespace", () => expect(normalize("  hello  ")).toBe("hello"));
+  it("lowercases ASCII", () => expect(normalize("HELLO")).toBe("hello"));
+  
+  // Unicode normalization (NFC)
+  it("normalizes equivalent Unicode forms", () => {
+    const composed = "café";     // é as single codepoint
+    const decomposed = "café";   // e + combining acute
+    expect(normalize(composed)).toBe(normalize(decomposed));
+  });
+  
+  // International scripts
+  it("handles Cyrillic", () => expect(normalize("ПРИВЕТ")).toBe("привет"));
+  it("handles Greek", () => expect(normalize("ΑΛΦΑ")).toBe("αλφα"));
+  it("handles German eszett", () => {
+    // Note: toLocaleLowerCase('und') may or may not expand ß to ss
+    // This test documents actual behavior
+    expect(normalize("STRAßE")).toBe("straße"); // or "strasse"
+  });
+  it("preserves CJK (no case)", () => expect(normalize("日本語")).toBe("日本語"));
+  it("handles Arabic", () => expect(normalize("مرحبا")).toBe("مرحبا"));
+  it("handles mixed scripts", () => {
+    expect(normalize("Hello世界Мир")).toBe("hello世界мир");
+  });
+});
+
+describe("validateDisplayName", () => {
+  const validate = (s: string) => validateDisplayName(s, { maxLength: 30 });
+  
+  // Valid inputs
+  it("accepts ASCII letters", () => expect(validate("gaming").valid).toBe(true));
+  it("accepts Cyrillic", () => expect(validate("игры").valid).toBe(true));
+  it("accepts CJK", () => expect(validate("日本語").valid).toBe(true));
+  it("accepts numbers", () => expect(validate("top10").valid).toBe(true));
+  it("accepts spaces", () => expect(validate("free games").valid).toBe(true));
+  it("accepts hyphens", () => expect(validate("role-playing").valid).toBe(true));
+  
+  // Invalid inputs
+  it("rejects emoji", () => expect(validate("gaming🔥").valid).toBe(false));
+  it("rejects zero-width chars", () => expect(validate("hel\u200Blo").valid).toBe(false));
+  it("rejects control chars", () => expect(validate("hello\x00").valid).toBe(false));
+  it("rejects empty after trim", () => expect(validate("   ").valid).toBe(false));
+  it("rejects too long", () => expect(validate("a".repeat(31)).valid).toBe(false));
+});
+```
+
+### Files to Create
+
+| File | Description |
+|------|-------------|
+| `packages/shared/src/utils/display-name/normalize-display-name.ts` | Core normalization function |
+| `packages/shared/src/utils/display-name/normalize-display-name.test.ts` | Normalization tests |
+| `packages/shared/src/utils/display-name/validate-display-name.ts` | Validation function with security checks |
+| `packages/shared/src/utils/display-name/validate-display-name.test.ts` | Validation tests |
+| `packages/shared/src/utils/display-name/index.ts` | Barrel exports |
+| `packages/shared/src/utils/display-name/constants.ts` | Shared patterns and limits |
+
+### Files to Update
+
+| File | Change |
+|------|--------|
+| `packages/tag/src/name/tag-name.schema.ts` | Integrate `validateDisplayName` |
+| `apps/web/src/features/tag/router/procedures/create-tag.ts` | Use `normalizeDisplayName` |
+| `apps/web/src/features/tag/router/procedures/update-tag.ts` | Use `normalizeDisplayName` |
+| `apps/web/src/app/api/v1/tag/route.ts` | Use `normalizeDisplayName` |
+| `apps/web/src/test-utils/test-db.ts` | Use `normalizeDisplayName` in `createTestTag` |
+
+### Migration
+
+No database migration needed. The change only affects how values are normalized before storage:
+
+1. Existing data is already lowercase (from current `.toLowerCase()`)
+2. New normalization produces same result for ASCII text
+3. Only international text gets improved handling
+
+### Edge Cases
+
+#### German Eszett (ß)
+
+```typescript
+// toLocaleLowerCase('und') behavior may vary:
+"ß".toLocaleLowerCase('und') // "ß" (stays same, already lowercase)
+"ẞ".toLocaleLowerCase('und') // "ß" (capital eszett → lowercase)
+
+// For strict uniqueness, consider explicit expansion:
+// "straße" and "strasse" should match
+```
+
+#### Turkish İ/I
+
+```typescript
+// Turkish has dotted and dotless i
+"İ".toLocaleLowerCase('und')  // "i̇" (i with combining dot above) or "i"
+"I".toLocaleLowerCase('und')  // "i"
+
+// Using 'und' locale avoids Turkish-specific rules
+// which would make "I" → "ı" (dotless i)
+```
+
+### Length Validation Strategy
+
+Since PostgreSQL counts codepoints and JS counts UTF-16 code units:
+
+```typescript
+function countCodepoints(str: string): number {
+  return [...str].length; // Spreads by codepoints, not code units
+}
+
+// Or use Intl.Segmenter for grapheme clusters (visual characters)
+function countGraphemes(str: string): number {
+  const segmenter = new Intl.Segmenter('en', { granularity: 'grapheme' });
+  return [...segmenter.segment(str)].length;
+}
+```
+
+**Recommendation**: Use codepoint count (`[...str].length`) to match PostgreSQL behavior, and reject emoji to avoid grapheme complexity.
+
+### Future Extensions
+
+1. **Confusable detection** — Warn/block Cyrillic "а" vs Latin "a" lookalikes (homoglyph attacks)
+2. **Script consistency** — Optionally require single-script tags (no mixing Cyrillic with Latin)
+3. **Transliteration option** — Convert "Привет" → "Privet" for ASCII-only contexts
+4. **Locale-aware sorting** — Use `Intl.Collator` for proper international alphabetical order
+
+---
+
+## Convention: Keep Procedure Schemas Inline
+
+> **Status**: Adopted
+> **Priority**: Low
+> **Type**: Code Organization Convention
+
+### Overview
+
+An analysis of tRPC procedure files in the codebase revealed two patterns for organizing input validation schemas:
+
+1. **Separate files**: Schemas in dedicated `schemas/` folder, imported by procedures
+2. **Inline**: Schemas defined directly in the procedure file
+
+### Analysis Results
+
+| Pattern | Feature | Examples |
+|---------|---------|----------|
+| **Separate** | Tag | `create-tag`, `delete-tag`, `update-tag` |
+| **Separate** | Deck | `create-deck`, `update-deck`, `schedule-deck-deletion`, `restore-deck` |
+| **Inline** | Deck | `add-url-to-deck`, `remove-url-from-deck`, `toggle-follow-deck`, `get-deck-by-slug` |
+| **Inline** | URL | `update-user-url` |
+| **Inline** | User-profile | `create-user-profile`, `update-user-profile` |
+| **Inline** | Feed | `get-user-feed`, `toggle-like-url` |
+| **Inline** | Tag | `get-user-tags` |
+
+### Decision: Keep Schemas Inline
+
+**Recommendation**: Define procedure schemas inline within procedure files.
+
+#### Reasons
+
+1. **Colocation improves discoverability** — When the schema is in the same file as the procedure, you see the full contract (input validation, business logic, output) in one place. No context-switching or file-hopping required.
+
+2. **Easier refactoring** — Procedure-specific schemas rarely need reuse. When you rename a field, change validation, or delete the procedure entirely, having everything in one file makes changes atomic and reduces the risk of orphaned schema files.
+
+3. **Lower cognitive overhead** — Separate files only pay off when schemas are genuinely shared. If each schema is only imported once, the extra indirection adds friction without benefit.
+
+4. **Type exports still work** — You can still export the inferred types (`export type XSchema = z.infer<typeof xSchema>`) directly from the procedure file for use in UI components or API consumers.
+
+#### When to Use Separate Schema Files
+
+Separate schema files are still appropriate when:
+
+- The schema is **reused** across multiple procedures (rare in this codebase)
+- The schema requires **complex validation logic** with accompanying tests
+- The schema is **part of a shared package** (e.g., `@repo/deck/schemas/*` in packages, not feature-local `schemas/` folders)
+
+### Cleanup Tasks
+
+Move existing separate schemas into their corresponding procedure files:
+
+- [ ] `apps/web/src/features/tag/schemas/create-tag.schema.ts` → inline in `create-tag.ts`
+- [ ] `apps/web/src/features/tag/schemas/delete-tag.schema.ts` → inline in `delete-tag.ts`
+- [ ] `apps/web/src/features/tag/schemas/update-tag.schema.ts` → inline in `update-tag.ts`
+- [ ] `apps/web/src/features/deck/schemas/create-deck.schema.ts` → inline in `create-deck.ts`
+- [ ] `apps/web/src/features/deck/schemas/update-deck.schema.ts` → inline in `update-deck.ts`
+- [ ] `apps/web/src/features/deck/schemas/schedule-deck-deletion.schema.ts` → inline in `schedule-deck-deletion.ts`
+- [ ] `apps/web/src/features/deck/schemas/restore-deck.schema.ts` → inline in `restore-deck.ts`
+- [ ] Delete empty `schemas/` folders after migration
+
+### Pattern Example
+
+```typescript
+// ✅ Recommended: Inline schema in procedure file
+// apps/web/src/features/deck/router/procedures/add-url-to-deck.ts
+
+import { deckIdSchema } from "@repo/db/id/deck-id";
+import { userUrlIdSchema } from "@repo/db/id/user-url-id";
+import { z } from "zod";
+
+// Schema defined inline, right before the procedure
+const addUrlToDeckSchema = z.object({
+  deckId: deckIdSchema,
+  userUrlId: userUrlIdSchema,
+});
+
+export type AddUrlToDeckSchema = z.infer<typeof addUrlToDeckSchema>;
+
+export const addUrlToDeck = protectedProcedure
+  .input(addUrlToDeckSchema)
+  .mutation(async ({ input, ctx }) => {
+    // ... procedure logic
+  });
+```
+
+```typescript
+// ❌ Avoid: Separate schema file for single-use schema
+// apps/web/src/features/deck/schemas/add-url-to-deck.schema.ts
+export const addUrlToDeckSchema = z.object({ ... });
+
+// apps/web/src/features/deck/router/procedures/add-url-to-deck.ts
+import { addUrlToDeckSchema } from "../../schemas/add-url-to-deck.schema";
+// ... procedure
+```
+
+### Note on Package Schemas
+
+This convention applies to **feature-local schemas** in `apps/web/src/features/*/`.
+
+**Package schemas** (in `packages/*/src/schemas/`) follow a different pattern — they are intentionally extracted for cross-package reuse (e.g., `@repo/deck/schemas/deck-slug.schema.ts` used by both web app and API validation).
 
 ---
 

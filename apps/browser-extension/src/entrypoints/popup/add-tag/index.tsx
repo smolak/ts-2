@@ -1,3 +1,4 @@
+import type { DeckId } from "@repo/db/id/deck-id";
 import { type FC, useCallback } from "react";
 import type { FieldValues } from "react-hook-form";
 
@@ -6,19 +7,20 @@ import { AddTagForm } from "./add-tag-form";
 
 type AddTagProps = {
   apiKey: string;
+  deckId: DeckId;
   onSuccess: () => void;
 };
 
-export const AddTag: FC<AddTagProps> = ({ apiKey, onSuccess }) => {
+export const AddTag: FC<AddTagProps> = ({ apiKey, deckId, onSuccess }) => {
   const { mutate, isPending, isSuccess, isError, reset } = useAddTag(apiKey, onSuccess);
 
   const addTag = useCallback(
     (values: FieldValues) => {
       const name = values.name as string;
 
-      mutate({ name });
+      mutate({ deckId, name });
     },
-    [mutate],
+    [mutate, deckId],
   );
 
   const onBlur = useCallback(() => {

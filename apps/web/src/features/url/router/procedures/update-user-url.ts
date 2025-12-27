@@ -1,47 +1,78 @@
 import { orm, schema } from "@repo/db/db";
+import { deckIdSchema } from "@repo/db/id/deck-id";
 import { tagIdSchema } from "@repo/db/id/tag-id";
 import { userUrlIdSchema } from "@repo/db/id/user-url-id";
 import { TRPCError } from "@trpc/server";
 import { z } from "zod";
-import { selectTagIdsForUpdate } from "@/features/url/router/procedures/utils/select-tag-ids-for-update";
 import { protectedProcedure } from "@/server/api/trpc";
+import { selectTagIdsForUpdate } from "./utils/select-tag-ids-for-update";
 
-export type UpdateUserUrlSchema = z.infer<typeof updateUserUrlSchema>;
+export type UpdateDeckUrlTagsSchema = z.infer<typeof updateDeckUrlTagsSchema>;
 
-export const updateUserUrlSchema = z.object({
+export const updateDeckUrlTagsSchema = z.object({
+  deckId: deckIdSchema,
   userUrlId: userUrlIdSchema,
   tagIds: z.array(tagIdSchema),
 });
 
-export const updateUserUrl = protectedProcedure
-  .input(updateUserUrlSchema)
-  .mutation(async ({ input: { userUrlId, tagIds }, ctx: { logger, requestId, userId, db } }) => {
-    const path = "userUrl.updateUserUrl";
+export const updateDeckUrlTags = protectedProcedure
+  .input(updateDeckUrlTagsSchema)
+  .mutation(async ({ input: { deckId, userUrlId, tagIds }, ctx: { logger, requestId, userId, db } }) => {
+    const path = "deckUrl.updateDeckUrlTags";
 
-    // Verify the userUrl belongs to the current user and is not deleted
-    const maybeUserUrl = await db.query.usersUrls.findFirst({
-      where: (usersUrls, { and, eq }) =>
-        and(eq(usersUrls.id, userUrlId), eq(usersUrls.userId, userId), eq(usersUrls.isDeleted, false)),
+    // Verify the deck belongs to the user and is not pending deletion
+    const deck = await db.query.decks.findFirst({
+      where: (decks, { and, eq, isNull }) =>
+        and(eq(decks.id, deckId), eq(decks.userId, userId), isNull(decks.scheduledForDeletionAt)),
+      columns: { id: true },
     });
 
-    if (!maybeUserUrl) {
-      logger.error({ requestId, path }, `UserUrl (${userUrlId}) doesn't exist or doesn't belong to user.`);
-
+    if (!deck) {
+      logger.error({ requestId, path, deckId }, "Deck not found or not owned by user.");
       throw new TRPCError({
-        code: "BAD_REQUEST",
-        message: `UserUrl doesn't exist or doesn't belong to user.`,
+        code: "NOT_FOUND",
+        message: "Deck not found.",
       });
     }
 
-    // Get current tags
-    const currentUserUrlTags = await db.query.userUrlsTags.findMany({
-      columns: {
-        tagId: true,
-      },
-      where: (userUrlsTags, { eq }) => eq(userUrlsTags.userUrlId, userUrlId),
+    // Verify the deck-URL association exists
+    const deckUrl = await db.query.deckUrls.findFirst({
+      where: (deckUrls, { and, eq }) => and(eq(deckUrls.deckId, deckId), eq(deckUrls.userUrlId, userUrlId)),
+      columns: { deckId: true },
     });
 
-    const currentTagIds = currentUserUrlTags.map(({ tagId }) => tagId);
+    if (!deckUrl) {
+      logger.error({ requestId, path, deckId, userUrlId }, "URL not found in this deck.");
+      throw new TRPCError({
+        code: "NOT_FOUND",
+        message: "URL not found in this deck.",
+      });
+    }
+
+    const [deckTags, currentDeckUrlTags] = await Promise.all([
+      tagIds.length > 0
+        ? db.query.tags.findMany({
+            where: (tags, { and, eq, inArray }) => and(eq(tags.deckId, deckId), inArray(tags.id, tagIds)),
+            columns: { id: true },
+          })
+        : Promise.resolve([]),
+      db.query.deckUrlsTags.findMany({
+        columns: { tagId: true },
+        where: (dut, { and, eq }) => and(eq(dut.deckId, deckId), eq(dut.userUrlId, userUrlId)),
+      }),
+    ]);
+
+    // Verify all provided tags belong to this deck
+    if (tagIds.length > 0 && deckTags.length !== tagIds.length) {
+      logger.error({ requestId, path, deckId, tagIds }, "Some tags don't belong to this deck.");
+
+      throw new TRPCError({
+        code: "BAD_REQUEST",
+        message: "Some tags don't belong to this deck.",
+      });
+    }
+
+    const currentTagIds = currentDeckUrlTags.map(({ tagId }) => tagId);
 
     // Determine which tags to add and remove
     const { increment, decrement } = selectTagIdsForUpdate({
@@ -53,44 +84,42 @@ export const updateUserUrl = protectedProcedure
       // Remove tags that are no longer selected
       if (decrement.length > 0) {
         await tx
-          .delete(schema.userUrlsTags)
+          .delete(schema.deckUrlsTags)
           .where(
             orm.and(
-              orm.eq(schema.userUrlsTags.userUrlId, userUrlId),
-              orm.inArray(schema.userUrlsTags.tagId, decrement),
+              orm.eq(schema.deckUrlsTags.deckId, deckId),
+              orm.eq(schema.deckUrlsTags.userUrlId, userUrlId),
+              orm.inArray(schema.deckUrlsTags.tagId, decrement),
             ),
           );
 
-        // Decrement urlsCount for removed tags (only for user's own tags)
+        // Decrement urlsCount for removed tags (tags in this deck)
         await tx
           .update(schema.tags)
-          .set({
-            urlsCount: orm.sql`${schema.tags.urlsCount} - 1`,
-          })
-          .where(orm.and(orm.inArray(schema.tags.id, decrement), orm.eq(schema.tags.userId, userId)));
+          .set({ urlsCount: orm.sql`${schema.tags.urlsCount} - 1` })
+          .where(orm.and(orm.inArray(schema.tags.id, decrement), orm.eq(schema.tags.deckId, deckId)));
       }
 
       // Add new tags
       if (increment.length > 0) {
         const dataToAdd = increment.map((tagId, index) => ({
-          tagId,
+          deckId,
           userUrlId,
+          tagId,
           tagOrder: currentTagIds.length + index + 1,
         }));
 
-        await tx.insert(schema.userUrlsTags).values(dataToAdd);
+        await tx.insert(schema.deckUrlsTags).values(dataToAdd);
 
-        // Increment urlsCount for added tags (only for user's own tags)
+        // Increment urlsCount for added tags (tags in this deck)
         await tx
           .update(schema.tags)
-          .set({
-            urlsCount: orm.sql`${schema.tags.urlsCount} + 1`,
-          })
-          .where(orm.and(orm.inArray(schema.tags.id, increment), orm.eq(schema.tags.userId, userId)));
+          .set({ urlsCount: orm.sql`${schema.tags.urlsCount} + 1` })
+          .where(orm.and(orm.inArray(schema.tags.id, increment), orm.eq(schema.tags.deckId, deckId)));
       }
     });
 
-    logger.info({ requestId, path, userUrlId }, "UserUrl updated.");
+    logger.info({ requestId, path, deckId, userUrlId }, "Deck URL tags updated.");
 
     return { success: true };
   });
