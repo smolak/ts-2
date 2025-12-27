@@ -41,7 +41,7 @@ export async function POST(request: Request) {
     let userUrl: UserUrl;
 
     try {
-      userUrl = await addUrl({ tagIds: data.tagIds, metadata: data.metadata, userId });
+      userUrl = await addUrl({ tagIds: data.tagIds, deckIds: data.deckIds, metadata: data.metadata, userId });
 
       logger.info({ requestId, actionType: ADD_URL_ACTION, userUrl }, "URL added.");
 

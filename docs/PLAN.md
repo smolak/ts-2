@@ -943,11 +943,22 @@ Feed integration:
 
 ### Phase 7: Browser Extension
 
-**Files to modify:**
+**Files created:**
 
-- [ ] `apps/browser-extension/src/entrypoints/popup/` - Add deck selector
-- [ ] Extension API calls for deck operations
-- [ ] Store default deck preference
+- [x] `packages/deck/src/api/v1/get-decks.schema.ts` - Response schema for deck API
+- [x] `apps/web/src/app/api/v1/deck/route.ts` - GET endpoint for fetching user decks
+- [x] `apps/browser-extension/src/entrypoints/popup/hooks/use-decks.ts` - Hook to fetch decks
+- [x] `apps/browser-extension/src/entrypoints/popup/deck-picker/index.tsx` - Deck picker component
+- [x] `apps/browser-extension/src/entrypoints/popup/deck-picker/deck-picker-list.tsx` - Deck list UI
+
+**Files modified:**
+
+- [x] `apps/web/src/features/url/api/v1/add-url/request-body.schema.ts` - Added deckIds to schema
+- [x] `apps/web/src/features/url/api/v1/add-url/index.ts` - Added deck handling and feed fan-out
+- [x] `apps/web/src/app/api/v1/url/route.ts` - Pass deckIds to addUrl function
+- [x] `apps/browser-extension/src/entrypoints/popup/constants/storage.ts` - Added deck storage keys
+- [x] `apps/browser-extension/src/entrypoints/popup/hooks/use-add-url.ts` - Added deckIds parameter
+- [x] `apps/browser-extension/src/entrypoints/popup/add-url/index.tsx` - Integrated deck picker with default preference
 
 ### Phase 8: Migration & Cleanup
 

@@ -83,6 +83,9 @@ importers:
       '@repo/db':
         specifier: workspace:*
         version: link:../../packages/db
+      '@repo/deck':
+        specifier: workspace:*
+        version: link:../../packages/deck
       '@repo/metadata-scrapper':
         specifier: workspace:*
         version: link:../../packages/metadata-scrapper

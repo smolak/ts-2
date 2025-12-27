@@ -7,13 +7,14 @@ import type { AddUrlRequestBody } from "./request-body.schema";
 
 interface Params {
   tagIds: AddUrlRequestBody["tagIds"];
+  deckIds: AddUrlRequestBody["deckIds"];
   metadata: AddUrlRequestBody["metadata"];
   userId: UserId;
 }
 
 type AddUrl = (params: Params) => Promise<UserUrl>;
 
-export const addUrl: AddUrl = async ({ tagIds, metadata, userId }) => {
+export const addUrl: AddUrl = async ({ tagIds, deckIds, metadata, userId }) => {
   const compoundHash = createCompoundHash(metadata);
   const urlHash = createUrlHash(metadata.url);
 
@@ -102,6 +103,51 @@ export const addUrl: AddUrl = async ({ tagIds, metadata, userId }) => {
           urlsCount: orm.sql`${schema.tags.urlsCount} + 1`,
         })
         .where(orm.and(orm.inArray(schema.tags.id, tagIds), orm.eq(schema.tags.userId, userId)));
+    }
+
+    // Handle deck associations
+    if (deckIds.length > 0) {
+      // Verify all decks belong to the user and are not pending deletion
+      const userDecks = await tx.query.decks.findMany({
+        where: (decks, { and, eq, inArray, isNull }) =>
+          and(eq(decks.userId, userId), inArray(decks.id, deckIds), isNull(decks.scheduledForDeletionAt)),
+        columns: { id: true, isPublic: true },
+      });
+
+      const validDeckIds = userDecks.map((d) => d.id);
+
+      if (validDeckIds.length > 0) {
+        // Add URL to decks
+        await tx.insert(schema.deckUrls).values(validDeckIds.map((deckId) => ({ deckId, userUrlId: userUrl.id })));
+
+        // Increment urlsCount for each deck
+        await tx
+          .update(schema.decks)
+          .set({
+            urlsCount: orm.sql`${schema.decks.urlsCount} + 1`,
+          })
+          .where(orm.inArray(schema.decks.id, validDeckIds));
+
+        // Fan-out to followers of public decks
+        const publicDeckIds = userDecks.filter((d) => d.isPublic).map((d) => d.id);
+
+        if (publicDeckIds.length > 0) {
+          const deckFollowers = await tx.query.deckFollows.findMany({
+            where: (follows, { inArray }) => inArray(follows.deckId, publicDeckIds),
+            columns: { deckId: true, followerId: true },
+          });
+
+          if (deckFollowers.length > 0) {
+            await tx.insert(schema.feeds).values(
+              deckFollowers.map((follower) => ({
+                userId: follower.followerId,
+                userUrlId: userUrl.id,
+                deckId: follower.deckId,
+              })),
+            );
+          }
+        }
+      }
     }
 
     await tx
