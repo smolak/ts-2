@@ -7,7 +7,7 @@
 3. [Naming Conventions](#naming-conventions)
 4. [File Organization](#file-organization)
 5. [React Component Patterns](#react-component-patterns)
-6. [API Patterns (orpc)](#api-patterns-orpc)
+6. [API Patterns (tRPC)](#api-patterns-trpc)
 7. [Database Patterns](#database-patterns)
 8. [Error Handling](#error-handling)
 9. [Testing Patterns](#testing-patterns)
@@ -241,11 +241,23 @@ import "./user-profile.css";
 - Use `@/` alias for cleaner imports
 - Example: `import { FeedList } from "@/features/feed/components/feed-list";`
 
+**Feature Imports (within `apps/web/src/features/`):**
+
+- **Same-feature imports**: Use relative paths (`./`, `../`)
+  - Example: In `features/deck/ui/settings/edit-deck.tsx`:
+    - `import { updateDeckSchema } from "../../schemas/update-deck.schema";`
+- **Cross-feature imports**: Use absolute `@/features/` path
+  - Example: In `features/feed/ui/feed-list-item.tsx`:
+    - `import { UserImage } from "@/features/user/ui/user-image";`
+  - Example: In `features/deck/ui/public-deck/deck-header.tsx`:
+    - `import { UserImage } from "@/features/user/ui/user-image";`
+
 #### **Forbidden Patterns:**
 
 - ❌ App importing from another app
 - ❌ Package importing from app
-- ❌ Using relative imports within same app (use `@/` alias instead)
+- ❌ Using relative imports for cross-feature imports (use `@/features/` instead)
+- ❌ Using absolute imports for same-feature imports (use relative paths instead)
 
 #### **Examples by File Type:**
 
@@ -386,13 +398,14 @@ import { Button } from "@repo/ui/components/button";
 
 #### **Quick Reference Table:**
 
-| Context        | Import Type | Example                                                               |
-| -------------- | ----------- | --------------------------------------------------------------------- |
-| Same package   | Relative    | `import { User } from "../types/user";`                               |
-| Cross-package  | `@repo/`    | `import { Button } from "@repo/ui/components/button";`<br>`import { generateUrlId } from "@repo/url/id/generate-url-id";` |
-| App to package | `@repo/`    | `import { UserCard } from "@repo/user-profile/components/user-card";`  |
-| Same app       | `@/` alias  | `import { FeedList } from "@/features/feed/components/feed-list";` |
-| CSS files      | Relative    | `import "./component.css";`                                           |
+| Context              | Import Type | Example                                                               |
+| -------------------- | ----------- | --------------------------------------------------------------------- |
+| Same package         | Relative    | `import { User } from "../types/user";`                               |
+| Cross-package        | `@repo/`    | `import { Button } from "@repo/ui/components/button";`<br>`import { generateUrlId } from "@repo/url/id/generate-url-id";` |
+| App to package       | `@repo/`    | `import { UserCard } from "@repo/user-profile/components/user-card";`  |
+| Same feature         | Relative    | `import { updateDeckSchema } from "../../schemas/update-deck.schema";` |
+| Cross-feature        | `@/` alias  | `import { UserImage } from "@/features/user/ui/user-image";`          |
+| CSS files            | Relative    | `import "./component.css";`                                           |
 
 ## React Component Patterns
 
@@ -747,6 +760,7 @@ it("should do something", () => {
 ```
 
 **Rules:**
+
 - **Arrange section**: Variable declarations, mock setup, test data preparation
 - **Act section**: Function calls, state changes, operations being tested
 - **Assert section**: Expect statements, result verification
@@ -988,12 +1002,14 @@ describe("User Flow Integration", () => {
 - **When a source file is changed**: Run all related test files immediately after making changes
 
 **Implementation:**
+
 - Use your IDE's test runner or terminal to run tests immediately after changes
 - For test files: `pnpm test path/to/test-file.test.ts`
 - For source files: Run all tests that import or test the changed file
 - Use watch mode during development: `pnpm test --watch`
 
 **Rationale:**
+
 - Ensures tests pass immediately after changes
 - Prevents broken tests from accumulating
 - Maintains code quality and confidence in changes
