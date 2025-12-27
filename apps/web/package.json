@@ -6,7 +6,9 @@
     "dev": "next dev --turbopack",
     "build": "next build --turbopack",
     "start": "next start",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "test:watch": "vitest"
   },
   "dependencies": {
     "@clerk/nextjs": "^6.36.2",
@@ -46,11 +48,13 @@
     "zustand": "^5.0.9"
   },
   "devDependencies": {
+    "@repo/tests-setup": "workspace:*",
     "@tailwindcss/postcss": "catalog:",
     "@types/node": "catalog:",
     "@types/qs": "^6.14.0",
     "@types/react": "catalog:",
     "@types/react-dom": "catalog:",
+    "dotenv": "^17.2.3",
     "tailwindcss": "catalog:",
     "typescript": "catalog:",
     "vitest": "catalog:",

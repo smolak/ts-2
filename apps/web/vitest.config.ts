@@ -1,11 +1,19 @@
+import dotenv from "dotenv";
+import path from "node:path";
 import { defineConfig } from "vitest/config";
-// import dotenv from "dotenv";
 
-// dotenv.config({ path: ".env.test" });
+dotenv.config({ path: ".env.local" });
 
 export default defineConfig({
   test: {
     globals: true,
     setupFiles: "../../packages/tests-setup/src/index.ts",
+  },
+  resolve: {
+    alias: {
+      "@": path.resolve(__dirname, "./src"),
+      // Mock server-only package for vitest
+      "server-only": path.resolve(__dirname, "./src/test-utils/server-only-mock.ts"),
+    },
   },
 });

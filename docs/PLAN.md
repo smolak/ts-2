@@ -19,7 +19,8 @@
 11. [Security Fixes (Priority)](#security-fixes-priority)
 12. [Phase 9: Integration Tests Infrastructure](#phase-9-integration-tests-infrastructure-for-trpc-procedures)
 13. [User Account Deletion Strategy](#user-account-deletion-strategy)
-14. [Refactor: Rename usernameNormalized to slug](#refactor-rename-usernamenormalized-to-slug-in-user-profiles)
+14. [Phase 10: Drop Deprecated follows Table](#phase-10-drop-deprecated-follows-table)
+15. [Refactor: Rename usernameNormalized to slug](#refactor-rename-usernamenormalized-to-slug-in-user-profiles)
 
 ---
 
@@ -1005,7 +1006,7 @@ JOIN decks d ON d.user_id = f.following_id AND d.is_public = true;
 - [x] Add deprecation warning to `follows` table schema
 - [x] Remove `followUserRouter` from API
 - [x] Delete `apps/web/src/features/follow-user/` directory
-- [ ] (Future release) Drop `follows` table and its Drizzle relations
+- [ ] (Future release) Drop `follows` table and its Drizzle relations → See [Phase 10](#phase-10-drop-deprecated-follows-table)
 
 ---
 
@@ -1458,9 +1459,10 @@ The existing index on `url_hashes.url_hash` ensures this query is efficient.
 
 ## Phase 9: Integration Tests Infrastructure for tRPC Procedures
 
-> **Status**: Pending
+> **Status**: ✅ Complete
 > **Priority**: Medium
 > **Dependencies**: None (can be done independently)
+> **Completed**: December 27, 2025
 
 ### Overview
 
@@ -1476,18 +1478,23 @@ Use `createCallerFactory` from tRPC to call procedures directly with a test cont
 - **Mocked logger** (`ctx.logger`) - verify logging calls
 - **Real request ID** generation
 
-### Files to Create
+### Files Created
 
 Test utilities:
-- [ ] `apps/web/src/test-utils/create-test-context.ts` - Factory for creating test tRPC context
-- [ ] `apps/web/src/test-utils/test-db.ts` - Test database setup/teardown helpers
-- [ ] `apps/web/src/test-utils/index.ts` - Barrel exports
+- [x] `apps/web/src/test-utils/create-test-context.ts` - Factory for creating test tRPC context
+- [x] `apps/web/src/test-utils/test-db.ts` - Test database setup/teardown helpers
+- [x] `apps/web/src/test-utils/index.ts` - Barrel exports
+- [x] `apps/web/src/test-utils/server-only-mock.ts` - Mock for server-only package
 
-Procedure tests (start with tag procedures as reference implementation):
-- [ ] `apps/web/src/features/tag/router/procedures/delete-tag.test.ts`
-- [ ] `apps/web/src/features/tag/router/procedures/update-tag.test.ts`
-- [ ] `apps/web/src/features/tag/router/procedures/create-tag.test.ts`
-- [ ] `apps/web/src/features/tag/router/procedures/get-user-tags.test.ts`
+Configuration:
+- [x] `apps/web/vitest.config.ts` - Updated with path aliases and server-only mock
+- [x] `apps/web/package.json` - Added `test` and `test:watch` scripts, `@repo/tests-setup` dependency
+
+Procedure tests (tag procedures as reference implementation):
+- [x] `apps/web/src/features/tag/router/procedures/delete-tag.test.ts` (5 tests)
+- [x] `apps/web/src/features/tag/router/procedures/update-tag.test.ts` (10 tests)
+- [x] `apps/web/src/features/tag/router/procedures/create-tag.test.ts` (7 tests)
+- [x] `apps/web/src/features/tag/router/procedures/get-user-tags.test.ts` (7 tests)
 
 ### Test Structure Example
 
@@ -1551,18 +1558,20 @@ describe("deleteTag procedure", () => {
 
 ### Test Database Strategy
 
-Options to evaluate:
-1. **Supabase local** - Use local Supabase instance for tests
-2. **PostgreSQL container** - Use Testcontainers for isolated test DB
-3. **Transaction rollback** - Wrap each test in transaction, rollback after
+**Chosen approach**: Use real database with environment variables loaded from `.env.local`. Each test creates its own test user and cleans up after itself using the `cleanup()` function.
+
+Key configuration:
+- `vitest.config.ts` loads `.env.local` for `DATABASE_URL`
+- `server-only` package is mocked to allow tests to run outside Next.js context
+- Path alias `@/` is configured to resolve to `./src`
 
 ### Verification
 
 After implementation:
-- [ ] All tag procedure tests pass
-- [ ] Security fix tests from Issue #1-#4 are covered
-- [ ] Pattern documented for other procedure tests
-- [ ] CI pipeline runs integration tests
+- [x] All tag procedure tests pass (29 tests)
+- [x] Security fix tests from Issue #1-#2 are covered (delete/update tag belonging to another user)
+- [x] Pattern documented for other procedure tests (see test files for examples)
+- [ ] CI pipeline runs integration tests (requires CI configuration)
 
 ---
 
@@ -1756,6 +1765,107 @@ Queries that need to filter out pending-deletion users:
 - [ ] Send reminder email before final deletion? (e.g., 7 days before, 1 day before)
 - [ ] Should pending-deletion users count toward follower counts?
 - [ ] Export data option before deletion? (GDPR requirement)
+
+---
+
+## Phase 10: Drop Deprecated `follows` Table
+
+> **Status**: Planning
+> **Priority**: Low
+> **Dependencies**: Deck-follows must be stable in production
+
+### Overview
+
+The `follows` table has been deprecated and replaced by `deck_follows`. Users now follow decks instead of other users. This cleanup phase removes the deprecated table and related code.
+
+### Prerequisites
+
+Before proceeding, verify:
+- [ ] Deck-follows has been running in production without issues for at least 2 weeks
+- [ ] No code references the `follows` table (search for `follows` and `Follow` type usage)
+- [ ] Historical follow data has been migrated or is no longer needed
+
+### Implementation Steps
+
+#### 1. Search for References
+
+```bash
+# Find any remaining references
+grep -r "follows" --include="*.ts" --include="*.tsx" apps/ packages/
+grep -r "Follow" --include="*.ts" --include="*.tsx" apps/ packages/
+```
+
+Exclude false positives:
+- `deckFollows` / `DeckFollow` - these are the new tables
+- `deck_follows` - new table name
+- Comments/docs mentioning deprecated status
+
+#### 2. Remove Drizzle Schema
+
+Update `packages/db/src/schema.ts`:
+
+- [ ] Remove `follows` table definition
+- [ ] Remove `Follow` type export
+- [ ] Remove `followsRelations` if it exists
+- [ ] Update dependency graph comment at top of file
+- [ ] Remove `follows` from `usersRelations` if referenced
+
+#### 3. Remove Type Export
+
+Update `packages/db/src/types.ts`:
+
+- [ ] Remove `Follow` from exports
+
+#### 4. Create Database Migration
+
+Create `packages/db/supabase/migrations/XXXX_drop_follows_table.sql`:
+
+```sql
+-- Drop the deprecated follows table
+-- This table has been replaced by deck_follows
+
+-- Drop indexes first
+DROP INDEX IF EXISTS idx_follows_follower_id;
+DROP INDEX IF EXISTS idx_follows_following_id;
+
+-- Drop the table
+DROP TABLE IF EXISTS follows;
+```
+
+#### 5. Run Migration
+
+```bash
+cd packages/db
+pnpm db:generate
+pnpm db:migrate
+```
+
+#### 6. Verification
+
+```bash
+# Verify no TypeScript errors
+pnpm typecheck
+
+# Verify all tests pass
+pnpm test
+
+# Verify table is gone (in Drizzle Studio or DB client)
+pnpm db:studio
+```
+
+### Rollback Plan
+
+If issues are discovered after migration:
+
+1. The migration is one-way (DROP TABLE) - no automatic rollback
+2. If needed, restore from backup or recreate table from schema history
+3. Consider keeping a backup of follows data before dropping
+
+### Notes
+
+- The `follows` table data was migrated to `deck_follows` in Phase 8
+- All UI and API code has been updated to use deck-follows
+- This is a cleanup step with no user-facing impact
 
 ---
 

@@ -284,6 +284,9 @@ importers:
         specifier: ^5.0.9
         version: 5.0.9(@types/react@19.2.7)(react@19.2.3)(use-sync-external-store@1.6.0(react@19.2.3))
     devDependencies:
+      '@repo/tests-setup':
+        specifier: workspace:*
+        version: link:../../packages/tests-setup
       '@tailwindcss/postcss':
         specifier: 'catalog:'
         version: 4.1.18
@@ -299,6 +302,9 @@ importers:
       '@types/react-dom':
         specifier: 'catalog:'
         version: 19.2.3(@types/react@19.2.7)
+      dotenv:
+        specifier: ^17.2.3
+        version: 17.2.3
       tailwindcss:
         specifier: 'catalog:'
         version: 4.1.18
