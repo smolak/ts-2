@@ -64,6 +64,13 @@
       "when": 1766867430566,
       "tag": "0008_tags_per_deck",
       "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1766935964812,
+      "tag": "0009_add_index_for_cursor_based_pagination",
+      "breakpoints": true
     }
   ]
 }
