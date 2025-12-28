@@ -2,6 +2,7 @@ import { orm, schema } from "@repo/db/db";
 import { deckIdSchema } from "@repo/db/id/deck-id";
 import { tagIdSchema } from "@repo/db/id/tag-id";
 import type { Tag, Url, UserUrl } from "@repo/db/types";
+import type { Maybe } from "@repo/shared/types";
 import { z } from "zod";
 
 import { publicProcedure } from "@/server/api/trpc";
@@ -24,10 +25,10 @@ type DeckUrlItem = {
   tagNames: Tag["displayName"][];
 };
 
-type GetDeckUrlsResult = {
+type GetDeckUrlsResult = Maybe<{
   items: DeckUrlItem[];
   nextCursor: string | null;
-} | null;
+}>;
 
 export const getDeckUrls = publicProcedure
   .input(getDeckUrlsSchema)

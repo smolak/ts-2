@@ -10,7 +10,8 @@ import { type FC, useEffect, useRef } from "react";
 
 import { api, type RouterOutputs } from "@/trpc/react";
 
-type GetDeckUrlsResult = NonNullable<RouterOutputs["decks"]["getDeckUrls"]>;
+type GetDeckUrlsResultMaybe = RouterOutputs["decks"]["getDeckUrls"];
+type GetDeckUrlsResult = NonNullable<GetDeckUrlsResultMaybe>;
 type DeckUrlItem = GetDeckUrlsResult["items"][number];
 
 // Helper to safely cast metadata to ScrappedMetadata
@@ -19,7 +20,7 @@ const getMetadata = (metadata: Url["metadata"]): ScrappedMetadata => {
 };
 
 // Helper to aggregate URLs from infinite query pages
-const aggregateUrls = (data: { pages: (GetDeckUrlsResult | null)[] } | undefined): DeckUrlItem[] => {
+const aggregateUrls = (data: { pages: GetDeckUrlsResultMaybe[] } | undefined): DeckUrlItem[] => {
   if (!data) {
     return [];
   }

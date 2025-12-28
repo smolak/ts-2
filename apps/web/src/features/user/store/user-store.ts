@@ -1,14 +1,15 @@
 import type { User, UserProfile } from "@repo/db/types";
+import type { Maybe } from "@repo/shared/types";
 import { createStore } from "zustand/vanilla";
 
 export type UserState = {
   isSignedIn: boolean;
   isProfileComplete: boolean;
-  profile:
-    | ({
-        id: User["id"];
-      } & Pick<UserProfile, "imageUrl" | "username">)
-    | null;
+  profile: Maybe<
+    {
+      id: User["id"];
+    } & Pick<UserProfile, "imageUrl" | "username">
+  >;
 };
 
 export type UserActions = {

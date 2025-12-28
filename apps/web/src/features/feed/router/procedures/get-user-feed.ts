@@ -5,7 +5,7 @@ import { z } from "zod";
 
 import { protectedProcedure } from "@/server/api/trpc";
 
-import { type FeedDTO, toFeedDTO } from "../../dto/feed.dto";
+import { type FeedDto, toFeedDto } from "../../dto/feed.dto";
 import { getUserFeedQuery } from "../../queries/get-user-feed";
 import { feedSourceSchema } from "../../shared/feed-source";
 
@@ -19,7 +19,7 @@ const querySchema = z.object({
 });
 
 export type GetUserFeedResponse = {
-  feed: ReadonlyArray<FeedDTO>;
+  feed: ReadonlyArray<FeedDto>;
   nextCursor?: QuerySchema["cursor"];
 };
 
@@ -46,7 +46,7 @@ export const getUserFeed = protectedProcedure
         deckId: input.deckId,
       });
 
-      const feed = feedRawEntries.map((entry) => toFeedDTO(entry));
+      const feed = feedRawEntries.map((entry) => toFeedDto(entry));
 
       logger.info({ requestId, path, userId: input.userId }, "User's feed list fetched.");
 

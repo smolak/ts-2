@@ -1,5 +1,6 @@
 import type { DeckDto } from "@repo/deck/dto/deck.dto";
 import type { ScrappedMetadata } from "@repo/metadata-scrapper/types";
+import type { Maybe } from "@repo/shared/types";
 import type { TagDto } from "@repo/tag/dto/tag.dto";
 import { Button } from "@repo/ui/components/button";
 import { LoadingIndicator } from "@repo/ui/components/loading-indicator";
@@ -19,7 +20,7 @@ import { TagPicker } from "../tag-picker";
 type AddUrlProps = {
   apiKey: string;
   url: string;
-  metadata: ScrappedMetadata | null;
+  metadata: Maybe<ScrappedMetadata>;
 };
 
 export const AddUrl: FC<AddUrlProps> = ({ apiKey, url, metadata }) => {

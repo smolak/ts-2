@@ -89,6 +89,9 @@ importers:
       '@repo/metadata-scrapper':
         specifier: workspace:*
         version: link:../../packages/metadata-scrapper
+      '@repo/shared':
+        specifier: workspace:*
+        version: link:../../packages/shared
       '@repo/tag':
         specifier: workspace:*
         version: link:../../packages/tag

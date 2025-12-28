@@ -7,7 +7,7 @@ import type { FC } from "react";
 
 import { api } from "@/trpc/react";
 
-import type { FeedDTO } from "../../dto/feed.dto";
+import type { FeedDto } from "../../dto/feed.dto";
 import type { GetUserFeedResponse } from "../../router/procedures/get-user-feed";
 import { feedSourceSchema } from "../../shared/feed-source";
 import { ErrorLoadingFeed } from "../error-loading-feed";
@@ -21,7 +21,7 @@ const aggregateFeeds = (data?: InfiniteData<GetUserFeedResponse>) => {
 
   return data.pages.reduce((acc, page) => {
     return acc.concat(page.feed);
-  }, [] as FeedDTO[]);
+  }, [] as FeedDto[]);
 };
 
 const getNextCursor = (data?: InfiniteData<GetUserFeedResponse>) => {
@@ -29,7 +29,7 @@ const getNextCursor = (data?: InfiniteData<GetUserFeedResponse>) => {
 };
 
 type InfiniteUserFeedProps = {
-  from?: FeedDTO["createdAt"];
+  from?: FeedDto["createdAt"];
   userId: User["id"];
   viewerId?: User["id"];
 };

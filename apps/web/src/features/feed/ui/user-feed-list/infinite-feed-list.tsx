@@ -1,12 +1,12 @@
 import type { User } from "@repo/db/types";
 import { type FC, useEffect, useRef } from "react";
 
-import type { FeedDTO } from "../../dto/feed.dto";
+import type { FeedDto } from "../../dto/feed.dto";
 import { LoadingFeed } from "../loading-feed";
 import { FeedList } from "./feed-list";
 
 export interface InfiniteFeedListProps {
-  feed: ReadonlyArray<FeedDTO>;
+  feed: ReadonlyArray<FeedDto>;
   loadMore: () => void;
   shouldLoadMore?: boolean;
   isFetching?: boolean;

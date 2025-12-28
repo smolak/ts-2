@@ -8,10 +8,10 @@ import type { FC, ReactNode } from "react";
 import { LogoIcon } from "@/components/logo";
 import { UserImage } from "@/features/user/ui/user-image";
 
-import type { FeedDTO } from "../../dto/feed.dto";
+import type { FeedDto } from "../../dto/feed.dto";
 
 type FeedListItemProps = {
-  feedItem: FeedDTO;
+  feedItem: FeedDto;
   interactions: ReactNode;
   optionsDropdown?: ReactNode;
 };

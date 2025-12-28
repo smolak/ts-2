@@ -4,19 +4,19 @@ import { toast } from "@repo/ui/components/sonner";
 import Link from "next/link";
 import { type FC, useCallback, useEffect, useState } from "react";
 
-import type { FeedDTO } from "../../dto/feed.dto";
+import type { FeedDto } from "../../dto/feed.dto";
 import { DropdownOptions } from "./dropdown-options";
 import { EditFeedItemModal, type OnSuccess } from "./edit-feed-item-modal";
 import { FeedListItem } from "./feed-list-item";
 import { NotLikedIcon, ToggleLikeUrl } from "./toggle-like-url";
 
 export interface FeedListProps {
-  feed: ReadonlyArray<FeedDTO>;
+  feed: ReadonlyArray<FeedDto>;
   viewerId?: User["id"];
 }
 
 export const FeedList: FC<FeedListProps> = ({ feed, viewerId }) => {
-  const [editedItem, setEditedItem] = useState<FeedDTO | null>(null);
+  const [editedItem, setEditedItem] = useState<FeedDto | null>(null);
   const [feedItems, setFeedItems] = useState(feed);
 
   useEffect(() => {

@@ -1,5 +1,6 @@
-import type { DeckMetadata } from "@repo/deck/schemas/deck-metadata.schema";
 import type { Deck, UserProfile } from "@repo/db/types";
+import type { DeckMetadata } from "@repo/deck/schemas/deck-metadata.schema";
+import type { Maybe } from "@repo/shared/types";
 import { z } from "zod";
 
 import { publicProcedure } from "@/server/api/trpc";
@@ -19,13 +20,13 @@ type PublicDeckItem = {
   followersCount: Deck["followersCount"];
 };
 
-type GetPublicDecksResult = {
+type GetPublicDecksResult = Maybe<{
   decks: PublicDeckItem[];
   owner: {
     username: UserProfile["username"];
     imageUrl: UserProfile["imageUrl"];
   };
-} | null;
+}>;
 
 export const getPublicDecks = publicProcedure
   .input(getPublicDecksSchema)

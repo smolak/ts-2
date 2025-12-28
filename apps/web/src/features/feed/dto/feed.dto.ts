@@ -1,5 +1,6 @@
 import type { Deck, Feed, Tag, Url, UserProfile, UserUrl } from "@repo/db/types";
 import type { ScrappedMetadata } from "@repo/metadata-scrapper/types";
+import type { Maybe } from "@repo/shared/types";
 
 type Metadata = ScrappedMetadata;
 
@@ -51,7 +52,7 @@ const filterMetadata = (metadata: unknown): Metadata => {
   return filtered;
 };
 
-export const toFeedDTO = (entry: RawFeedEntry): FeedDTO => {
+export const toFeedDto = (entry: RawFeedEntry): FeedDto => {
   return {
     id: entry.feed_id,
     createdAt: entry.feed_createdAt.toISOString(),
@@ -81,7 +82,7 @@ export const toFeedDTO = (entry: RawFeedEntry): FeedDTO => {
 
 type ISODateString = string;
 
-export type FeedDTO = {
+export type FeedDto = {
   id: Feed["id"];
   createdAt: ISODateString;
   user: {
@@ -97,9 +98,9 @@ export type FeedDTO = {
     tagNames: Tag["name"][];
   };
   userUrlId: UserUrl["id"];
-  deck: {
+  deck: Maybe<{
     id: Deck["id"];
     name: Deck["name"];
     slug: Deck["slug"];
-  } | null;
+  }>;
 };

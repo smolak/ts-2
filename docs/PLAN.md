@@ -29,6 +29,7 @@
 21. [Utility: International Display Name Normalization](#utility-international-display-name-normalization)
 22. [Convention: Keep Procedure Schemas Inline](#convention-keep-procedure-schemas-inline)
 23. [Generate App Rules and Regulations](#generate-app-rules-and-regulations)
+24. [Add typecheck Scripts to All Packages](#add-typecheck-scripts-to-all-packages)
 
 ---
 
@@ -2911,6 +2912,120 @@ import { addUrlToDeckSchema } from "../../schemas/add-url-to-deck.schema";
 This convention applies to **feature-local schemas** in `apps/web/src/features/*/`.
 
 **Package schemas** (in `packages/*/src/schemas/`) follow a different pattern — they are intentionally extracted for cross-package reuse (e.g., `@repo/deck/schemas/deck-slug.schema.ts` used by both web app and API validation).
+
+---
+
+## Add `typecheck` Scripts to All Packages
+
+> **Status**: Planning
+> **Priority**: Low
+> **Dependencies**: None
+
+### Overview
+
+Enable running TypeScript type checking from the repository root using Turborepo. Add a `typecheck` script to all packages/apps so it can be run via `pnpm typecheck` from the root.
+
+### Current State
+
+**`turbo.json`** has `check-types` task, needs to be renamed to `typecheck`:
+```json
+{
+  "tasks": {
+    "check-types": {  // rename to "typecheck"
+      "dependsOn": ["^check-types"]
+    }
+  }
+}
+```
+
+**Root `package.json`** has `check-types`, needs to be renamed to `typecheck`:
+```json
+{
+  "scripts": {
+    "check-types": "turbo run check-types"  // rename to "typecheck": "turbo run typecheck"
+  }
+}
+```
+
+Packages have inconsistent or missing scripts:
+
+| Package/App | Script Name | Status |
+|-------------|-------------|--------|
+| `apps/web` | `typecheck` | ✅ Correct |
+| `apps/docs` | `check-types` | ❌ Rename to `typecheck` |
+| `apps/browser-extension` | `compile` | ❌ Rename to `typecheck` |
+| `packages/ui` | `check-types` | ❌ Rename to `typecheck` |
+| `packages/db` | — | ❌ Missing |
+| `packages/shared` | — | ❌ Missing |
+| `packages/deck` | — | ❌ Missing |
+| `packages/tag` | — | ❌ Missing |
+| `packages/crypto` | — | ❌ Missing |
+| `packages/url` | — | ❌ Missing |
+| `packages/user` | — | ❌ Missing |
+| `packages/user-profile` | — | ❌ Missing |
+| `packages/metadata-scrapper` | — | ❌ Missing |
+| `packages/tests-setup` | — | ❌ Missing |
+
+### Implementation Steps
+
+#### 1. Update Turborepo Config
+
+- [ ] `turbo.json`: Rename `check-types` task → `typecheck`
+- [ ] Root `package.json`: Rename script `check-types` → `typecheck`
+
+#### 2. Standardize Script Names
+
+Rename existing scripts:
+
+- [ ] `apps/docs/package.json`: Rename `check-types` → `typecheck`
+- [ ] `apps/browser-extension/package.json`: Rename `compile` → `typecheck`
+- [ ] `packages/ui/package.json`: Rename `check-types` → `typecheck`
+
+#### 3. Add Missing Scripts
+
+Add `"typecheck": "tsc --noEmit"` to all packages:
+
+- [ ] `packages/db/package.json`
+- [ ] `packages/shared/package.json`
+- [ ] `packages/deck/package.json`
+- [ ] `packages/tag/package.json`
+- [ ] `packages/crypto/package.json`
+- [ ] `packages/url/package.json`
+- [ ] `packages/user/package.json`
+- [ ] `packages/user-profile/package.json`
+- [ ] `packages/metadata-scrapper/package.json`
+- [ ] `packages/tests-setup/package.json`
+
+#### 4. Verification
+
+After adding all scripts, verify from root:
+
+```bash
+# Should run type checking across all packages
+pnpm typecheck
+
+# Should show all packages being checked
+pnpm turbo run typecheck --dry-run
+```
+
+### Script Template
+
+For each package, add:
+
+```json
+{
+  "scripts": {
+    "typecheck": "tsc --noEmit"
+  }
+}
+```
+
+### Notes
+
+- The `^typecheck` dependency in turbo.json ensures dependencies are type-checked first
+- Each package needs its own `tsconfig.json` for `tsc --noEmit` to work
+- Packages without TypeScript files can use a no-op: `"typecheck": "echo 'No TypeScript to check'"`
+- Consider adding `typecheck` to CI pipeline after implementation
 
 ---
 

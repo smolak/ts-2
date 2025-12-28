@@ -19,6 +19,7 @@
     "@repo/db": "workspace:*",
     "@repo/deck": "workspace:*",
     "@repo/metadata-scrapper": "workspace:*",
+    "@repo/shared": "workspace:*",
     "@repo/tag": "workspace:*",
     "@repo/ui": "workspace:*",
     "@repo/user": "workspace:*",

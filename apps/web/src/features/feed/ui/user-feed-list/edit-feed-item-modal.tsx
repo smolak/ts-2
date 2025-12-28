@@ -18,7 +18,7 @@ import { useDecksStore } from "@/features/deck/stores/use-decks-store";
 import { DeckPickerList } from "@/features/deck/ui/deck-picker/deck-picker-list";
 import { TagPickerTagsList } from "@/features/tag/ui/tag-picker/tag-picker-tags-list";
 import { api } from "@/trpc/react";
-import type { FeedDTO } from "../../dto/feed.dto";
+import type { FeedDto } from "../../dto/feed.dto";
 
 export type OnSuccess = (tagNames: Tag["name"][]) => void;
 
@@ -26,7 +26,7 @@ type EditFeedItemProps = {
   open: boolean;
   onOpenChange: (newOpenValue: boolean) => void;
   onSuccess: OnSuccess;
-  feedItem: FeedDTO;
+  feedItem: FeedDto;
 };
 
 const prepareTags = ({ tags, selectedTagIds }: { tags: TagDto[]; selectedTagIds: TagDto["id"][] }) =>

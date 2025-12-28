@@ -1,6 +1,7 @@
-import { deckSlugSchema } from "@repo/deck/schemas/deck-slug.schema";
-import type { Deck, UserProfile, User } from "@repo/db/types";
+import type { Deck, User, UserProfile } from "@repo/db/types";
 import type { DeckMetadata } from "@repo/deck/schemas/deck-metadata.schema";
+import { deckSlugSchema } from "@repo/deck/schemas/deck-slug.schema";
+import type { Maybe } from "@repo/shared/types";
 import { z } from "zod";
 
 import { publicProcedure } from "@/server/api/trpc";
@@ -12,7 +13,7 @@ const getDeckBySlugSchema = z.object({
 
 export type GetDeckBySlugSchema = z.infer<typeof getDeckBySlugSchema>;
 
-type GetDeckBySlugResult = {
+type GetDeckBySlugResult = Maybe<{
   id: Deck["id"];
   name: Deck["name"];
   slug: Deck["slug"];
@@ -25,7 +26,7 @@ type GetDeckBySlugResult = {
     imageUrl: UserProfile["imageUrl"];
   };
   isFollowing: boolean;
-} | null;
+}>;
 
 export const getDeckBySlug = publicProcedure
   .input(getDeckBySlugSchema)
@@ -50,7 +51,7 @@ export const getDeckBySlug = publicProcedure
 
     if (auth.userId) {
       const viewer = await db.query.users.findFirst({
-        where: (users, { eq }) => eq(users.clerkUserId, auth.userId!),
+        where: (users, { eq }) => eq(users.clerkUserId, auth.userId),
         columns: { id: true },
       });
 
@@ -85,7 +86,7 @@ export const getDeckBySlug = publicProcedure
     let isFollowing = false;
     if (viewerUserId && !isOwner) {
       const follow = await db.query.deckFollows.findFirst({
-        where: (follows, { and, eq }) => and(eq(follows.deckId, deck.id), eq(follows.followerId, viewerUserId!)),
+        where: (follows, { and, eq }) => and(eq(follows.deckId, deck.id), eq(follows.followerId, viewerUserId)),
         columns: { deckId: true },
       });
       isFollowing = !!follow;
