@@ -17,16 +17,17 @@
 9. [Testing Strategy](#testing-strategy)
 10. [Edge Cases & Considerations](#edge-cases--considerations)
 11. [Remove Soft Delete for URLs](#remove-soft-delete-for-urls)
-12. [Security Fixes (Priority)](#security-fixes-priority)
-13. [Phase 9: Integration Tests Infrastructure](#phase-9-integration-tests-infrastructure-for-trpc-procedures)
-14. [Feed Query Cleanup: Remove Tag Filtering](#feed-query-cleanup-remove-tag-filtering)
-15. [User Account Deletion Strategy](#user-account-deletion-strategy)
-16. [Phase 10: Drop Deprecated follows Table](#phase-10-drop-deprecated-follows-table)
-17. [Refactor: Rename usernameNormalized to slug](#refactor-rename-usernamenormalized-to-slug-in-user-profiles)
-18. [Refactor: Standardize name / display_name Column Convention](#refactor-standardize-name--display_name-column-convention)
-19. [Cleanup: Remove Unnecessary Defensive Checks After Drizzle Inserts](#cleanup-remove-unnecessary-defensive-checks-after-drizzle-inserts)
-20. [Utility: International Display Name Normalization](#utility-international-display-name-normalization)
-21. [Convention: Keep Procedure Schemas Inline](#convention-keep-procedure-schemas-inline)
+12. [Database Query Performance Audit](#database-query-performance-audit)
+13. [Security Fixes (Priority)](#security-fixes-priority)
+14. [Phase 9: Integration Tests Infrastructure](#phase-9-integration-tests-infrastructure-for-trpc-procedures)
+15. [Feed Query Cleanup: Remove Tag Filtering](#feed-query-cleanup-remove-tag-filtering)
+16. [User Account Deletion Strategy](#user-account-deletion-strategy)
+17. [Phase 10: Drop Deprecated follows Table](#phase-10-drop-deprecated-follows-table)
+18. [Refactor: Rename usernameNormalized to slug](#refactor-rename-usernamenormalized-to-slug-in-user-profiles)
+19. [Refactor: Standardize name / display_name Column Convention](#refactor-standardize-name--display_name-column-convention)
+20. [Cleanup: Remove Unnecessary Defensive Checks After Drizzle Inserts](#cleanup-remove-unnecessary-defensive-checks-after-drizzle-inserts)
+21. [Utility: International Display Name Normalization](#utility-international-display-name-normalization)
+22. [Convention: Keep Procedure Schemas Inline](#convention-keep-procedure-schemas-inline)
 
 ---
 
@@ -1471,7 +1472,7 @@ Update all queries that filter by `isDeleted`:
 
 - [ ] `apps/web/src/features/deck/router/procedures/get-deck-urls.ts`
 - [ ] `apps/web/src/features/feed/queries/get-user-feed.ts`
-- [ ] Any other queries filtering by `isDeleted`
+- [ ] `apps/web/src/features/feed/router/procedures/toggle-like-url.ts`
 
 #### 2. Update schema
 
@@ -1504,6 +1505,7 @@ Remove references to soft delete for URLs in "When URL is Deleted" section.
 - `packages/db/src/schema.ts` — Remove column and index
 - `apps/web/src/features/deck/router/procedures/get-deck-urls.ts` — Remove filter
 - `apps/web/src/features/feed/queries/get-user-feed.ts` — Remove filter
+- `apps/web/src/features/feed/router/procedures/toggle-like-url.ts` — Remove filter
 - `docs/PLAN.md` — Update "When URL is Deleted" section
 
 ### Future: If URL Deletion is Needed
@@ -1514,6 +1516,97 @@ If users need to delete URLs in the future, consider:
 2. **Pending deletion** — Like decks/users, add `scheduledForDeletionAt` with grace period
 
 Both are cleaner than the current unused soft delete pattern.
+
+---
+
+## Database Query Performance Audit
+
+> **Status**: Pending
+> **Priority**: Medium
+> **Type**: Performance Optimization
+
+### Overview
+
+Systematically review every tRPC procedure and database query for:
+
+- **Query efficiency** — N+1 problems, missing indexes, unnecessary joins
+- **Memory usage** — Large result sets loaded into memory, unbounded queries
+- **Pagination correctness** — Cursor-based pagination done properly
+- **Index utilization** — Queries using available indexes effectively
+- **Redundant queries** — Multiple queries that could be combined
+
+### ⚠️ EXECUTION RULE: ONE AT A TIME
+
+**This audit MUST be executed one procedure at a time.**
+
+When asked to execute this task:
+1. Analyze **ONE** procedure/query
+2. Propose optimizations
+3. Wait for review and approval
+4. Implement changes
+5. Commit
+6. Create migration if schema changes needed
+7. **STOP and wait** for instruction to proceed to the next one
+
+**DO NOT** analyze or modify multiple procedures in a single session without explicit approval for each.
+
+### Procedures to Audit
+
+#### Deck Procedures
+- [ ] `apps/web/src/features/deck/router/procedures/get-deck-urls.ts` ✅ (already optimized)
+- [ ] `apps/web/src/features/deck/router/procedures/get-deck-by-slug.ts`
+- [ ] `apps/web/src/features/deck/router/procedures/get-user-decks.ts`
+- [ ] `apps/web/src/features/deck/router/procedures/get-public-decks.ts`
+- [ ] `apps/web/src/features/deck/router/procedures/add-url-to-deck.ts`
+- [ ] `apps/web/src/features/deck/router/procedures/remove-url-from-deck.ts`
+- [ ] `apps/web/src/features/deck/router/procedures/create-deck.ts`
+- [ ] `apps/web/src/features/deck/router/procedures/update-deck.ts`
+- [ ] `apps/web/src/features/deck/router/procedures/toggle-follow-deck.ts`
+- [ ] `apps/web/src/features/deck/router/procedures/schedule-deck-deletion.ts`
+- [ ] `apps/web/src/features/deck/router/procedures/restore-deck.ts`
+- [ ] `apps/web/src/features/deck/router/procedures/get-url-decks.ts`
+
+#### Feed Procedures
+- [ ] `apps/web/src/features/feed/queries/get-user-feed.ts`
+- [ ] `apps/web/src/features/feed/router/procedures/get-user-feed.ts`
+- [ ] `apps/web/src/features/feed/router/procedures/toggle-like-url.ts`
+
+#### Tag Procedures
+- [ ] `apps/web/src/features/tag/router/procedures/get-deck-tags.ts`
+- [ ] `apps/web/src/features/tag/router/procedures/get-user-tags.ts`
+- [ ] `apps/web/src/features/tag/router/procedures/create-tag.ts`
+- [ ] `apps/web/src/features/tag/router/procedures/update-tag.ts`
+- [ ] `apps/web/src/features/tag/router/procedures/delete-tag.ts`
+
+#### URL Procedures
+- [ ] `apps/web/src/features/url/router/procedures/update-user-url.ts`
+- [ ] `apps/web/src/features/url/api/v1/add-url/index.ts`
+
+#### User Profile Procedures
+- [ ] `apps/web/src/features/user-profile/router/procedures/get-user-profile.ts`
+- [ ] `apps/web/src/features/user-profile/router/procedures/create-user-profile.ts`
+- [ ] `apps/web/src/features/user-profile/router/procedures/update-user-profile.ts`
+- [ ] `apps/web/src/features/user-profile/router/procedures/check-username-availability.ts`
+
+### Checklist Per Procedure
+
+When auditing each procedure, check:
+
+- [ ] Are there sequential queries that could run in parallel (`Promise.all`)?
+- [ ] Is there an N+1 query pattern?
+- [ ] Are filters applied at SQL level (not in JavaScript)?
+- [ ] Is pagination cursor-based and correct?
+- [ ] Are appropriate indexes in place for WHERE/ORDER BY clauses?
+- [ ] Are JOINs used instead of multiple queries where beneficial?
+- [ ] Is `SELECT` limited to needed columns only?
+- [ ] Are aggregations done in SQL (e.g., `STRING_AGG`, `COUNT`) vs app layer?
+
+### Progress Tracking
+
+| Date | Procedure | Changes | Migration |
+|------|-----------|---------|-----------|
+| 2024-12-28 | `get-deck-urls.ts` | 5 optimizations | `0009_add_index_for_cursor_based_pagination.sql` |
+| | | | |
 
 ---
 
