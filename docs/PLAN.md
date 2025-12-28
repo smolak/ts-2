@@ -28,6 +28,7 @@
 20. [Cleanup: Remove Unnecessary Defensive Checks After Drizzle Inserts](#cleanup-remove-unnecessary-defensive-checks-after-drizzle-inserts)
 21. [Utility: International Display Name Normalization](#utility-international-display-name-normalization)
 22. [Convention: Keep Procedure Schemas Inline](#convention-keep-procedure-schemas-inline)
+23. [Generate App Rules and Regulations](#generate-app-rules-and-regulations)
 
 ---
 
@@ -2910,6 +2911,75 @@ import { addUrlToDeckSchema } from "../../schemas/add-url-to-deck.schema";
 This convention applies to **feature-local schemas** in `apps/web/src/features/*/`.
 
 **Package schemas** (in `packages/*/src/schemas/`) follow a different pattern — they are intentionally extracted for cross-package reuse (e.g., `@repo/deck/schemas/deck-slug.schema.ts` used by both web app and API validation).
+
+---
+
+## Generate App Rules and Regulations
+
+> **Status**: Planning
+> **Priority**: Medium
+> **Dependencies**: None
+
+### Overview
+
+Create comprehensive rules and regulations documentation for the LinkDeck application. This includes legal pages, terms of service, privacy policy, and community guidelines that users must agree to when using the platform.
+
+### Required Documents
+
+| Document | Purpose | Route |
+|----------|---------|-------|
+| **Terms of Service** | Legal agreement governing use of the platform | `/terms` |
+| **Privacy Policy** | How user data is collected, stored, and used | `/privacy` |
+| **Community Guidelines** | Acceptable content and behavior standards | `/guidelines` |
+| **Cookie Policy** | Information about cookies and tracking | `/cookies` |
+| **Acceptable Use Policy** | What content can/cannot be shared via decks | `/acceptable-use` |
+
+### Key Considerations
+
+#### Content Policies
+- [ ] Define what types of URLs/content are prohibited (illegal, harmful, spam)
+- [ ] Establish rules for public deck content
+- [ ] Define moderation policies and enforcement actions
+- [ ] Account suspension/termination criteria
+
+#### Data & Privacy
+- [ ] Data collection practices (Clerk auth, URL metadata, analytics)
+- [ ] Data retention periods
+- [ ] User rights (access, deletion, export)
+- [ ] Third-party services disclosure (Supabase, Clerk, etc.)
+- [ ] GDPR compliance requirements
+
+#### Platform Usage
+- [ ] API usage limits and terms
+- [ ] Browser extension data handling
+- [ ] Deck limits and pricing plan terms
+- [ ] Intellectual property rights (user content ownership)
+
+### Implementation Steps
+
+1. **Draft content** — Write initial versions of all policy documents
+2. **Legal review** — Have documents reviewed for legal compliance
+3. **Create pages** — Add static pages to the web app
+4. **User consent** — Add consent checkboxes during registration
+5. **Version tracking** — Implement policy version history and user consent tracking
+
+### Files to Create
+
+| File | Description |
+|------|-------------|
+| `apps/web/src/app/(legal)/terms/page.tsx` | Terms of Service page |
+| `apps/web/src/app/(legal)/privacy/page.tsx` | Privacy Policy page |
+| `apps/web/src/app/(legal)/guidelines/page.tsx` | Community Guidelines page |
+| `apps/web/src/app/(legal)/cookies/page.tsx` | Cookie Policy page |
+| `apps/web/src/app/(legal)/acceptable-use/page.tsx` | Acceptable Use Policy page |
+| `apps/web/src/app/(legal)/layout.tsx` | Shared layout for legal pages |
+
+### Notes
+
+- Consider using MDX for easier content management
+- Include "Last Updated" dates on all documents
+- Provide summary/TL;DR sections for key policies
+- Ensure mobile-friendly formatting for long documents
 
 ---
 
