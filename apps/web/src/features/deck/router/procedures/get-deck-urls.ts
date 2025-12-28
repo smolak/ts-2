@@ -37,11 +37,19 @@ export const getDeckUrls = publicProcedure
 
       logger.info({ requestId, path, deckId, tagIds, limit, cursor }, "Fetching deck URLs.");
 
-      // 1. Get the deck and check visibility
-      const deck = await db.query.decks.findFirst({
-        where: (decks, { eq }) => eq(decks.id, deckId),
-        columns: { id: true, isPublic: true, userId: true, scheduledForDeletionAt: true },
-      });
+      // 1. Get the deck and viewer in parallel (independent queries)
+      const [deck, viewer] = await Promise.all([
+        db.query.decks.findFirst({
+          where: (decks, { eq }) => eq(decks.id, deckId),
+          columns: { id: true, isPublic: true, userId: true, scheduledForDeletionAt: true },
+        }),
+        auth.userId
+          ? db.query.users.findFirst({
+              where: (users, { eq }) => eq(users.clerkUserId, auth.userId),
+              columns: { id: true },
+            })
+          : Promise.resolve(null),
+      ]);
 
       if (!deck) {
         logger.info({ requestId, path, deckId }, "Deck not found.");
@@ -49,17 +57,7 @@ export const getDeckUrls = publicProcedure
       }
 
       // 2. Check if viewer can see this deck
-      let viewerUserId: string | null = null;
-
-      if (auth.userId) {
-        const viewer = await db.query.users.findFirst({
-          where: (users, { eq }) => eq(users.clerkUserId, auth.userId),
-          columns: { id: true },
-        });
-
-        viewerUserId = viewer?.id ?? null;
-      }
-
+      const viewerUserId = viewer?.id ?? null;
       const isOwner = viewerUserId === deck.userId;
 
       if (!deck.isPublic && !isOwner) {
@@ -73,95 +71,94 @@ export const getDeckUrls = publicProcedure
         return null;
       }
 
-      // 4. Build tag filter subquery if tagIds are provided
-      const hasTagFilter = tagIds.length > 0;
+      // 4. Build WHERE conditions for the main query
+      const whereConditions: ReturnType<typeof orm.eq>[] = [
+        orm.eq(schema.deckUrls.deckId, deckId),
+        orm.eq(schema.usersUrls.isDeleted, false), // Filter deleted URLs at SQL level
+      ];
 
-      // Get userUrlIds that have ALL specified tags for this deck
-      let filteredUserUrlIds: string[] | null = null;
-
-      if (hasTagFilter) {
-        const matchingDeckUrls = await db
-          .select({ userUrlId: schema.deckUrlsTags.userUrlId })
-          .from(schema.deckUrlsTags)
-          .where(orm.and(orm.eq(schema.deckUrlsTags.deckId, deckId), orm.inArray(schema.deckUrlsTags.tagId, tagIds)))
-          .groupBy(schema.deckUrlsTags.userUrlId)
-          .having(orm.sql`COUNT(DISTINCT ${schema.deckUrlsTags.tagId}) = ${tagIds.length}`);
-
-        filteredUserUrlIds = matchingDeckUrls.map((r) => r.userUrlId);
-
-        // If no URLs match the tag filter, return empty result
-        if (filteredUserUrlIds.length === 0) {
-          logger.info({ requestId, path, deckId, tagIds }, "No URLs match tag filter.");
-          return { items: [], nextCursor: null };
-        }
+      if (cursor) {
+        whereConditions.push(orm.lt(schema.deckUrls.addedAt, new Date(cursor)));
       }
 
-      // 5. Fetch deck URLs with cursor-based pagination
-      const deckUrlsWithDetails = await db.query.deckUrls.findMany({
-        where: (deckUrls, { eq, and, lt, inArray }) => {
-          const conditions = [eq(deckUrls.deckId, deckId)];
-          if (cursor) {
-            conditions.push(lt(deckUrls.addedAt, new Date(cursor)));
-          }
-          if (filteredUserUrlIds) {
-            conditions.push(inArray(deckUrls.userUrlId, filteredUserUrlIds));
-          }
-          return and(...conditions);
-        },
-        with: {
-          userUrl: {
-            columns: { id: true, likesCount: true, isDeleted: true },
-            with: {
-              url: {
-                columns: { url: true, metadata: true },
-              },
-            },
-          },
-        },
-        orderBy: (deckUrls, { desc }) => [desc(deckUrls.addedAt)],
-        limit: limit + 1, // Fetch one extra for cursor
-      });
+      // 5. Add tag filter using EXISTS subquery (avoids loading all IDs into memory)
+      // This filters URLs that have ALL specified tags
+      if (tagIds.length > 0) {
+        const tagFilterSubquery = orm.exists(
+          db
+            .select({ one: orm.sql`1` })
+            .from(schema.deckUrlsTags)
+            .where(
+              orm.and(
+                orm.eq(schema.deckUrlsTags.deckId, schema.deckUrls.deckId),
+                orm.eq(schema.deckUrlsTags.userUrlId, schema.deckUrls.userUrlId),
+                orm.inArray(schema.deckUrlsTags.tagId, tagIds),
+              ),
+            )
+            .groupBy(schema.deckUrlsTags.userUrlId)
+            .having(orm.sql`COUNT(DISTINCT ${schema.deckUrlsTags.tagId}) = ${tagIds.length}`),
+        );
+        whereConditions.push(tagFilterSubquery);
+      }
 
-      // 6. Filter out deleted URLs
-      const activeUrls = deckUrlsWithDetails.filter((du) => !du.userUrl.isDeleted);
+      // 6. Fetch deck URLs with tags aggregated via STRING_AGG (single query)
+      const deckUrlsWithDetails = await db
+        .select({
+          addedAt: schema.deckUrls.addedAt,
+          userUrlId: schema.usersUrls.id,
+          likesCount: schema.usersUrls.likesCount,
+          url: schema.urls.url,
+          metadata: schema.urls.metadata,
+          // Aggregate tags into comma-separated string using STRING_AGG
+          tagNamesAgg: orm.sql<
+            string | null
+          >`STRING_AGG(${schema.tags.displayName}, ',' ORDER BY ${schema.tags.displayName})`,
+        })
+        .from(schema.deckUrls)
+        .innerJoin(
+          schema.usersUrls,
+          orm.and(
+            orm.eq(schema.deckUrls.userUrlId, schema.usersUrls.id),
+            orm.eq(schema.usersUrls.isDeleted, false), // isDeleted filter in JOIN for performance
+          ),
+        )
+        .innerJoin(schema.urls, orm.eq(schema.usersUrls.urlId, schema.urls.id))
+        // LEFT JOIN for tags - some URLs may have no tags
+        .leftJoin(
+          schema.deckUrlsTags,
+          orm.and(
+            orm.eq(schema.deckUrls.deckId, schema.deckUrlsTags.deckId),
+            orm.eq(schema.deckUrls.userUrlId, schema.deckUrlsTags.userUrlId),
+          ),
+        )
+        .leftJoin(schema.tags, orm.eq(schema.deckUrlsTags.tagId, schema.tags.id))
+        .where(orm.and(...whereConditions))
+        .groupBy(
+          schema.deckUrls.addedAt,
+          schema.usersUrls.id,
+          schema.usersUrls.likesCount,
+          schema.urls.url,
+          schema.urls.metadata,
+        )
+        .orderBy(orm.desc(schema.deckUrls.addedAt))
+        .limit(limit + 1);
 
       // 7. Determine next cursor
-      const hasMore = activeUrls.length > limit;
-      const items = hasMore ? activeUrls.slice(0, limit) : activeUrls;
+      const hasMore = deckUrlsWithDetails.length > limit;
+      const items = hasMore ? deckUrlsWithDetails.slice(0, limit) : deckUrlsWithDetails;
       const nextCursor = hasMore ? (items[items.length - 1]?.addedAt.toISOString() ?? null) : null;
-
-      // 8. Fetch tags for each deck-URL
-      const userUrlIds = items.map((du) => du.userUrl.id);
-      const deckUrlTags =
-        userUrlIds.length > 0
-          ? await db.query.deckUrlsTags.findMany({
-              where: (dut, { and, eq, inArray }) => and(eq(dut.deckId, deckId), inArray(dut.userUrlId, userUrlIds)),
-              with: {
-                tag: {
-                  columns: { id: true, displayName: true },
-                },
-              },
-            })
-          : [];
-
-      // Group tags by userUrlId
-      const tagsByUserUrlId = new Map<string, string[]>();
-      for (const dut of deckUrlTags) {
-        const existing = tagsByUserUrlId.get(dut.userUrlId) ?? [];
-        existing.push(dut.tag.displayName);
-        tagsByUserUrlId.set(dut.userUrlId, existing);
-      }
 
       logger.info({ requestId, path, deckId, count: items.length, hasMore }, "Deck URLs fetched.");
 
       return {
-        items: items.map((du) => ({
-          userUrlId: du.userUrl.id,
-          url: du.userUrl.url.url,
-          metadata: du.userUrl.url.metadata,
-          addedAt: du.addedAt,
-          likesCount: du.userUrl.likesCount,
-          tagNames: tagsByUserUrlId.get(du.userUrl.id) ?? [],
+        items: items.map((item) => ({
+          userUrlId: item.userUrlId,
+          url: item.url,
+          metadata: item.metadata,
+          addedAt: item.addedAt,
+          likesCount: item.likesCount,
+          // Parse comma-separated tags back into array
+          tagNames: item.tagNamesAgg ? item.tagNamesAgg.split(",") : [],
         })),
         nextCursor,
       };

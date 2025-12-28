@@ -456,7 +456,12 @@ export const deckUrls = pgTable(
       .references(() => usersUrls.id, { onDelete: "restrict" }),
     addedAt: timestamp("added_at", { withTimezone: true }).default(sql`CURRENT_TIMESTAMP`).notNull(),
   },
-  (table) => [primaryKey({ columns: [table.deckId, table.userUrlId] }), index().on(table.userUrlId)],
+  (table) => [
+    primaryKey({ columns: [table.deckId, table.userUrlId] }),
+    index().on(table.userUrlId),
+    // Index for cursor-based pagination: ORDER BY added_at DESC WHERE deck_id = ?
+    index().on(table.deckId, table.addedAt.desc()),
+  ],
 );
 
 export type DeckUrl = InferSelectModel<typeof deckUrls>;

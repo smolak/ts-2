@@ -16,16 +16,17 @@
 8. [Decisions Made](#decisions-made)
 9. [Testing Strategy](#testing-strategy)
 10. [Edge Cases & Considerations](#edge-cases--considerations)
-11. [Security Fixes (Priority)](#security-fixes-priority)
-12. [Phase 9: Integration Tests Infrastructure](#phase-9-integration-tests-infrastructure-for-trpc-procedures)
-13. [Feed Query Cleanup: Remove Tag Filtering](#feed-query-cleanup-remove-tag-filtering)
-14. [User Account Deletion Strategy](#user-account-deletion-strategy)
-15. [Phase 10: Drop Deprecated follows Table](#phase-10-drop-deprecated-follows-table)
-16. [Refactor: Rename usernameNormalized to slug](#refactor-rename-usernamenormalized-to-slug-in-user-profiles)
-17. [Refactor: Standardize name / display_name Column Convention](#refactor-standardize-name--display_name-column-convention)
-18. [Cleanup: Remove Unnecessary Defensive Checks After Drizzle Inserts](#cleanup-remove-unnecessary-defensive-checks-after-drizzle-inserts)
-19. [Utility: International Display Name Normalization](#utility-international-display-name-normalization)
-20. [Convention: Keep Procedure Schemas Inline](#convention-keep-procedure-schemas-inline)
+11. [Remove Soft Delete for URLs](#remove-soft-delete-for-urls)
+12. [Security Fixes (Priority)](#security-fixes-priority)
+13. [Phase 9: Integration Tests Infrastructure](#phase-9-integration-tests-infrastructure-for-trpc-procedures)
+14. [Feed Query Cleanup: Remove Tag Filtering](#feed-query-cleanup-remove-tag-filtering)
+15. [User Account Deletion Strategy](#user-account-deletion-strategy)
+16. [Phase 10: Drop Deprecated follows Table](#phase-10-drop-deprecated-follows-table)
+17. [Refactor: Rename usernameNormalized to slug](#refactor-rename-usernamenormalized-to-slug-in-user-profiles)
+18. [Refactor: Standardize name / display_name Column Convention](#refactor-standardize-name--display_name-column-convention)
+19. [Cleanup: Remove Unnecessary Defensive Checks After Drizzle Inserts](#cleanup-remove-unnecessary-defensive-checks-after-drizzle-inserts)
+20. [Utility: International Display Name Normalization](#utility-international-display-name-normalization)
+21. [Convention: Keep Procedure Schemas Inline](#convention-keep-procedure-schemas-inline)
 
 ---
 
@@ -1404,6 +1405,8 @@ for (const { followerId } of followers) {
 
 ### When URL is Deleted (soft delete)
 
+> ⚠️ **Deprecated**: Soft delete was never implemented. See [Remove Soft Delete for URLs](#remove-soft-delete-for-urls) for cleanup plan.
+
 - `users_urls.is_deleted = true`
 - `deck_urls` entries remain (for audit)
 - URL stops appearing in deck views (filter by `is_deleted = false`)
@@ -1418,6 +1421,99 @@ for (const { followerId } of followers) {
 
 If same URL is in multiple decks user follows, show once in feed.
 Already handled by `feeds` table structure (one entry per user-userUrl).
+
+---
+
+## Remove Soft Delete for URLs
+
+> **Status**: Next
+> **Priority**: High
+> **Type**: Schema Cleanup / Simplification
+
+### Background
+
+The `users_urls` table has an `isDeleted` boolean column intended for soft delete functionality:
+
+```typescript
+// packages/db/src/schema.ts
+isDeleted: boolean("is_deleted").default(false).notNull(),
+```
+
+However, analysis revealed that:
+
+1. **The soft delete API was never implemented** — There is no procedure to set `isDeleted = true`
+2. **All queries filter by `isDeleted = false`** — Adding overhead without benefit
+3. **The only "delete" is `removeUrlFromDeck`** — Which removes from deck, not soft-deletes the `users_urls` record
+
+### Current State
+
+| Component | Status |
+|-----------|--------|
+| Schema column `isDeleted` | ✅ Exists |
+| Partial index `WHERE is_deleted = false` | ✅ Exists |
+| Queries filter `isDeleted = false` | ✅ Implemented in multiple places |
+| API to soft-delete a URL | ❌ **Never implemented** |
+| UI to delete a URL | ❌ **Never implemented** |
+
+### Decision: Remove Soft Delete
+
+Since soft delete was never used and adds unnecessary complexity to every query, remove it entirely:
+
+1. **Simpler queries** — No more `isDeleted = false` filters everywhere
+2. **Simpler schema** — One less column to maintain
+3. **No behavior change** — Feature was never exposed to users
+
+### Implementation Steps
+
+#### 1. Remove from queries
+
+Update all queries that filter by `isDeleted`:
+
+- [ ] `apps/web/src/features/deck/router/procedures/get-deck-urls.ts`
+- [ ] `apps/web/src/features/feed/queries/get-user-feed.ts`
+- [ ] Any other queries filtering by `isDeleted`
+
+#### 2. Update schema
+
+```typescript
+// packages/db/src/schema.ts - REMOVE:
+isDeleted: boolean("is_deleted").default(false).notNull(),
+
+// REMOVE partial index:
+index()
+  .on(table.id)
+  .where(sql`is_deleted = false`),
+```
+
+#### 3. Create migration
+
+```sql
+-- Drop the partial index first
+DROP INDEX IF EXISTS "users_urls_id_index";
+
+-- Remove the column
+ALTER TABLE "users_urls" DROP COLUMN "is_deleted";
+```
+
+#### 4. Update PLAN.md
+
+Remove references to soft delete for URLs in "When URL is Deleted" section.
+
+### Files to Update
+
+- `packages/db/src/schema.ts` — Remove column and index
+- `apps/web/src/features/deck/router/procedures/get-deck-urls.ts` — Remove filter
+- `apps/web/src/features/feed/queries/get-user-feed.ts` — Remove filter
+- `docs/PLAN.md` — Update "When URL is Deleted" section
+
+### Future: If URL Deletion is Needed
+
+If users need to delete URLs in the future, consider:
+
+1. **Hard delete** — Simply delete the `users_urls` record (cascade handles `deck_urls`, `feeds`, etc.)
+2. **Pending deletion** — Like decks/users, add `scheduledForDeletionAt` with grace period
+
+Both are cleaner than the current unused soft delete pattern.
 
 ---
 
