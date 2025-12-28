@@ -1735,9 +1735,10 @@ The security tests for Issues #3-#4 (tag counter manipulation in `updateUserUrl`
 
 ## Feed Query Cleanup: Remove Tag Filtering
 
-> **Status**: Todo
+> **Status**: ✅ Complete
 > **Priority**: High
 > **Identified**: December 27, 2025
+> **Completed**: December 27, 2025
 
 ### Overview
 
@@ -1791,22 +1792,25 @@ tagIds: tagIdsInSearchParams,
 
 ### Implementation Steps
 
-- [ ] **Query cleanup** (`get-user-feed.ts`):
+- [x] **Query cleanup** (`get-user-feed.ts`):
   - Remove `createTagFilterSubquery` function entirely
   - Remove `tagIds` from `GetUserFeedQueryOptions` type
   - Remove `includeTags` variable and `baseTagCondition`
-  - Keep LEFT JOINs to `deckUrlsTags`/`tags` only if displaying tag names in feed items (review if needed)
+  - Keep LEFT JOINs to `deckUrlsTags`/`tags` for displaying tag names in feed items
 
-- [ ] **Procedure cleanup** (`procedures/get-user-feed.ts`):
+- [x] **Procedure cleanup** (`procedures/get-user-feed.ts`):
   - Remove `tagIds` from `querySchema`
   - Remove `tagIds` from `getUserFeedQuery` call
 
-- [ ] **UI cleanup** (`infinite-user-feed.tsx`):
+- [x] **UI cleanup** (`infinite-user-feed.tsx`):
   - Remove `tagsString` and `tagIdsInSearchParams` parsing
   - Remove `tagIds` from query input
+  - Remove `qs` import (no longer needed)
 
-- [ ] **Filter UI cleanup** (if applicable):
-  - Remove tag filter from `feed-list-filters.tsx` if present for feeds
+- [x] **Filter UI cleanup**:
+  - Remove `TagsSelector` from `feed-list-filters.tsx`
+  - Remove `tags` prop from `FeedListFiltersProps`
+  - Update `logged-in-user-content.tsx` to not pass `tags` prop to `FeedListFilters`
   - Keep tag filtering only in deck-specific views
 
 ### Performance Impact
@@ -1819,12 +1823,37 @@ Removing tag filtering will:
 
 ### Notes
 
-- **Deck views retain tag filtering**: When browsing a specific deck (e.g., `/@username/deck-slug`), users can filter by tags that belong to that deck. This makes sense because:
+- **Deck views have tag filtering**: The `/@username/deck-slug` page supports filtering by tags. This was implemented because:
   - Tags are scoped to a deck (each deck has its own tag set)
   - The user is viewing content from a single context where tag filtering is meaningful
-  - The tag filter UI should show only tags used in that specific deck
-- The `tag_names` aggregation with STRING_AGG may still be useful for displaying tags on feed items — evaluate if this is needed
-- If tag display is removed from feed items, the query simplifies significantly
+  - The tag filter UI shows only tags used in that specific deck
+- The `tag_names` aggregation with STRING_AGG is still used in feed items for display purposes
+- Tag names are also shown on deck URL cards
+
+### Deck Tag Filtering Implementation
+
+> **Status**: ✅ Complete
+> **Completed**: December 28, 2025
+
+#### Files Created/Modified
+
+1. **`apps/web/src/features/deck/router/procedures/get-deck-urls.ts`**:
+   - Added `tagIds` parameter to input schema
+   - Implemented tag filtering using `deckUrlsTags` table with GROUP BY/HAVING for "all tags must match"
+   - Added `tagNames` to response items for display
+
+2. **`apps/web/src/features/deck/ui/public-deck/deck-url-list.tsx`**:
+   - Added `tagIds` prop for filtering
+   - Updated empty state message for tag filter scenario
+   - Display tag badges on URL cards
+
+3. **`apps/web/src/features/deck/ui/public-deck/deck-content.tsx`** (new):
+   - Client component wrapping `DeckUrlList` with tag filter UI
+   - Fetches deck tags via `api.tags.getDeckTags`
+   - Manages selected tag state and passes to `DeckUrlList`
+
+4. **`apps/web/src/app/[username]/[slug]/page.tsx`**:
+   - Replaced `DeckUrlList` with `DeckContent` for tag filtering support
 
 ---
 

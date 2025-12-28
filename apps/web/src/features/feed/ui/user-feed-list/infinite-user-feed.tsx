@@ -3,7 +3,6 @@
 import type { User } from "@repo/db/types";
 import type { InfiniteData } from "@tanstack/react-query";
 import { useSearchParams } from "next/navigation";
-import qs from "qs";
 import type { FC } from "react";
 
 import { api } from "@/trpc/react";
@@ -37,8 +36,6 @@ type InfiniteUserFeedProps = {
 
 export const InfiniteUserFeed: FC<InfiniteUserFeedProps> = ({ userId, from, viewerId }) => {
   const searchParams = useSearchParams();
-  const tagsString = qs.parse(searchParams.toString()).tags;
-  const tagIdsInSearchParams = typeof tagsString === "string" ? tagsString.split(",") : [];
   const source = feedSourceSchema.parse(searchParams.get("source"));
   const deckId = searchParams.get("deck") ?? undefined;
   const initialCursor = from ? new Date(from) : undefined;
@@ -47,7 +44,6 @@ export const InfiniteUserFeed: FC<InfiniteUserFeedProps> = ({ userId, from, view
     {
       userId,
       feedSource: source,
-      tagIds: tagIdsInSearchParams,
       deckId,
     },
     {

@@ -1,10 +1,11 @@
 "use client";
 
-import type { Deck, Url } from "@repo/db/types";
+import type { Deck, Tag, Url } from "@repo/db/types";
 import type { ScrappedMetadata } from "@repo/metadata-scrapper/types";
 import { Avatar, AvatarFallback, AvatarImage } from "@repo/ui/components/avatar";
+import { Badge } from "@repo/ui/components/badge";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@repo/ui/components/card";
-import { Calendar, ExternalLink, Globe, Heart, Link2Off } from "lucide-react";
+import { Calendar, ExternalLink, Globe, Heart, Link2Off, Tag as TagIcon } from "lucide-react";
 import { type FC, useEffect, useRef } from "react";
 
 import { api, type RouterOutputs } from "@/trpc/react";
@@ -77,6 +78,17 @@ const DeckUrlCard: FC<DeckUrlCardProps> = ({ item }) => {
           <CardDescription className="mb-3 line-clamp-2">{metadata.description}</CardDescription>
         )}
 
+        {item.tagNames.length > 0 && (
+          <div className="mb-3 flex flex-wrap gap-1">
+            {item.tagNames.map((tagName) => (
+              <Badge key={tagName} variant="secondary" className="text-xs">
+                <TagIcon className="mr-1 h-2.5 w-2.5" />
+                {tagName}
+              </Badge>
+            ))}
+          </div>
+        )}
+
         <div className="flex items-center justify-between text-muted-foreground text-xs">
           <div className="flex items-center gap-3">
             <span className="flex items-center gap-1">
@@ -130,14 +142,15 @@ const LoadingCards: FC = () => (
 
 type DeckUrlListProps = {
   deckId: Deck["id"];
+  tagIds?: Tag["id"][];
 };
 
-export const DeckUrlList: FC<DeckUrlListProps> = ({ deckId }) => {
+export const DeckUrlList: FC<DeckUrlListProps> = ({ deckId, tagIds = [] }) => {
   const observerTarget = useRef<HTMLDivElement>(null);
 
   const { data, isLoading, isError, fetchNextPage, isFetchingNextPage, hasNextPage } =
     api.decks.getDeckUrls.useInfiniteQuery(
-      { deckId, limit: 20 },
+      { deckId, tagIds, limit: 20 },
       {
         getNextPageParam: (lastPage) => lastPage?.nextCursor ?? undefined,
       },
@@ -183,12 +196,19 @@ export const DeckUrlList: FC<DeckUrlListProps> = ({ deckId }) => {
   const urls = aggregateUrls(data);
 
   if (urls.length === 0) {
+    const hasTagFilter = tagIds.length > 0;
     return (
       <Card className="bg-slate-50">
         <CardContent className="flex flex-col items-center gap-2 py-10 text-center">
           <Link2Off className="h-10 w-10 text-slate-400" />
-          <p className="font-medium text-slate-600">No URLs in this deck yet</p>
-          <p className="text-slate-500 text-sm">The deck owner hasn't added any links.</p>
+          <p className="font-medium text-slate-600">
+            {hasTagFilter ? "No URLs match the selected tags" : "No URLs in this deck yet"}
+          </p>
+          <p className="text-slate-500 text-sm">
+            {hasTagFilter
+              ? "Try selecting different tags or clear the filter."
+              : "The deck owner hasn't added any links."}
+          </p>
         </CardContent>
       </Card>
     );

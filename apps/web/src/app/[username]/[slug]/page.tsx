@@ -5,8 +5,8 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import type { ReactNode } from "react";
 
+import { DeckContent } from "@/features/deck/ui/public-deck/deck-content";
 import { DeckHeader } from "@/features/deck/ui/public-deck/deck-header";
-import { DeckUrlList } from "@/features/deck/ui/public-deck/deck-url-list";
 import { api, HydrateClient } from "@/trpc/server";
 
 type Params = {
@@ -87,7 +87,7 @@ export default async function DeckPage({ params }: PageProps): Promise<ReactNode
 
           <section>
             <h2 className="sr-only">URLs in this deck</h2>
-            <DeckUrlList deckId={deck.id} />
+            <DeckContent deckId={deck.id} />
           </section>
         </div>
       </div>

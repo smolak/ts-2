@@ -7,7 +7,6 @@ import { notFound } from "next/navigation";
 import type { ReactNode } from "react";
 import { PublicDecksGrid } from "@/features/deck/ui/public-decks-grid";
 import { InfiniteUserFeed } from "@/features/feed/ui/user-feed-list/infinite-user-feed";
-import { TagsSelector } from "@/features/tag/ui/tags-selector";
 import { toPublicUserProfileDto } from "@/features/user-profile/dto/public-user-profile.dto";
 import { UserProfileCard } from "@/features/user-profile/ui/user-profile-card";
 
@@ -33,18 +32,12 @@ export default async function Page({
 
   const userProfile = toPublicUserProfileDto(maybeUserProfile);
 
-  // Fetch tags and public decks in parallel
-  const [tags, publicDecks] = await Promise.all([
-    db.query.tags.findMany({
-      where: (tags, { eq }) => eq(tags.userId, userProfile.id),
-      orderBy: (tags, { asc }) => asc(tags.name),
-    }),
-    db.query.decks.findMany({
-      where: (decks, { and, eq, isNull }) =>
-        and(eq(decks.userId, userProfile.id), eq(decks.isPublic, true), isNull(decks.scheduledForDeletionAt)),
-      orderBy: (decks, { desc }) => desc(decks.createdAt),
-    }),
-  ]);
+  // Fetch public decks
+  const publicDecks = await db.query.decks.findMany({
+    where: (decks, { and, eq, isNull }) =>
+      and(eq(decks.userId, userProfile.id), eq(decks.isPublic, true), isNull(decks.scheduledForDeletionAt)),
+    orderBy: (decks, { desc }) => desc(decks.createdAt),
+  });
 
   const formattedDecks = publicDecks.map((deck) => ({
     id: deck.id,
@@ -65,11 +58,6 @@ export default async function Page({
               {/* Public Decks Grid */}
               <PublicDecksGrid decks={formattedDecks} username={userProfile.username} />
 
-              <div className="flex flex-col gap-7">
-                <aside className="flex justify-between">
-                  <TagsSelector author={userProfile.username} tags={tags} />
-                </aside>
-              </div>
               <div className="flex flex-col gap-2">
                 <InfiniteUserFeed userId={userProfile.id} viewerId={undefined} />
               </div>

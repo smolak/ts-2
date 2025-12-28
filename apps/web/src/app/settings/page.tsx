@@ -1,5 +1,5 @@
 import { Separator } from "@repo/ui/components/separator";
-import { Layers, Tag, User } from "lucide-react";
+import { Layers, User } from "lucide-react";
 import Link from "next/link";
 
 export default function Page() {
@@ -15,12 +15,6 @@ export default function Page() {
       icon: Layers,
       label: "Decks",
       description: "Create and manage your curated link collections",
-    },
-    {
-      href: "/settings/tags",
-      icon: Tag,
-      label: "Tags",
-      description: "Organize your links with custom tags",
     },
   ];
 

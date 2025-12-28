@@ -1,5 +1,5 @@
 import { db, orm, schema } from "@repo/db/db";
-import type { Deck, Feed, Tag, User } from "@repo/db/types";
+import type { Deck, Feed, User } from "@repo/db/types";
 
 import type { FeedSourceValue } from "../shared/feed-source";
 
@@ -9,47 +9,10 @@ type GetUserFeedQueryOptions = {
   limit: number;
   cursor?: Feed["createdAt"];
   feedSource?: FeedSourceValue;
-  tagIds: Tag["id"][];
   deckId?: Deck["id"];
 };
 
-/**
- * Creates a subquery to efficiently filter deck-URLs that have ALL specified tags.
- * Tags are now per deck-URL via deckUrlsTags table.
- * This approach filters early (before joins) to reduce intermediate result set size.
- */
-const createTagFilterSubquery = (tagIds: Tag["id"][], deckId?: Deck["id"]) => {
-  const baseCondition = orm.inArray(schema.deckUrlsTags.tagId, tagIds);
-  const deckCondition = deckId ? orm.eq(schema.deckUrlsTags.deckId, deckId) : undefined;
-
-  return db
-    .select({
-      deckId: schema.deckUrlsTags.deckId,
-      userUrlId: schema.deckUrlsTags.userUrlId,
-    })
-    .from(schema.deckUrlsTags)
-    .innerJoin(
-      schema.deckUrls,
-      orm.and(
-        orm.eq(schema.deckUrlsTags.deckId, schema.deckUrls.deckId),
-        orm.eq(schema.deckUrlsTags.userUrlId, schema.deckUrls.userUrlId),
-      ),
-    )
-    .innerJoin(schema.usersUrls, orm.eq(schema.deckUrls.userUrlId, schema.usersUrls.id))
-    .where(orm.and(baseCondition, deckCondition, orm.eq(schema.usersUrls.isDeleted, false)))
-    .groupBy(schema.deckUrlsTags.deckId, schema.deckUrlsTags.userUrlId)
-    .having(orm.sql`COUNT(DISTINCT ${schema.deckUrlsTags.tagId}) >= ${tagIds.length}`);
-};
-
-export const getUserFeedQuery = ({
-  userId,
-  viewerId,
-  limit,
-  cursor,
-  feedSource,
-  tagIds,
-  deckId,
-}: GetUserFeedQueryOptions) => {
+export const getUserFeedQuery = ({ userId, viewerId, limit, cursor, feedSource, deckId }: GetUserFeedQueryOptions) => {
   const baseGroupBy = [
     schema.feeds.id,
     schema.userProfiles.username,
@@ -66,8 +29,6 @@ export const getUserFeedQuery = ({
   ];
 
   const groupBy = viewerId ? [...baseGroupBy, schema.usersUrlsInteractions.userId] : baseGroupBy;
-
-  const includeTags = tagIds.length > 0;
 
   const query = db
     .select({
@@ -101,7 +62,7 @@ export const getUserFeedQuery = ({
     )
     // INNER JOIN: usersUrls.urlId is NOT NULL with FK constraint - URL must exist
     .innerJoin(schema.urls, orm.eq(schema.usersUrls.urlId, schema.urls.id))
-    // Tags are now per deck-URL via deckUrlsTags
+    // Tags are now per deck-URL via deckUrlsTags - used only for displaying tag names on feed items
     .leftJoin(
       schema.deckUrlsTags,
       orm.and(
@@ -130,12 +91,6 @@ export const getUserFeedQuery = ({
     );
   }
 
-  // Build WHERE conditions with efficient tag filtering
-  // Tag filtering now uses deckUrlsTags and requires deck context
-  const baseTagCondition = includeTags
-    ? orm.sql`(${schema.feeds.deckId}, ${schema.feeds.userUrlId}) IN (${createTagFilterSubquery(tagIds, deckId)})`
-    : undefined;
-
   // Deck filter condition - filter feed entries by specific deck
   const deckConditionWhere = deckId ? orm.eq(schema.feeds.deckId, deckId) : undefined;
 
@@ -147,19 +102,13 @@ export const getUserFeedQuery = ({
       orm.and(
         userCondition,
         authorCondition,
-        baseTagCondition,
         deckConditionWhere,
         cursor ? orm.lt(schema.feeds.createdAt, cursor) : undefined,
       ),
     );
   } else {
     query.where(
-      orm.and(
-        userCondition,
-        baseTagCondition,
-        deckConditionWhere,
-        cursor ? orm.lt(schema.feeds.createdAt, cursor) : undefined,
-      ),
+      orm.and(userCondition, deckConditionWhere, cursor ? orm.lt(schema.feeds.createdAt, cursor) : undefined),
     );
   }
 
