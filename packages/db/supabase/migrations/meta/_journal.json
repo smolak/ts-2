@@ -43,6 +43,34 @@
       "when": 1765056206021,
       "tag": "0005_add_is_deleted_for_users_urls",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1766087634016,
+      "tag": "0006_add_decks_schema",
+      "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1766092153320,
+      "tag": "0007_feed_deck_id_nullable_for_transition",
+      "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1766867430566,
+      "tag": "0008_tags_per_deck",
+      "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1766935964812,
+      "tag": "0009_add_index_for_cursor_based_pagination",
+      "breakpoints": true
     }
   ]
 }

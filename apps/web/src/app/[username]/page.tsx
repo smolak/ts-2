@@ -1,11 +1,12 @@
 import { db } from "@repo/db/db";
 import type { UserProfile } from "@repo/db/types";
+import type { DeckMetadata } from "@repo/deck/schemas/deck-metadata.schema";
 import { usernameSchema } from "@repo/user-profile/username/schemas/username.schema";
 import { normalizeUsername } from "@repo/user-profile/utils/normalize-username";
 import { notFound } from "next/navigation";
 import type { ReactNode } from "react";
+import { PublicDecksGrid } from "@/features/deck/ui/public-decks-grid";
 import { InfiniteUserFeed } from "@/features/feed/ui/user-feed-list/infinite-user-feed";
-import { TagsSelector } from "@/features/tag/ui/tags-selector";
 import { toPublicUserProfileDto } from "@/features/user-profile/dto/public-user-profile.dto";
 import { UserProfileCard } from "@/features/user-profile/ui/user-profile-card";
 
@@ -30,12 +31,22 @@ export default async function Page({
   }
 
   const userProfile = toPublicUserProfileDto(maybeUserProfile);
-  const tags = await db.query.tags.findMany({
-    where: (tags, { eq }) => eq(tags.userId, userProfile.id),
-    orderBy: (tags, { asc }) => asc(tags.name),
+
+  // Fetch public decks
+  const publicDecks = await db.query.decks.findMany({
+    where: (decks, { and, eq, isNull }) =>
+      and(eq(decks.userId, userProfile.id), eq(decks.isPublic, true), isNull(decks.scheduledForDeletionAt)),
+    orderBy: (decks, { desc }) => desc(decks.createdAt),
   });
 
-  const canFollow = true; // Boolean(user?.id) && userProfile.id !== user?.id;
+  const formattedDecks = publicDecks.map((deck) => ({
+    id: deck.id,
+    name: deck.name,
+    slug: deck.slug,
+    metadata: deck.metadata as DeckMetadata,
+    urlsCount: deck.urlsCount,
+    followersCount: deck.followersCount,
+  }));
 
   return (
     <>
@@ -43,12 +54,10 @@ export default async function Page({
       <div className="inline-block w-1/2">
         <main>
           <div className="flex items-center justify-center">
-            <div className="flex flex-col gap-2">
-              <div className="flex flex-col gap-7">
-                <aside className="flex justify-between">
-                  <TagsSelector author={userProfile.username} tags={tags} />
-                </aside>
-              </div>
+            <div className="flex flex-col gap-6">
+              {/* Public Decks Grid */}
+              <PublicDecksGrid decks={formattedDecks} username={userProfile.username} />
+
               <div className="flex flex-col gap-2">
                 <InfiniteUserFeed userId={userProfile.id} viewerId={undefined} />
               </div>
@@ -57,7 +66,7 @@ export default async function Page({
         </main>
       </div>
       <div className="inline-block w-1/4">
-        <UserProfileCard publicUserProfileData={userProfile} canFollow={canFollow} />
+        <UserProfileCard publicUserProfileData={userProfile} />
       </div>
     </>
   );

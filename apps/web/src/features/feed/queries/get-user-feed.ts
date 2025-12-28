@@ -1,5 +1,5 @@
 import { db, orm, schema } from "@repo/db/db";
-import type { Feed, Tag, User } from "@repo/db/types";
+import type { Deck, Feed, User } from "@repo/db/types";
 
 import type { FeedSourceValue } from "../shared/feed-source";
 
@@ -9,30 +9,10 @@ type GetUserFeedQueryOptions = {
   limit: number;
   cursor?: Feed["createdAt"];
   feedSource?: FeedSourceValue;
-  tagIds: Tag["id"][];
+  deckId?: Deck["id"];
 };
 
-/**
- * Creates a subquery to efficiently filter user_urls that have ALL specified tags.
- * This approach filters early (before joins) to reduce intermediate result set size.
- * Also filters out deleted user-URL relationships.
- */
-const createTagFilterSubquery = (tagIds: Tag["id"][]) => {
-  return db
-    .select({ userUrlId: schema.userUrlsTags.userUrlId })
-    .from(schema.userUrlsTags)
-    .innerJoin(schema.usersUrls, orm.eq(schema.userUrlsTags.userUrlId, schema.usersUrls.id))
-    .where(
-      orm.and(
-        orm.inArray(schema.userUrlsTags.tagId, tagIds),
-        orm.eq(schema.usersUrls.isDeleted, false),
-      ),
-    )
-    .groupBy(schema.userUrlsTags.userUrlId)
-    .having(orm.sql`COUNT(DISTINCT ${schema.userUrlsTags.tagId}) >= ${tagIds.length}`);
-};
-
-export const getUserFeedQuery = ({ userId, viewerId, limit, cursor, feedSource, tagIds }: GetUserFeedQueryOptions) => {
+export const getUserFeedQuery = ({ userId, viewerId, limit, cursor, feedSource, deckId }: GetUserFeedQueryOptions) => {
   const baseGroupBy = [
     schema.feeds.id,
     schema.userProfiles.username,
@@ -43,11 +23,12 @@ export const getUserFeedQuery = ({ userId, viewerId, limit, cursor, feedSource, 
     schema.urls.metadata,
     schema.usersUrls.likesCount,
     schema.feeds.userUrlId,
+    schema.decks.id,
+    schema.decks.name,
+    schema.decks.slug,
   ];
 
   const groupBy = viewerId ? [...baseGroupBy, schema.usersUrlsInteractions.userId] : baseGroupBy;
-
-  const includeTags = tagIds.length > 0;
 
   const query = db
     .select({
@@ -63,21 +44,35 @@ export const getUserFeedQuery = ({ userId, viewerId, limit, cursor, feedSource, 
       userUrl_liked: orm.sql<boolean>`COALESCE(${schema.usersUrlsInteractions.userId} IS NOT NULL, FALSE)`.as(
         "userUrl_liked",
       ),
-      tag_names: orm.sql<string | null>`STRING_AGG(DISTINCT ${schema.tags.name}, ', ' ORDER BY ${schema.tags.name})`,
+      // Tags are now per deck-URL - show displayName from tags in this deck
+      tag_names: orm.sql<
+        string | null
+      >`STRING_AGG(DISTINCT ${schema.tags.displayName}, ', ' ORDER BY ${schema.tags.displayName})`,
+      deck_id: schema.decks.id,
+      deck_name: schema.decks.name,
+      deck_slug: schema.decks.slug,
     })
     .from(schema.feeds)
+    // INNER JOIN: feeds.deckId is now NOT NULL, deck must exist
+    .innerJoin(schema.decks, orm.eq(schema.feeds.deckId, schema.decks.id))
     // Use INNER JOIN since we always filter by isDeleted = false, filtering earlier improves performance
     .innerJoin(
       schema.usersUrls,
+      orm.and(orm.eq(schema.feeds.userUrlId, schema.usersUrls.id), orm.eq(schema.usersUrls.isDeleted, false)),
+    )
+    // INNER JOIN: usersUrls.urlId is NOT NULL with FK constraint - URL must exist
+    .innerJoin(schema.urls, orm.eq(schema.usersUrls.urlId, schema.urls.id))
+    // Tags are now per deck-URL via deckUrlsTags - used only for displaying tag names on feed items
+    .leftJoin(
+      schema.deckUrlsTags,
       orm.and(
-        orm.eq(schema.feeds.userUrlId, schema.usersUrls.id),
-        orm.eq(schema.usersUrls.isDeleted, false),
+        orm.eq(schema.feeds.deckId, schema.deckUrlsTags.deckId),
+        orm.eq(schema.feeds.userUrlId, schema.deckUrlsTags.userUrlId),
       ),
     )
-    .leftJoin(schema.urls, orm.eq(schema.usersUrls.urlId, schema.urls.id))
-    .leftJoin(schema.userUrlsTags, orm.eq(schema.usersUrls.id, schema.userUrlsTags.userUrlId))
-    .leftJoin(schema.tags, orm.eq(schema.userUrlsTags.tagId, schema.tags.id))
-    .leftJoin(schema.userProfiles, orm.eq(schema.usersUrls.userId, schema.userProfiles.userId))
+    .leftJoin(schema.tags, orm.eq(schema.deckUrlsTags.tagId, schema.tags.id))
+    // INNER JOIN: users who have feed entries must have profiles (business logic requirement)
+    .innerJoin(schema.userProfiles, orm.eq(schema.usersUrls.userId, schema.userProfiles.userId))
     .groupBy(...groupBy)
     .orderBy(orm.desc(schema.feeds.createdAt));
 
@@ -96,10 +91,8 @@ export const getUserFeedQuery = ({ userId, viewerId, limit, cursor, feedSource, 
     );
   }
 
-  // Build WHERE conditions with efficient tag filtering
-  const baseTagCondition = includeTags
-    ? orm.inArray(schema.feeds.userUrlId, orm.sql`(${createTagFilterSubquery(tagIds)})`)
-    : undefined;
+  // Deck filter condition - filter feed entries by specific deck
+  const deckConditionWhere = deckId ? orm.eq(schema.feeds.deckId, deckId) : undefined;
 
   // Note: isDeleted filter is now in the INNER JOIN condition above for better performance
   // No need to filter again in WHERE clause
@@ -109,31 +102,29 @@ export const getUserFeedQuery = ({ userId, viewerId, limit, cursor, feedSource, 
       orm.and(
         userCondition,
         authorCondition,
-        baseTagCondition,
+        deckConditionWhere,
         cursor ? orm.lt(schema.feeds.createdAt, cursor) : undefined,
       ),
     );
   } else {
     query.where(
-      orm.and(
-        userCondition,
-        baseTagCondition,
-        cursor ? orm.lt(schema.feeds.createdAt, cursor) : undefined,
-      ),
+      orm.and(userCondition, deckConditionWhere, cursor ? orm.lt(schema.feeds.createdAt, cursor) : undefined),
     );
   }
 
   query.limit(limit);
 
-  // Uncomment to debug generated SQL query and verify query plan
-  const { sql, params } = query.toSQL();
+  console.log("THE ENV IS:", process.env.NODE_ENV);
 
-  const formattedSQL = sql.replace(/\$(\d+)/g, (_, index) => {
-    const value = params[parseInt(index, 10) - 1]; // Convert 1-based index to 0-based
-    return typeof value === "string" ? `'${value}'` : String(value);
-  });
-
-  console.log("getUserFeedQuery SQL:", formattedSQL);
+  // Debug logging - only in development
+  if (process.env.NODE_ENV === "development") {
+    const { sql, params } = query.toSQL();
+    const formattedSQL = sql.replace(/\$(\d+)/g, (_, index) => {
+      const value = params[parseInt(index, 10) - 1];
+      return typeof value === "string" ? `'${value}'` : String(value);
+    });
+    console.log("getUserFeedQuery SQL:", formattedSQL);
+  }
 
   return query;
 };

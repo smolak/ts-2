@@ -1,4 +1,8 @@
 export type {
+  Deck,
+  DeckFollow,
+  DeckUrl,
+  DeckUrlTag,
   Feed,
   Follow,
   InteractionType,
@@ -7,8 +11,8 @@ export type {
   UrlHashes,
   UrlHashesCompoundHashesCount,
   User,
+  UserPlan,
   UserProfile,
   UserUrl,
   UserUrlInteraction,
-  UserUrlTag,
 } from "./schema";

@@ -14,10 +14,13 @@ export const NOT_ALLOWED_NORMALIZED_USERNAMES = ["admin", "urlshare", "contact",
 
 const restrictedUsernameSchema = usernameSchema.refine(
   (username) => {
-    return (
-      !NOT_ALLOWED_NORMALIZED_USERNAMES.includes(username.toLowerCase()) ||
-      username.toLocaleLowerCase().startsWith("urlshare")
-    );
+    const normalized = username.toLowerCase();
+    // Allow "urlshareXXX" (e.g., "urlshare_official") but not "urlshare" exactly
+    if (normalized.startsWith("urlshare") && normalized.length > "urlshare".length) {
+      return true;
+    }
+    // Block everything in the not-allowed list
+    return !NOT_ALLOWED_NORMALIZED_USERNAMES.includes(normalized);
   },
   {
     message: "Username not allowed.",

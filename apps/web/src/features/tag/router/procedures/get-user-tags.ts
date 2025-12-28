@@ -1,26 +1,50 @@
+import { deckIdSchema } from "@repo/db/id/deck-id";
 import type { TagDto } from "@repo/tag/dto/tag.dto";
+import { TRPCError } from "@trpc/server";
+import { z } from "zod";
+
 import { protectedProcedure } from "@/server/api/trpc";
 
-type GetUserTagsResult = TagDto[];
+type GetDeckTagsResult = TagDto[];
 
-export const getUserTags = protectedProcedure.query<GetUserTagsResult>(
-  async ({ ctx: { logger, requestId, db, userId } }) => {
-    const path = "tag.getUserTags";
+const getDeckTagsSchema = z.object({
+  deckId: deckIdSchema,
+});
 
-    logger.info({ requestId, path, userId }, "Fetching user's tags.");
+export const getDeckTags = protectedProcedure
+  .input(getDeckTagsSchema)
+  .query<GetDeckTagsResult>(async ({ input: { deckId }, ctx: { logger, requestId, db, userId } }) => {
+    const path = "tag.getDeckTags";
+
+    // Verify deck belongs to user
+    const deck = await db.query.decks.findFirst({
+      where: (decks, { and, eq, isNull }) =>
+        and(eq(decks.id, deckId), eq(decks.userId, userId), isNull(decks.scheduledForDeletionAt)),
+      columns: { id: true },
+    });
+
+    if (!deck) {
+      logger.error({ requestId, path, deckId }, "Deck not found or not owned by user.");
+      throw new TRPCError({
+        code: "NOT_FOUND",
+        message: "Deck not found.",
+      });
+    }
+
+    logger.info({ requestId, path, deckId }, "Fetching deck's tags.");
 
     const tags = await db.query.tags.findMany({
       columns: {
         id: true,
         name: true,
+        displayName: true,
         urlsCount: true,
       },
-      where: (tags, { eq }) => eq(tags.userId, userId),
+      where: (tags, { eq }) => eq(tags.deckId, deckId),
       orderBy: (tags, { asc }) => [asc(tags.name)],
     });
 
-    logger.info({ requestId, path, userId }, "User's tags fetched.");
+    logger.info({ requestId, path, deckId, count: tags.length }, "Deck's tags fetched.");
 
     return tags;
-  },
-);
+  });

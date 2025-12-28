@@ -1,0 +1,1 @@
+CREATE INDEX "deck_urls_deck_id_added_at_index" ON "deck_urls" USING btree ("deck_id","added_at" DESC NULLS LAST);

@@ -15,7 +15,8 @@
       "**/*.json",
       "!**/src/routeTree.gen.ts",
       "!**/.wxt/**/*",
-      "!**/.next/**/*"
+      "!**/.next/**/*",
+      "!**/.turbo/**/*"
     ]
   },
   "formatter": {

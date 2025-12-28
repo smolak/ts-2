@@ -17,6 +17,7 @@
   "dependencies": {
     "@hookform/resolvers": "catalog:",
     "@repo/db": "workspace:*",
+    "@repo/deck": "workspace:*",
     "@repo/metadata-scrapper": "workspace:*",
     "@repo/tag": "workspace:*",
     "@repo/ui": "workspace:*",

@@ -3,52 +3,61 @@ import { TRPCError } from "@trpc/server";
 
 import { protectedProcedure } from "@/server/api/trpc";
 
-import { type UpdateTagSchema, updateTagSchema } from "../../schemas/update-tag.schema";
-
-// TODO: Split schema exports from server-only procedures for all router procedures to prevent client-side imports of server code
-export type { UpdateTagSchema };
-export { updateTagSchema };
+import { updateTagSchema } from "../../schemas/update-tag.schema";
 
 export const updateTag = protectedProcedure
   .input(updateTagSchema)
-  .mutation(async ({ input: { id, name }, ctx: { logger, requestId, userId, db } }) => {
+  .mutation(async ({ input: { id, name: displayName }, ctx: { logger, requestId, userId, db } }) => {
     const path = "tag.updateTag";
 
+    // Normalize name for uniqueness check
+    const name = displayName.toLowerCase().trim();
+
+    // Find tag and verify ownership through deck
     const maybeTag = await db.query.tags.findFirst({
-      where: (tags, { and, eq }) => and(eq(tags.id, id), eq(tags.userId, userId)),
+      where: (tags, { eq }) => eq(tags.id, id),
+      columns: { id: true, deckId: true },
+      with: {
+        deck: {
+          columns: { userId: true },
+        },
+      },
     });
 
-    if (!maybeTag) {
-      logger.error({ requestId, path }, `Tag (${name}) doesn't exist.`);
+    if (!maybeTag || maybeTag.deck.userId !== userId) {
+      logger.error({ requestId, path, tagId: id }, "Tag not found or not owned by user.");
 
       throw new TRPCError({
-        code: "BAD_REQUEST",
-        message: `Tag (${name}) doesn't exists.`,
+        code: "NOT_FOUND",
+        message: "Tag not found.",
       });
     }
 
+    // Check if another tag with same normalized name exists in this deck
     const maybeExists = await db.query.tags.findFirst({
-      where: (tags, { and, eq, not }) => and(eq(tags.userId, userId), eq(tags.name, name), not(eq(tags.id, id))),
+      where: (tags, { and, eq, not }) =>
+        and(eq(tags.deckId, maybeTag.deckId), eq(tags.name, name), not(eq(tags.id, id))),
     });
 
     if (maybeExists) {
-      logger.error({ requestId, path }, `Tag (${name}) exists.`);
+      logger.error({ requestId, path, name }, `Tag (${name}) already exists in deck.`);
 
       throw new TRPCError({
         code: "BAD_REQUEST",
-        message: `Tag name exists. Use different tag name.`,
+        message: "Tag name already exists in this deck. Use a different name.",
       });
     }
 
     const [updatedTag] = await db
       .update(schema.tags)
-      .set({
-        name,
-      })
+      .set({ name, displayName })
       .where(orm.eq(schema.tags.id, id))
-      .returning();
-
-    logger.info({ requestId, path, name }, "Tag updated.");
+      .returning({
+        id: schema.tags.id,
+        name: schema.tags.name,
+        displayName: schema.tags.displayName,
+        urlsCount: schema.tags.urlsCount,
+      });
 
     if (!updatedTag) {
       logger.error({ requestId, path }, "Tag could not be updated.");
@@ -58,6 +67,8 @@ export const updateTag = protectedProcedure
         message: "Tag could not be updated, try again.",
       });
     }
+
+    logger.info({ requestId, path, tagId: id, name, displayName }, "Tag updated.");
 
     return updatedTag;
   });

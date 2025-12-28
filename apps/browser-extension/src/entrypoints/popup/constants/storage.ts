@@ -1,2 +1,4 @@
 export const API_KEY_STORAGE_KEY = "API_KEY";
 export const TAGS_STORAGE_KEY = "TAGS";
+export const DECKS_STORAGE_KEY = "DECKS";
+export const DEFAULT_DECK_ID_STORAGE_KEY = "DEFAULT_DECK_ID";

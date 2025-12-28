@@ -6,8 +6,8 @@ import { Calendar, ExternalLink, Globe, Image as ImageIcon, MoreHorizontal, User
 import Link from "next/link";
 import type { FC, ReactNode } from "react";
 import { LogoIcon } from "@/components/logo";
+import { UserImage } from "@/features/user/ui/user-image";
 
-import { UserImage } from "../../../user/ui/user-image";
 import type { FeedDTO } from "../../dto/feed.dto";
 
 type FeedListItemProps = {

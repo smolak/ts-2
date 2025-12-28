@@ -1,39 +1,45 @@
+import { deckIdSchema } from "@repo/db/id/deck-id";
 import { userUrlIdSchema } from "@repo/db/id/user-url-id";
 import { z } from "zod";
 import { publicProcedure } from "@/server/api/trpc";
 
-export const getUserUrlTagsSchema = z.object({
+export const getDeckUrlTagsSchema = z.object({
+  deckId: deckIdSchema,
   userUrlId: userUrlIdSchema,
 });
 
-export const getUserUrlTags = publicProcedure
-  .input(getUserUrlTagsSchema)
-  .query(async ({ ctx: { logger, requestId, db }, input: { userUrlId } }) => {
-    const path = `tag.${getUserUrlTags.name}`;
+export const getDeckUrlTags = publicProcedure
+  .input(getDeckUrlTagsSchema)
+  .query(async ({ ctx: { logger, requestId, db }, input: { deckId, userUrlId } }) => {
+    const path = "tag.getDeckUrlTags";
 
-    logger.info({ requestId, path, userUrlId }, "Fetching user url's tags.");
+    logger.info({ requestId, path, deckId, userUrlId }, "Fetching deck URL tags.");
 
-    // Verify the userUrl exists and is not deleted
-    const userUrl = await db.query.usersUrls.findFirst({
-      where: (usersUrls, { and, eq }) => and(eq(usersUrls.id, userUrlId), eq(usersUrls.isDeleted, false)),
-      columns: {
-        id: true,
-      },
+    // Verify the deck-URL association exists
+    const deckUrl = await db.query.deckUrls.findFirst({
+      where: (deckUrls, { and, eq }) => and(eq(deckUrls.deckId, deckId), eq(deckUrls.userUrlId, userUrlId)),
+      columns: { deckId: true },
     });
 
-    if (!userUrl) {
-      logger.warn({ requestId, path, userUrlId }, "UserUrl not found or deleted.");
+    if (!deckUrl) {
+      logger.warn({ requestId, path, deckId, userUrlId }, "Deck-URL association not found.");
+
       return [];
     }
 
-    const userUrlTags = await db.query.userUrlsTags.findMany({
-      columns: {
-        tagId: true,
+    // Get tags for this deck-URL
+    const deckUrlTags = await db.query.deckUrlsTags.findMany({
+      where: (dut, { and, eq }) => and(eq(dut.deckId, deckId), eq(dut.userUrlId, userUrlId)),
+      columns: { tagId: true },
+      with: {
+        tag: {
+          columns: { id: true, name: true, displayName: true },
+        },
       },
-      where: (userUrlsTags, { eq }) => eq(userUrlsTags.userUrlId, userUrlId),
+      orderBy: (dut, { asc }) => [asc(dut.tagOrder)],
     });
 
-    logger.info({ requestId, path, userUrlId }, "User url's tags fetched.");
+    logger.info({ requestId, path, deckId, userUrlId, count: deckUrlTags.length }, "Deck URL tags fetched.");
 
-    return userUrlTags;
+    return deckUrlTags.map((dut) => dut.tag);
   });

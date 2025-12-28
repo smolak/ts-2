@@ -1,39 +1,24 @@
-import type { Feed, Tag, Url, UserProfile, UserUrl } from "@repo/db/types";
+import type { Deck, Feed, Tag, Url, UserProfile, UserUrl } from "@repo/db/types";
 import type { ScrappedMetadata } from "@repo/metadata-scrapper/types";
 
 type Metadata = ScrappedMetadata;
 
 type RawFeedEntry = {
-  user_username: UserProfile["username"] | null;
-  user_userId: UserProfile["userId"] | null;
-  user_imageUrl: UserProfile["imageUrl"] | null;
+  user_username: UserProfile["username"];
+  user_userId: UserProfile["userId"];
+  user_imageUrl: UserProfile["imageUrl"];
   feed_id: Feed["id"];
   feed_createdAt: Feed["createdAt"];
   userUrl_liked: boolean;
-  url_url: Url["url"] | null;
+  url_url: Url["url"];
   url_metadata: unknown;
-  url_likesCount: UserUrl["likesCount"] | null;
+  url_likesCount: UserUrl["likesCount"];
   userUrl_id: UserUrl["id"];
   tag_names: string | null;
+  deck_id: Deck["id"] | null;
+  deck_name: Deck["name"] | null;
+  deck_slug: Deck["slug"] | null;
 };
-
-/**
- * 
- * entry: {
-    user_username: string | null;
-    user_imageUrl: string | null;
-    user_userId: string | null;
-    feed_id: string;
-    feed_createdAt: Date;
-    url_url: string | null;
-    url_metadata: unknown;
-    url_likesCount: number | null;
-    userUrl_id: string;
-    userUrl_liked: boolean;
-    tag_names: string | null;
-}
- * @returns 
- */
 
 // Filter metadata to only include known properties from ScrappedMetadata
 const filterMetadata = (metadata: unknown): Metadata => {
@@ -66,26 +51,31 @@ const filterMetadata = (metadata: unknown): Metadata => {
   return filtered;
 };
 
-// Had to cast here due to obtaining the data using JOINS, which can return null values.
-// I know which values can't be null, therefore casting those.
-// TODO - add schema to avoid casting? Not sure if this is necessary, to avoid additional complexity.
 export const toFeedDTO = (entry: RawFeedEntry): FeedDTO => {
   return {
     id: entry.feed_id,
     createdAt: entry.feed_createdAt.toISOString(),
     user: {
-      id: entry.user_userId as UserProfile["userId"],
+      id: entry.user_userId,
       imageUrl: entry.user_imageUrl,
-      username: entry.user_username as UserProfile["username"],
+      username: entry.user_username,
     },
     url: {
-      url: entry.url_url as string,
+      url: entry.url_url,
       metadata: filterMetadata(entry.url_metadata),
-      likesCount: entry.url_likesCount as UserUrl["likesCount"],
+      likesCount: entry.url_likesCount,
       liked: entry.userUrl_liked || false,
       tagNames: entry.tag_names ? entry.tag_names.split(",") : [],
     },
     userUrlId: entry.userUrl_id,
+    deck:
+      entry.deck_id && entry.deck_name && entry.deck_slug
+        ? {
+            id: entry.deck_id,
+            name: entry.deck_name,
+            slug: entry.deck_slug,
+          }
+        : null,
   };
 };
 
@@ -107,4 +97,9 @@ export type FeedDTO = {
     tagNames: Tag["name"][];
   };
   userUrlId: UserUrl["id"];
+  deck: {
+    id: Deck["id"];
+    name: Deck["name"];
+    slug: Deck["slug"];
+  } | null;
 };
