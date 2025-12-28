@@ -1,5 +1,6 @@
 "use client";
 
+import type { UserPlan } from "@repo/db/types";
 import { DECK_LIMITS } from "@repo/deck/config/deck-limits";
 import type { DeckDto } from "@repo/deck/dto/deck.dto";
 import { Progress } from "@repo/ui/components/progress";
@@ -8,11 +9,10 @@ import type { FC } from "react";
 
 type DeckLimitsUsageProps = {
   decks: ReadonlyArray<DeckDto>;
+  userPlan: UserPlan;
 };
 
-export const DeckLimitsUsage: FC<DeckLimitsUsageProps> = ({ decks }) => {
-  // TODO: Get user's actual plan from API when available
-  const userPlan = "free" as const;
+export const DeckLimitsUsage: FC<DeckLimitsUsageProps> = ({ decks, userPlan }) => {
   const limits = DECK_LIMITS[userPlan];
 
   const publicCount = decks.filter((d) => d.isPublic).length;

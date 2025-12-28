@@ -13,8 +13,9 @@ import { LoadingDecks } from "./loading-decks";
 
 export const DecksSettings: FC = () => {
   const { data, isLoading, isError, refetch } = api.decks.getUserDecks.useQuery();
+  const { data: userProfile, isLoading: isProfileLoading } = api.userProfiles.getPrivateUserProfile.useQuery();
 
-  if (isLoading) {
+  if (isLoading || isProfileLoading) {
     return <LoadingDecks />;
   }
 
@@ -24,10 +25,11 @@ export const DecksSettings: FC = () => {
 
   const activeDecks = data?.filter((deck) => !deck.scheduledForDeletionAt) ?? [];
   const pendingDeletionDecks = data?.filter((deck) => deck.scheduledForDeletionAt) ?? [];
+  const userPlan = userProfile?.plan ?? "free";
 
   return (
     <div className="flex flex-col gap-6 md:max-w-[550px]">
-      <DeckLimitsUsage decks={activeDecks} />
+      <DeckLimitsUsage decks={activeDecks} userPlan={userPlan} />
       <CreateDeck onDeckCreated={() => refetch()} />
       <div className="flex flex-col gap-2">
         {activeDecks.length > 0 ? (

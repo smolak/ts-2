@@ -1,6 +1,6 @@
 import type { Maybe } from "@repo/shared/types";
 import { protectedProcedure } from "@/server/api/trpc";
-import { type PrivateUserProfileDto, toPrivateUserProfileDto } from "../../dto/private-user-profile.dto";
+import type { PrivateUserProfileDto } from "../../dto/private-user-profile.dto";
 
 export const getPrivateUserProfile = protectedProcedure.query<Maybe<PrivateUserProfileDto>>(
   async ({ ctx: { logger, requestId, userId, db } }) => {
@@ -18,17 +18,19 @@ export const getPrivateUserProfile = protectedProcedure.query<Maybe<PrivateUserP
         user: {
           columns: {
             apiKey: true,
+            plan: true,
           },
         },
       },
     });
 
     if (maybeUserProfile) {
-      return toPrivateUserProfileDto({
+      return {
         ...maybeUserProfile,
         id: userId,
         apiKey: maybeUserProfile.user.apiKey,
-      });
+        plan: maybeUserProfile.user.plan,
+      };
     }
 
     logger.info({ requestId, path, userId }, "User not found");

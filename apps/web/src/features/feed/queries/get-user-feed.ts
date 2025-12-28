@@ -114,6 +114,8 @@ export const getUserFeedQuery = ({ userId, viewerId, limit, cursor, feedSource, 
 
   query.limit(limit);
 
+  console.log("THE ENV IS:", process.env.NODE_ENV);
+
   // Debug logging - only in development
   if (process.env.NODE_ENV === "development") {
     const { sql, params } = query.toSQL();
