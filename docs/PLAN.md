@@ -1406,13 +1406,11 @@ for (const { followerId } of followers) {
 - [ ] Cannot follow deck after it becomes private
 - [ ] Can follow again after deck is made public again
 
-### When URL is Deleted (soft delete)
+### When URL is Deleted
 
-> ⚠️ **Deprecated**: Soft delete was never implemented. See [Remove Soft Delete for URLs](#remove-soft-delete-for-urls) for cleanup plan.
+Currently, URLs cannot be deleted by users. The `users_urls` records are permanent.
 
-- `users_urls.is_deleted = true`
-- `deck_urls` entries remain (for audit)
-- URL stops appearing in deck views (filter by `is_deleted = false`)
+If URL deletion is needed in the future, see the [Remove Soft Delete for URLs](#remove-soft-delete-for-urls) section for recommended approaches (hard delete or pending deletion with grace period).
 
 ### Slug Conflicts
 
@@ -1429,86 +1427,29 @@ Already handled by `feeds` table structure (one entry per user-userUrl).
 
 ## Remove Soft Delete for URLs
 
-> **Status**: Next
+> **Status**: ✅ Complete
 > **Priority**: High
 > **Type**: Schema Cleanup / Simplification
+> **Completed**: December 28, 2025
 
-### Background
+### Summary
 
-The `users_urls` table has an `isDeleted` boolean column intended for soft delete functionality:
+Removed the unused soft delete functionality (`isDeleted` column) from the `users_urls` table. The feature was never implemented (no API to set `isDeleted = true`) and added unnecessary query overhead.
 
-```typescript
-// packages/db/src/schema.ts
-isDeleted: boolean("is_deleted").default(false).notNull(),
-```
+### Changes Made
 
-However, analysis revealed that:
+1. **Removed `isDeleted` filters from queries:**
+   - `apps/web/src/features/deck/router/procedures/get-deck-urls.ts`
+   - `apps/web/src/features/feed/queries/get-user-feed.ts`
+   - `apps/web/src/features/feed/router/procedures/toggle-like-url.ts`
 
-1. **The soft delete API was never implemented** — There is no procedure to set `isDeleted = true`
-2. **All queries filter by `isDeleted = false`** — Adding overhead without benefit
-3. **The only "delete" is `removeUrlFromDeck`** — Which removes from deck, not soft-deletes the `users_urls` record
+2. **Updated schema** (`packages/db/src/schema.ts`):
+   - Removed `isDeleted` column from `usersUrls` table
+   - Removed partial index on `is_deleted = false`
 
-### Current State
-
-| Component | Status |
-|-----------|--------|
-| Schema column `isDeleted` | ✅ Exists |
-| Partial index `WHERE is_deleted = false` | ✅ Exists |
-| Queries filter `isDeleted = false` | ✅ Implemented in multiple places |
-| API to soft-delete a URL | ❌ **Never implemented** |
-| UI to delete a URL | ❌ **Never implemented** |
-
-### Decision: Remove Soft Delete
-
-Since soft delete was never used and adds unnecessary complexity to every query, remove it entirely:
-
-1. **Simpler queries** — No more `isDeleted = false` filters everywhere
-2. **Simpler schema** — One less column to maintain
-3. **No behavior change** — Feature was never exposed to users
-
-### Implementation Steps
-
-#### 1. Remove from queries
-
-Update all queries that filter by `isDeleted`:
-
-- [ ] `apps/web/src/features/deck/router/procedures/get-deck-urls.ts`
-- [ ] `apps/web/src/features/feed/queries/get-user-feed.ts`
-- [ ] `apps/web/src/features/feed/router/procedures/toggle-like-url.ts`
-
-#### 2. Update schema
-
-```typescript
-// packages/db/src/schema.ts - REMOVE:
-isDeleted: boolean("is_deleted").default(false).notNull(),
-
-// REMOVE partial index:
-index()
-  .on(table.id)
-  .where(sql`is_deleted = false`),
-```
-
-#### 3. Create migration
-
-```sql
--- Drop the partial index first
-DROP INDEX IF EXISTS "users_urls_id_index";
-
--- Remove the column
-ALTER TABLE "users_urls" DROP COLUMN "is_deleted";
-```
-
-#### 4. Update PLAN.md
-
-Remove references to soft delete for URLs in "When URL is Deleted" section.
-
-### Files to Update
-
-- `packages/db/src/schema.ts` — Remove column and index
-- `apps/web/src/features/deck/router/procedures/get-deck-urls.ts` — Remove filter
-- `apps/web/src/features/feed/queries/get-user-feed.ts` — Remove filter
-- `apps/web/src/features/feed/router/procedures/toggle-like-url.ts` — Remove filter
-- `docs/PLAN.md` — Update "When URL is Deleted" section
+3. **Created migration** (`0010_remove_soft_delete_for_urls.sql`):
+   - Drops the partial index
+   - Drops the `is_deleted` column
 
 ### Future: If URL Deletion is Needed
 
@@ -1516,8 +1457,6 @@ If users need to delete URLs in the future, consider:
 
 1. **Hard delete** — Simply delete the `users_urls` record (cascade handles `deck_urls`, `feeds`, etc.)
 2. **Pending deletion** — Like decks/users, add `scheduledForDeletionAt` with grace period
-
-Both are cleaner than the current unused soft delete pattern.
 
 ---
 

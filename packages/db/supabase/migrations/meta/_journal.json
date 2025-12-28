@@ -71,6 +71,13 @@
       "when": 1766935964812,
       "tag": "0009_add_index_for_cursor_based_pagination",
       "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1766940708526,
+      "tag": "0010_remove_soft_delete",
+      "breakpoints": true
     }
   ]
 }

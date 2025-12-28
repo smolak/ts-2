@@ -55,11 +55,8 @@ export const getUserFeedQuery = ({ userId, viewerId, limit, cursor, feedSource, 
     .from(schema.feeds)
     // INNER JOIN: feeds.deckId is now NOT NULL, deck must exist
     .innerJoin(schema.decks, orm.eq(schema.feeds.deckId, schema.decks.id))
-    // Use INNER JOIN since we always filter by isDeleted = false, filtering earlier improves performance
-    .innerJoin(
-      schema.usersUrls,
-      orm.and(orm.eq(schema.feeds.userUrlId, schema.usersUrls.id), orm.eq(schema.usersUrls.isDeleted, false)),
-    )
+    // INNER JOIN: feeds.userUrlId references usersUrls - URL must exist
+    .innerJoin(schema.usersUrls, orm.eq(schema.feeds.userUrlId, schema.usersUrls.id))
     // INNER JOIN: usersUrls.urlId is NOT NULL with FK constraint - URL must exist
     .innerJoin(schema.urls, orm.eq(schema.usersUrls.urlId, schema.urls.id))
     // Tags are now per deck-URL via deckUrlsTags - used only for displaying tag names on feed items
@@ -94,9 +91,6 @@ export const getUserFeedQuery = ({ userId, viewerId, limit, cursor, feedSource, 
   // Deck filter condition - filter feed entries by specific deck
   const deckConditionWhere = deckId ? orm.eq(schema.feeds.deckId, deckId) : undefined;
 
-  // Note: isDeleted filter is now in the INNER JOIN condition above for better performance
-  // No need to filter again in WHERE clause
-
   if (feedSource === "author") {
     query.where(
       orm.and(
@@ -113,8 +107,6 @@ export const getUserFeedQuery = ({ userId, viewerId, limit, cursor, feedSource, 
   }
 
   query.limit(limit);
-
-  console.log("THE ENV IS:", process.env.NODE_ENV);
 
   // Debug logging - only in development
   if (process.env.NODE_ENV === "development") {

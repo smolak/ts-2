@@ -73,10 +73,7 @@ export const getDeckUrls = publicProcedure
       }
 
       // 4. Build WHERE conditions for the main query
-      const whereConditions: ReturnType<typeof orm.eq>[] = [
-        orm.eq(schema.deckUrls.deckId, deckId),
-        orm.eq(schema.usersUrls.isDeleted, false), // Filter deleted URLs at SQL level
-      ];
+      const whereConditions: ReturnType<typeof orm.eq>[] = [orm.eq(schema.deckUrls.deckId, deckId)];
 
       if (cursor) {
         whereConditions.push(orm.lt(schema.deckUrls.addedAt, new Date(cursor)));
@@ -116,13 +113,7 @@ export const getDeckUrls = publicProcedure
           >`STRING_AGG(${schema.tags.displayName}, ',' ORDER BY ${schema.tags.displayName})`,
         })
         .from(schema.deckUrls)
-        .innerJoin(
-          schema.usersUrls,
-          orm.and(
-            orm.eq(schema.deckUrls.userUrlId, schema.usersUrls.id),
-            orm.eq(schema.usersUrls.isDeleted, false), // isDeleted filter in JOIN for performance
-          ),
-        )
+        .innerJoin(schema.usersUrls, orm.eq(schema.deckUrls.userUrlId, schema.usersUrls.id))
         .innerJoin(schema.urls, orm.eq(schema.usersUrls.urlId, schema.urls.id))
         // LEFT JOIN for tags - some URLs may have no tags
         .leftJoin(
