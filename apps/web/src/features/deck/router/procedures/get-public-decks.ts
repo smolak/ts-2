@@ -50,6 +50,14 @@ export const getPublicDecks = publicProcedure
     const decks = await db.query.decks.findMany({
       where: (decks, { and, eq, isNull }) =>
         and(eq(decks.userId, userProfile.userId), eq(decks.isPublic, true), isNull(decks.scheduledForDeletionAt)),
+      columns: {
+        id: true,
+        name: true,
+        slug: true,
+        metadata: true,
+        urlsCount: true,
+        followersCount: true,
+      },
       orderBy: (decks, { desc }) => [desc(decks.createdAt)],
     });
 
