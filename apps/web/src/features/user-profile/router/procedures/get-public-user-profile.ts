@@ -1,9 +1,9 @@
+import type { Maybe } from "@repo/shared/types";
 import { usernameSchema } from "@repo/user-profile/username/schemas/username.schema";
 import { normalizeUsername } from "@repo/user-profile/utils/normalize-username";
-import { TRPCError } from "@trpc/server";
 import { z } from "zod";
 import { publicProcedure } from "@/server/api/trpc";
-import { type PublicUserProfileDto, toPublicUserProfileDto } from "../../dto/public-user-profile.dto";
+import type { PublicUserProfileDto } from "../../dto/public-user-profile.dto";
 
 export type GetPublicUserProfile = z.infer<typeof getPublicUserProfileSchema>;
 
@@ -13,20 +13,36 @@ export const getPublicUserProfileSchema = z.object({
 
 export const getPublicUserProfile = publicProcedure
   .input(getPublicUserProfileSchema)
-  .query<PublicUserProfileDto>(async ({ ctx: { logger, requestId, db }, input: { username } }) => {
+  .query<Maybe<PublicUserProfileDto>>(async ({ ctx: { logger, requestId, db }, input: { username } }) => {
     const path = "userProfile.getPublicUserProfile";
 
     logger.info({ requestId, path, username }, "Get public user profile initiated.");
 
     const maybeUserProfile = await db.query.userProfiles.findFirst({
       where: (userProfiles, { eq }) => eq(userProfiles.usernameNormalized, normalizeUsername(username)),
+      columns: {
+        username: true,
+        imageUrl: true,
+        followingCount: true,
+        followersCount: true,
+        likesCount: true,
+        urlsCount: true,
+        userId: true,
+      },
     });
 
-    if (maybeUserProfile) {
-      return toPublicUserProfileDto(maybeUserProfile);
+    if (!maybeUserProfile) {
+      logger.info({ requestId, path, username }, "User not found");
+      return null;
     }
 
-    logger.info({ requestId, path, username }, "User not found");
-
-    throw new TRPCError({ code: "NOT_FOUND", message: "User not found" });
+    return {
+      id: maybeUserProfile.userId,
+      username: maybeUserProfile.username,
+      imageUrl: maybeUserProfile.imageUrl,
+      followingCount: maybeUserProfile.followingCount,
+      followersCount: maybeUserProfile.followersCount,
+      likesCount: maybeUserProfile.likesCount,
+      urlsCount: maybeUserProfile.urlsCount,
+    };
   });

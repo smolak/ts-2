@@ -1524,10 +1524,11 @@ When asked to execute this task:
 - [x] `apps/web/src/features/url/api/v1/add-url/index.ts` ✅ (optimized)
 
 #### User Profile Procedures
-- [ ] `apps/web/src/features/user-profile/router/procedures/get-user-profile.ts`
+- [x] `apps/web/src/features/user-profile/router/procedures/get-private-user-profile.ts` ✅ (already optimized)
+- [x] `apps/web/src/features/user-profile/router/procedures/get-public-user-profile.ts` ✅ (optimized)
 - [ ] `apps/web/src/features/user-profile/router/procedures/create-user-profile.ts`
 - [ ] `apps/web/src/features/user-profile/router/procedures/update-user-profile.ts`
-- [ ] `apps/web/src/features/user-profile/router/procedures/check-username-availability.ts`
+- [ ] `apps/web/src/features/user-profile/router/procedures/username-check.ts`
 
 ### Checklist Per Procedure
 
@@ -1566,6 +1567,10 @@ When auditing each procedure, check:
 | 2025-01-02 | `delete-tag.ts` | Already optimized - no changes needed | None |
 | 2025-01-02 | `update-user-url.ts` | Parallelize deck + deckUrl verification queries | None |
 | 2025-01-02 | `add-url/index.ts` | Add column selection to maybeUrl and urlHashesCount queries | None |
+| 2025-01-02 | `get-private-user-profile.ts` | Already optimized - no changes needed | None |
+| 2025-01-02 | `get-public-user-profile.ts` | Return null instead of throw; slim DTO to 7 columns | None |
+| 2025-01-02 | `app/[username]/page.tsx` | Refactor to use tRPC procedures (parallel calls) instead of direct db | None |
+| 2025-01-02 | `public-user-profile.dto.ts` | Remove unused toPublicUserProfileDto function | None |
 
 ---
 

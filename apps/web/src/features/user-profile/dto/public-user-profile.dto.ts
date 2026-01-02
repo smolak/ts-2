@@ -1,31 +1,15 @@
 import type { UserProfile } from "@repo/db/types";
 
-export type PublicUserProfileDto = Omit<UserProfile, "id" | "usernameNormalized" | "userId"> & {
+/**
+ * Public user profile data exposed to the UI.
+ * Only includes fields that are actually used in components.
+ */
+export type PublicUserProfileDto = {
   id: UserProfile["userId"];
-};
-
-export const toPublicUserProfileDto = ({
-  username,
-  imageUrl,
-  followingCount,
-  followersCount,
-  likesCount,
-  likedCount,
-  createdAt,
-  updatedAt,
-  userId,
-  urlsCount,
-}: UserProfile): PublicUserProfileDto => {
-  return {
-    username,
-    imageUrl,
-    followingCount,
-    followersCount,
-    createdAt,
-    updatedAt,
-    id: userId,
-    likesCount,
-    likedCount,
-    urlsCount,
-  };
+  username: UserProfile["username"];
+  imageUrl: UserProfile["imageUrl"];
+  followingCount: UserProfile["followingCount"];
+  followersCount: UserProfile["followersCount"];
+  likesCount: UserProfile["likesCount"];
+  urlsCount: UserProfile["urlsCount"];
 };
