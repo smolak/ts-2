@@ -1579,7 +1579,7 @@ When auditing each procedure, check:
 
 ## Refactoring: Use tRPC Procedures Instead of Direct DB Queries
 
-> **Status**: 🔄 To Do
+> **Status**: 🔄 In Progress
 > **Identified**: 2025-01-02
 > **Pattern**: Server components and API routes should use tRPC procedures (via `api` from `@/trpc/server`) instead of direct `db.query` calls
 
@@ -1597,8 +1597,9 @@ When auditing each procedure, check:
 
 #### API Routes (v1)
 These may benefit from using tRPC callers internally:
-- [ ] `apps/web/src/app/api/v1/tag/route.ts`
-- [ ] `apps/web/src/app/api/v1/deck/route.ts`
+- [x] `apps/web/src/app/api/v1/tag/route.ts` - ✅ Already uses shared service functions (`getDeckTags`, `createTag`)
+- [x] `apps/web/src/app/api/v1/deck/route.ts` - ✅ Refactored to use shared `getUserDecks` service function (2025-01-03)
+  - 🐛 Also fixed bug in tRPC `getUserDecks` procedure (missing `scheduledForDeletionAt` filter)
 
 #### Feature-level API Functions
 These are called from API routes and could potentially be tRPC procedures:

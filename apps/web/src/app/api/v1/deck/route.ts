@@ -4,6 +4,7 @@ import type { GetDecksSuccessResponse } from "@repo/deck/api/v1/get-decks.schema
 import { toDeckDto } from "@repo/deck/dto/deck.dto";
 import { StatusCodes } from "http-status-codes";
 
+import { getUserDecks } from "@/features/deck/services/get-user-decks";
 import { logger } from "@/features/logger";
 import { type CorsOptions, cors } from "@/lib/cors";
 import { getUserIdFromRequest } from "@/lib/get-user-id-from-request";
@@ -28,10 +29,7 @@ export async function GET(request: Request) {
     return cors(request, response, corsOptions);
   }
 
-  const decks = await db.query.decks.findMany({
-    where: (decks, { eq, isNull, and }) => and(eq(decks.userId, userId), isNull(decks.scheduledForDeletionAt)),
-    orderBy: (decks, { desc }) => [desc(decks.createdAt)],
-  });
+  const decks = await getUserDecks({ db, userId });
 
   logger.info({ requestId, actionType: GET_DECKS_ACTION, count: decks.length }, "Decks retrieved.");
 
