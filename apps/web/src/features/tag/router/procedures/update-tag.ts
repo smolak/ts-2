@@ -37,6 +37,7 @@ export const updateTag = protectedProcedure
     const maybeExists = await db.query.tags.findFirst({
       where: (tags, { and, eq, not }) =>
         and(eq(tags.deckId, maybeTag.deckId), eq(tags.name, name), not(eq(tags.id, id))),
+      columns: { id: true },
     });
 
     if (maybeExists) {
