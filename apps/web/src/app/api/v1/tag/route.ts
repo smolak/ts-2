@@ -1,10 +1,12 @@
-import { db, schema } from "@repo/db/db";
+import { db } from "@repo/db/db";
 import { type DeckId, deckIdSchema } from "@repo/db/id/deck-id";
 import { generateRequestId } from "@repo/db/id/request-id";
 import { type AddTagSuccessResponse, addTagBodySchema } from "@repo/tag/api/v1/add-tag.schema";
 import type { GetTagsSuccessResponse } from "@repo/tag/api/v1/get-tags.schema";
 import { StatusCodes } from "http-status-codes";
+
 import { logger } from "@/features/logger";
+import { createTag, DeckNotFoundError, getDeckTags, TagAlreadyExistsError } from "@/features/tag/services";
 import { type CorsOptions, cors } from "@/lib/cors";
 import { getUserIdFromRequest } from "@/lib/get-user-id-from-request";
 
@@ -44,35 +46,22 @@ export async function GET(request: Request) {
 
   const deckId: DeckId = deckIdResult.data;
 
-  // Verify deck belongs to user
-  const deck = await db.query.decks.findFirst({
-    where: (decks, { and, eq, isNull }) =>
-      and(eq(decks.id, deckId), eq(decks.userId, userId), isNull(decks.scheduledForDeletionAt)),
-    columns: { id: true },
-  });
+  try {
+    const { tags } = await getDeckTags({ db, userId, deckId });
 
-  if (!deck) {
-    const response = new Response("Deck not found.", { status: StatusCodes.NOT_FOUND });
+    logger.info({ requestId, actionType: GET_TAGS_ACTION, deckId, count: tags.length }, "Tags retrieved.");
+
+    const data: GetTagsSuccessResponse = { tags };
+    const response = new Response(JSON.stringify(data), { status: StatusCodes.OK });
+
     return cors(request, response, corsOptions);
+  } catch (error) {
+    if (error instanceof Error && error.message === "Deck not found.") {
+      const response = new Response("Deck not found.", { status: StatusCodes.NOT_FOUND });
+      return cors(request, response, corsOptions);
+    }
+    throw error;
   }
-
-  const tags = await db.query.tags.findMany({
-    columns: {
-      id: true,
-      name: true,
-      displayName: true,
-      urlsCount: true,
-    },
-    where: (tags, { eq }) => eq(tags.deckId, deckId),
-    orderBy: (tags, { asc }) => [asc(tags.name)],
-  });
-
-  logger.info({ requestId, actionType: GET_TAGS_ACTION, deckId, count: tags.length }, "Tags retrieved.");
-
-  const data: GetTagsSuccessResponse = { tags };
-  const response = new Response(JSON.stringify(data), { status: StatusCodes.OK });
-
-  return cors(request, response, corsOptions);
 }
 
 /**
@@ -98,43 +87,27 @@ export async function POST(request: Request) {
   }
 
   const { deckId, name: displayName } = bodyResult.data;
-  const name = displayName.toLowerCase().trim(); // Normalized name for uniqueness
-
-  // Verify deck belongs to user
-  const deck = await db.query.decks.findFirst({
-    where: (decks, { and, eq, isNull }) =>
-      and(eq(decks.id, deckId), eq(decks.userId, userId), isNull(decks.scheduledForDeletionAt)),
-    columns: { id: true },
-  });
-
-  if (!deck) {
-    logger.error({ requestId, deckId }, "Deck not found or not owned by user.");
-    return new Response("Deck not found.", { status: StatusCodes.NOT_FOUND });
-  }
-
-  // Check if tag already exists in this deck
-  const maybeTag = await db.query.tags.findFirst({
-    where: (tags, { and, eq }) => and(eq(tags.deckId, deckId), eq(tags.name, name)),
-  });
-
-  if (maybeTag) {
-    logger.error({ requestId, deckId, name }, `Tag (${name}) already exists in deck.`);
-    return new Response("Tag already exists in this deck.", { status: StatusCodes.CONFLICT });
-  }
 
   try {
-    const [result] = await db
-      .insert(schema.tags)
-      .values({ deckId, name, displayName })
-      .returning({ id: schema.tags.id });
+    const result = await createTag({ db, userId, deckId, displayName });
 
-    logger.info({ requestId, deckId, name, displayName, tagId: result?.id }, "Tag added.");
+    logger.info({ requestId, deckId, name: result.name, displayName, tagId: result.tagId }, "Tag added.");
 
-    const data: AddTagSuccessResponse = { success: true, tagId: result?.id };
+    const data: AddTagSuccessResponse = { success: true, tagId: result.tagId };
     const response = new Response(JSON.stringify(data), { status: StatusCodes.CREATED });
 
     return cors(request, response, corsOptions);
   } catch (error) {
+    if (error instanceof DeckNotFoundError) {
+      logger.error({ requestId, deckId }, "Deck not found or not owned by user.");
+      return new Response("Deck not found.", { status: StatusCodes.NOT_FOUND });
+    }
+
+    if (error instanceof TagAlreadyExistsError) {
+      logger.error({ requestId, deckId, displayName }, error.message);
+      return new Response("Tag already exists in this deck.", { status: StatusCodes.CONFLICT });
+    }
+
     logger.error({ requestId, actionType: ADD_TAG_ACTION, error }, "Failed to add tag.");
     return new Response("Failed to add tag.", { status: StatusCodes.INTERNAL_SERVER_ERROR });
   }
