@@ -27,6 +27,7 @@ export const addUrl: AddUrl = async ({ deckId, tagIds, metadata, userId }) => {
     }),
     db.query.urls.findFirst({
       where: (urls, { eq }) => eq(urls.compoundHash, compoundHash),
+      columns: { id: true },
     }),
   ]);
 
@@ -40,6 +41,7 @@ export const addUrl: AddUrl = async ({ deckId, tagIds, metadata, userId }) => {
     ? null
     : await db.query.urlHashesCompoundHashesCounts.findFirst({
         where: (urlHashesCompoundHashesCounts, { eq }) => eq(urlHashesCompoundHashesCounts.urlHash, urlHash),
+        columns: { urlHash: true },
       });
 
   const result = await db.transaction(async (tx) => {
