@@ -17,14 +17,15 @@ export const updateUserProfile = protectedProcedure
 
     logger.info({ requestId, path }, "Updating user profile initiated.");
 
-    const maybeUser = await db.query.users.findFirst({
-      columns: {
-        id: true,
-      },
-      where: (users, { eq }) => eq(users.id, userId),
-    });
+    // TODO: perhaps it is a good idea to update the user image url as well, using currentUser() from clerk
 
-    if (!maybeUser) {
+    const result = await db
+      .update(schema.users)
+      .set(input)
+      .where(orm.eq(schema.users.id, userId))
+      .returning({ id: schema.users.id });
+
+    if (result.length === 0) {
       logger.error({ requestId, path }, "Failed to update user profile.");
 
       throw new TRPCError({
@@ -32,10 +33,6 @@ export const updateUserProfile = protectedProcedure
         message: "User profile does not exist.",
       });
     }
-
-    // TODO: perhaps it is a good idea to update the user image url as well, using currentUser() from clerk
-
-    await db.update(schema.users).set(input).where(orm.eq(schema.users.id, userId));
 
     logger.info({ requestId, path }, "User profile update complete.");
 
