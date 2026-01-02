@@ -98,6 +98,7 @@ export const updateDeck = protectedProcedure
       slug: string;
       metadata: Record<string, unknown>;
       isPublic: boolean;
+      followersCount: number;
     }> = {};
 
     if (name !== undefined) updateData.name = name;
@@ -105,17 +106,69 @@ export const updateDeck = protectedProcedure
     if (metadata !== undefined) updateData.metadata = metadata;
     if (isPublic !== undefined) updateData.isPublic = isPublic;
 
-    // 6. Update deck
-    const [updatedDeck] = await db
-      .update(schema.decks)
-      .set(updateData)
-      .where(orm.and(orm.eq(schema.decks.id, deckId), orm.eq(schema.decks.userId, userId)))
-      .returning({
-        deckId: schema.decks.id,
-        name: schema.decks.name,
-        slug: schema.decks.slug,
-        isPublic: schema.decks.isPublic,
+    // 6. If deck is being made private, remove all followers
+    const isBeingMadePrivate = existingDeck.isPublic && isPublic === false;
+    let followersToProcess: { followerId: string }[] = [];
+
+    if (isBeingMadePrivate) {
+      // Get all followers before deletion (for profile count updates)
+      followersToProcess = await db.query.deckFollows.findMany({
+        where: (follows, { eq }) => eq(follows.deckId, deckId),
+        columns: { followerId: true },
       });
+
+      // Reset followers count to 0 since we're removing all followers
+      updateData.followersCount = 0;
+
+      logger.info(
+        { requestId, path, deckId, followersCount: followersToProcess.length },
+        "Deck made private, removing all followers.",
+      );
+    }
+
+    // 7. Update deck and handle follower cleanup in a transaction
+    const updatedDeck = await db.transaction(async (tx) => {
+      // Delete all deck_follows entries if deck is being made private
+      if (isBeingMadePrivate && followersToProcess.length > 0) {
+        await tx.delete(schema.deckFollows).where(orm.eq(schema.deckFollows.deckId, deckId));
+
+        // For each unique follower, check if they still follow other decks from this owner
+        for (const { followerId } of followersToProcess) {
+          const remainingFollows = await tx.query.deckFollows.findMany({
+            where: (follows, { eq }) => eq(follows.followerId, followerId),
+            with: { deck: { columns: { userId: true } } },
+          });
+          const stillFollowingOwner = remainingFollows.some((f) => f.deck.userId === existingDeck.userId);
+
+          // If not following any other deck from this owner, decrement their profile followers count
+          if (!stillFollowingOwner) {
+            await tx
+              .update(schema.userProfiles)
+              .set({ followersCount: orm.sql`GREATEST(${schema.userProfiles.followersCount} - 1, 0)` })
+              .where(orm.eq(schema.userProfiles.userId, existingDeck.userId));
+
+            logger.info(
+              { requestId, path, deckOwnerId: existingDeck.userId, followerId },
+              "Decremented deck owner's profile followers count (follower no longer follows any of their decks).",
+            );
+          }
+        }
+      }
+
+      // Update the deck
+      const [result] = await tx
+        .update(schema.decks)
+        .set(updateData)
+        .where(orm.and(orm.eq(schema.decks.id, deckId), orm.eq(schema.decks.userId, userId)))
+        .returning({
+          deckId: schema.decks.id,
+          name: schema.decks.name,
+          slug: schema.decks.slug,
+          isPublic: schema.decks.isPublic,
+        });
+
+      return result;
+    });
 
     if (!updatedDeck) {
       logger.error({ requestId, path }, "Deck could not be updated.");
@@ -123,6 +176,13 @@ export const updateDeck = protectedProcedure
         code: "BAD_REQUEST",
         message: "Deck could not be updated, try again.",
       });
+    }
+
+    if (isBeingMadePrivate && followersToProcess.length > 0) {
+      logger.info(
+        { requestId, path, deckId: updatedDeck.deckId, removedFollowersCount: followersToProcess.length },
+        "Deck made private, all followers removed.",
+      );
     }
 
     logger.info({ requestId, path, deckId: updatedDeck.deckId }, "Deck updated.");

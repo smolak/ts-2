@@ -1320,8 +1320,9 @@ apps/web/src/features/deck/router/procedures/*.test.ts
 
 ### When Deck is Made Private
 
-> **Status**: Not implemented
+> **Status**: ✅ Complete
 > **Decision**: Option B (Remove all followers)
+> **Completed**: December 28, 2025
 
 #### Background
 
@@ -1398,13 +1399,13 @@ for (const { followerId } of followers) {
 
 #### Test Cases
 
-- [ ] Deck with followers made private → all `deck_follows` entries deleted
-- [ ] Deck with followers made private → `deck.followersCount` reset to 0
-- [ ] Profile `followersCount` decremented for owner (when follower no longer follows any of their decks)
-- [ ] Profile `followersCount` NOT decremented (when follower still follows other decks from same owner)
-- [ ] Feed entries remain after deck made private (historical record)
-- [ ] Cannot follow deck after it becomes private
-- [ ] Can follow again after deck is made public again
+- [x] Deck with followers made private → all `deck_follows` entries deleted
+- [x] Deck with followers made private → `deck.followersCount` reset to 0
+- [x] Profile `followersCount` decremented for owner (when follower no longer follows any of their decks)
+- [x] Profile `followersCount` NOT decremented (when follower still follows other decks from same owner)
+- [x] Feed entries remain after deck made private (historical record)
+- [x] Cannot follow deck after it becomes private (already enforced by `toggleFollowDeck`)
+- [x] Can follow again after deck is made public again (already supported by `toggleFollowDeck`)
 
 ### When URL is Deleted
 

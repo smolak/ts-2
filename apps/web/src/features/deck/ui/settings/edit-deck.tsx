@@ -7,7 +7,7 @@ import { Label } from "@repo/ui/components/label";
 import { Switch } from "@repo/ui/components/switch";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@repo/ui/components/tooltip";
 import { cn } from "@repo/ui/lib/utils";
-import { Eye, EyeOff, Save } from "lucide-react";
+import { AlertTriangle, Eye, EyeOff, Info, Save } from "lucide-react";
 import type { FC } from "react";
 import { useEffect, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
@@ -47,6 +47,12 @@ export const EditDeck: FC<EditDeckProps> = ({ deck, onSave, onCancel }) => {
   });
 
   const isPublic = watch("isPublic");
+
+  // Track visibility changes
+  const isBeingMadePrivate = deck.isPublic && isPublic === false;
+  const isBeingMadePublic = !deck.isPublic && isPublic === true;
+  const hasFollowers = deck.followersCount > 0;
+  const showPrivacyWarning = isBeingMadePrivate && hasFollowers;
 
   const { mutate: updateDeck, isPending } = api.decks.updateDeck.useMutation({
     onSuccess: (data) => {
@@ -127,27 +133,47 @@ export const EditDeck: FC<EditDeckProps> = ({ deck, onSave, onCancel }) => {
                 />
               </div>
             </div>
-            <div className="flex items-center gap-2">
-              <Controller
-                name="isPublic"
-                control={control}
-                render={({ field }) => (
-                  <Switch id="isPublic" checked={field.value} onCheckedChange={field.onChange} disabled={isPending} />
-                )}
-              />
-              <Label htmlFor="isPublic" className="flex cursor-pointer items-center gap-1 text-sm">
-                {isPublic ? (
-                  <>
-                    <Eye size={12} className="text-green-600" />
-                    Public
-                  </>
-                ) : (
-                  <>
-                    <EyeOff size={12} className="text-slate-500" />
-                    Private
-                  </>
-                )}
-              </Label>
+            <div className="flex flex-col gap-2">
+              <div className="flex items-center gap-2">
+                <Controller
+                  name="isPublic"
+                  control={control}
+                  render={({ field }) => (
+                    <Switch id="isPublic" checked={field.value} onCheckedChange={field.onChange} disabled={isPending} />
+                  )}
+                />
+                <Label htmlFor="isPublic" className="flex cursor-pointer items-center gap-1 text-sm">
+                  {isPublic ? (
+                    <>
+                      <Eye size={12} className="text-green-600" />
+                      Public
+                    </>
+                  ) : (
+                    <>
+                      <EyeOff size={12} className="text-slate-500" />
+                      Private
+                    </>
+                  )}
+                </Label>
+              </div>
+              {showPrivacyWarning ? (
+                <p className="flex items-start gap-2 rounded-md border-amber-600 border-l-4 bg-amber-50 px-2 py-1.5 text-amber-700 text-xs">
+                  <AlertTriangle size={14} strokeWidth={2.5} className="mt-0.5 shrink-0" />
+                  <span>
+                    Making this deck private will remove{" "}
+                    <strong>
+                      {deck.followersCount} follower{deck.followersCount !== 1 ? "s" : ""}
+                    </strong>
+                    . They won't be notified. URLs already in their feeds will remain.
+                  </span>
+                </p>
+              ) : null}
+              {isBeingMadePublic ? (
+                <p className="flex items-start gap-2 rounded-md border-sky-500 border-l-4 bg-sky-50 px-2 py-1.5 text-sky-700 text-xs">
+                  <Info size={14} strokeWidth={2.5} className="mt-0.5 shrink-0" />
+                  <span>This deck will be visible on your profile and others can follow it.</span>
+                </p>
+              ) : null}
             </div>
           </div>
 
