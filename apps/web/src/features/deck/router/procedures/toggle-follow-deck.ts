@@ -23,11 +23,17 @@ export const toggleFollowDeck = protectedProcedure
   .mutation<ToggleFollowDeckResult>(async ({ input: { deckId }, ctx: { logger, requestId, userId, db } }) => {
     const path = "deck.toggleFollowDeck";
 
-    // 1. Get the deck
-    const deck = await db.query.decks.findFirst({
-      where: (decks, { eq }) => eq(decks.id, deckId),
-      columns: { id: true, isPublic: true, userId: true, followersCount: true, scheduledForDeletionAt: true },
-    });
+    // 1. Get deck and check if already following (parallel queries)
+    const [deck, existingFollow] = await Promise.all([
+      db.query.decks.findFirst({
+        where: (decks, { eq }) => eq(decks.id, deckId),
+        columns: { id: true, isPublic: true, userId: true, followersCount: true, scheduledForDeletionAt: true },
+      }),
+      db.query.deckFollows.findFirst({
+        where: (follows, { and, eq }) => and(eq(follows.deckId, deckId), eq(follows.followerId, userId)),
+        columns: { deckId: true },
+      }),
+    ]);
 
     if (!deck) {
       logger.error({ requestId, path, deckId }, "Deck not found.");
@@ -63,12 +69,6 @@ export const toggleFollowDeck = protectedProcedure
         message: "Cannot follow your own deck.",
       });
     }
-
-    // 5. Check if already following
-    const existingFollow = await db.query.deckFollows.findFirst({
-      where: (follows, { and, eq }) => and(eq(follows.deckId, deckId), eq(follows.followerId, userId)),
-      columns: { deckId: true },
-    });
 
     if (existingFollow) {
       // Unfollow
