@@ -1520,7 +1520,7 @@ When asked to execute this task:
 - [x] `apps/web/src/features/tag/router/procedures/delete-tag.ts` ✅ (already optimized)
 
 #### URL Procedures
-- [ ] `apps/web/src/features/url/router/procedures/update-user-url.ts`
+- [x] `apps/web/src/features/url/router/procedures/update-user-url.ts` ✅ (optimized)
 - [ ] `apps/web/src/features/url/api/v1/add-url/index.ts`
 
 #### User Profile Procedures
@@ -1564,6 +1564,7 @@ When auditing each procedure, check:
 | 2025-01-02 | `create-tag.ts` | Parallelize deck + tag existence checks; add column selection | None |
 | 2025-01-02 | `update-tag.ts` | Add column selection to tag uniqueness check | None |
 | 2025-01-02 | `delete-tag.ts` | Already optimized - no changes needed | None |
+| 2025-01-02 | `update-user-url.ts` | Parallelize deck + deckUrl verification queries | None |
 
 ---
 

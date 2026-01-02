@@ -20,12 +20,18 @@ export const updateDeckUrlTags = protectedProcedure
   .mutation(async ({ input: { deckId, userUrlId, tagIds }, ctx: { logger, requestId, userId, db } }) => {
     const path = "deckUrl.updateDeckUrlTags";
 
-    // Verify the deck belongs to the user and is not pending deletion
-    const deck = await db.query.decks.findFirst({
-      where: (decks, { and, eq, isNull }) =>
-        and(eq(decks.id, deckId), eq(decks.userId, userId), isNull(decks.scheduledForDeletionAt)),
-      columns: { id: true },
-    });
+    // Verify deck ownership and deck-URL association (parallel queries)
+    const [deck, deckUrl] = await Promise.all([
+      db.query.decks.findFirst({
+        where: (decks, { and, eq, isNull }) =>
+          and(eq(decks.id, deckId), eq(decks.userId, userId), isNull(decks.scheduledForDeletionAt)),
+        columns: { id: true },
+      }),
+      db.query.deckUrls.findFirst({
+        where: (deckUrls, { and, eq }) => and(eq(deckUrls.deckId, deckId), eq(deckUrls.userUrlId, userUrlId)),
+        columns: { deckId: true },
+      }),
+    ]);
 
     if (!deck) {
       logger.error({ requestId, path, deckId }, "Deck not found or not owned by user.");
@@ -34,12 +40,6 @@ export const updateDeckUrlTags = protectedProcedure
         message: "Deck not found.",
       });
     }
-
-    // Verify the deck-URL association exists
-    const deckUrl = await db.query.deckUrls.findFirst({
-      where: (deckUrls, { and, eq }) => and(eq(deckUrls.deckId, deckId), eq(deckUrls.userUrlId, userUrlId)),
-      columns: { deckId: true },
-    });
 
     if (!deckUrl) {
       logger.error({ requestId, path, deckId, userUrlId }, "URL not found in this deck.");
