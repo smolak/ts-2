@@ -78,6 +78,13 @@
       "when": 1766940708526,
       "tag": "0010_remove_soft_delete",
       "breakpoints": true
+    },
+    {
+      "idx": 11,
+      "version": "7",
+      "when": 1767383792208,
+      "tag": "0011_improve_index",
+      "breakpoints": true
     }
   ]
 }
