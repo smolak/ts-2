@@ -5,7 +5,7 @@ import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import { createCallerFactory, createTRPCRouter } from "@/server/api/trpc";
 import { createSecondTestUser, createTestContext, createTestDeck, createTestTag, type TestContext } from "@/test-utils";
 
-import { getDeckTags } from "./get-user-tags";
+import { getDeckTags } from "./get-deck-tags";
 
 const testRouter = createTRPCRouter({ getDeckTags });
 const createCaller = createCallerFactory(testRouter);

@@ -16,12 +16,26 @@ export const getDeckTags = protectedProcedure
   .query<GetDeckTagsResult>(async ({ input: { deckId }, ctx: { logger, requestId, db, userId } }) => {
     const path = "tag.getDeckTags";
 
-    // Verify deck belongs to user
-    const deck = await db.query.decks.findFirst({
-      where: (decks, { and, eq, isNull }) =>
-        and(eq(decks.id, deckId), eq(decks.userId, userId), isNull(decks.scheduledForDeletionAt)),
-      columns: { id: true },
-    });
+    logger.info({ requestId, path, deckId }, "Fetching deck's tags.");
+
+    // Verify deck ownership and fetch tags in parallel
+    const [deck, tags] = await Promise.all([
+      db.query.decks.findFirst({
+        where: (decks, { and, eq, isNull }) =>
+          and(eq(decks.id, deckId), eq(decks.userId, userId), isNull(decks.scheduledForDeletionAt)),
+        columns: { id: true },
+      }),
+      db.query.tags.findMany({
+        columns: {
+          id: true,
+          name: true,
+          displayName: true,
+          urlsCount: true,
+        },
+        where: (tags, { eq }) => eq(tags.deckId, deckId),
+        orderBy: (tags, { asc }) => [asc(tags.name)],
+      }),
+    ]);
 
     if (!deck) {
       logger.error({ requestId, path, deckId }, "Deck not found or not owned by user.");
@@ -30,19 +44,6 @@ export const getDeckTags = protectedProcedure
         message: "Deck not found.",
       });
     }
-
-    logger.info({ requestId, path, deckId }, "Fetching deck's tags.");
-
-    const tags = await db.query.tags.findMany({
-      columns: {
-        id: true,
-        name: true,
-        displayName: true,
-        urlsCount: true,
-      },
-      where: (tags, { eq }) => eq(tags.deckId, deckId),
-      orderBy: (tags, { asc }) => [asc(tags.name)],
-    });
 
     logger.info({ requestId, path, deckId, count: tags.length }, "Deck's tags fetched.");
 
