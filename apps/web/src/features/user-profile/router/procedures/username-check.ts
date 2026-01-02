@@ -18,6 +18,7 @@ export const usernameCheck = protectedProcedure
 
     const match = await db.query.userProfiles.findFirst({
       where: (userProfiles, { eq }) => eq(userProfiles.usernameNormalized, usernameNormalized),
+      columns: { id: true },
     });
     const usernameAvailable = match === undefined;
 

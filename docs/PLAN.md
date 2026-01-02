@@ -1528,7 +1528,7 @@ When asked to execute this task:
 - [x] `apps/web/src/features/user-profile/router/procedures/get-public-user-profile.ts` ✅ (optimized)
 - [x] `apps/web/src/features/user-profile/router/procedures/create-user-profile.ts` ✅ (optimized)
 - [x] `apps/web/src/features/user-profile/router/procedures/update-user-profile.ts` ✅ (optimized)
-- [ ] `apps/web/src/features/user-profile/router/procedures/username-check.ts`
+- [x] `apps/web/src/features/user-profile/router/procedures/username-check.ts` ✅ (optimized)
 
 ### Checklist Per Procedure
 
@@ -1573,6 +1573,7 @@ When auditing each procedure, check:
 | 2025-01-02 | `public-user-profile.dto.ts` | Remove unused toPublicUserProfileDto function | None |
 | 2025-01-02 | `create-user-profile.ts` | Parallelize profile check + currentUser data fetch calls | None |
 | 2025-01-02 | `update-user-profile.ts` | Eliminate existence check - use returning() on update | None |
+| 2025-01-02 | `username-check.ts` | Add column selection (id only) for existence check | None |
 
 ---
 
