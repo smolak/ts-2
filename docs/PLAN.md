@@ -1579,8 +1579,9 @@ When auditing each procedure, check:
 
 ## Refactoring: Use tRPC Procedures Instead of Direct DB Queries
 
-> **Status**: 🔄 In Progress
+> **Status**: ✅ Complete
 > **Identified**: 2025-01-02
+> **Completed**: 2025-01-03
 > **Pattern**: Server components and API routes should use tRPC procedures (via `api` from `@/trpc/server`) instead of direct `db.query` calls
 
 ### Benefits
@@ -1589,25 +1590,23 @@ When auditing each procedure, check:
 - Consistent error handling
 - Better reusability and testability
 
-### Files to Audit
+### Files Audited
 
-#### Server Components (Priority)
+#### Server Components
 - [x] `apps/web/src/app/[username]/page.tsx` - ✅ Refactored to use `api.userProfiles.getPublicUserProfile` and `api.decks.getPublicDecks`
-- [ ] Check for other page.tsx files using direct db queries
+- [x] Other page.tsx files - ✅ No direct db.query calls found
 
 #### API Routes (v1)
-These may benefit from using tRPC callers internally:
 - [x] `apps/web/src/app/api/v1/tag/route.ts` - ✅ Already uses shared service functions (`getDeckTags`, `createTag`)
 - [x] `apps/web/src/app/api/v1/deck/route.ts` - ✅ Refactored to use shared `getUserDecks` service function (2025-01-03)
   - 🐛 Also fixed bug in tRPC `getUserDecks` procedure (missing `scheduledForDeletionAt` filter)
 
 #### Feature-level API Functions
-These are called from API routes and could potentially be tRPC procedures:
-- [ ] `apps/web/src/features/url/api/v1/add-url/index.ts`
-- [ ] `apps/web/src/features/feed/queries/get-user-feed.ts`
+- [x] `apps/web/src/features/url/api/v1/add-url/index.ts` - ✅ Correct pattern (service function with core business logic)
+- [x] `apps/web/src/features/feed/queries/get-user-feed.ts` - ✅ Correct pattern (query builder function)
 
 #### Utilities
-- [ ] `apps/web/src/lib/get-user-id-from-request.ts` - Uses direct db query for API key validation
+- [x] `apps/web/src/lib/get-user-id-from-request.ts` - ✅ Correct pattern (low-level auth utility for API routes)
 
 ---
 
