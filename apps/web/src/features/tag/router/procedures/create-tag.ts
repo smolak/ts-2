@@ -21,12 +21,18 @@ export const createTag = protectedProcedure
       // Normalize name for uniqueness check and search
       const name = displayName.toLowerCase().trim();
 
-      // Verify deck belongs to user
-      const deck = await db.query.decks.findFirst({
-        where: (decks, { and, eq, isNull }) =>
-          and(eq(decks.id, deckId), eq(decks.userId, userId), isNull(decks.scheduledForDeletionAt)),
-        columns: { id: true },
-      });
+      // Verify deck ownership and check tag uniqueness (parallel queries)
+      const [deck, existingTag] = await Promise.all([
+        db.query.decks.findFirst({
+          where: (decks, { and, eq, isNull }) =>
+            and(eq(decks.id, deckId), eq(decks.userId, userId), isNull(decks.scheduledForDeletionAt)),
+          columns: { id: true },
+        }),
+        db.query.tags.findFirst({
+          where: (tags, { and, eq }) => and(eq(tags.deckId, deckId), eq(tags.name, name)),
+          columns: { id: true },
+        }),
+      ]);
 
       if (!deck) {
         logger.error({ requestId, path, deckId }, "Deck not found or not owned by user.");
@@ -36,12 +42,7 @@ export const createTag = protectedProcedure
         });
       }
 
-      // Check if tag with same normalized name already exists in this deck
-      const maybeTag = await db.query.tags.findFirst({
-        where: (tags, { and, eq }) => and(eq(tags.deckId, deckId), eq(tags.name, name)),
-      });
-
-      if (maybeTag) {
+      if (existingTag) {
         logger.error({ requestId, path, deckId, name }, `Tag (${name}) already exists in deck.`);
 
         throw new TRPCError({

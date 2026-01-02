@@ -1515,7 +1515,7 @@ When asked to execute this task:
 
 #### Tag Procedures
 - [x] `apps/web/src/features/tag/router/procedures/get-deck-tags.ts` ✅ (optimized, file renamed from get-user-tags.ts)
-- [ ] `apps/web/src/features/tag/router/procedures/create-tag.ts`
+- [x] `apps/web/src/features/tag/router/procedures/create-tag.ts` ✅ (optimized)
 - [ ] `apps/web/src/features/tag/router/procedures/update-tag.ts`
 - [ ] `apps/web/src/features/tag/router/procedures/delete-tag.ts`
 
@@ -1561,6 +1561,7 @@ When auditing each procedure, check:
 | 2025-01-02 | `get-user-feed.ts` | Already optimized - JOINs, SQL aggregation, proper pagination | None |
 | 2025-01-02 | `toggle-like-url.ts` | Already optimized - combined query, parallel transaction ops | None |
 | 2025-01-02 | `get-deck-tags.ts` | Parallelize deck verification + tags fetch; renamed from get-user-tags.ts | None |
+| 2025-01-02 | `create-tag.ts` | Parallelize deck + tag existence checks; add column selection | None |
 
 ---
 
