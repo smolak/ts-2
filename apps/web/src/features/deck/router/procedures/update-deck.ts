@@ -23,6 +23,7 @@ export const updateDeck = protectedProcedure
     // 1. Find the existing deck and verify ownership
     const existingDeck = await db.query.decks.findFirst({
       where: (decks, { and, eq }) => and(eq(decks.id, deckId), eq(decks.userId, userId)),
+      columns: { userId: true, slug: true, isPublic: true, scheduledForDeletionAt: true },
     });
 
     if (!existingDeck) {
@@ -42,25 +43,26 @@ export const updateDeck = protectedProcedure
       });
     }
 
-    // 3. If changing visibility, check limits
+    // 3. If changing visibility, check limits (parallel queries)
     if (isPublic !== undefined && isPublic !== existingDeck.isPublic) {
-      const user = await db.query.users.findFirst({
-        where: (users, { eq }) => eq(users.id, userId),
-        columns: { plan: true },
-      });
+      const [user, deckCounts] = await Promise.all([
+        db.query.users.findFirst({
+          where: (users, { eq }) => eq(users.id, userId),
+          columns: { plan: true },
+        }),
+        db
+          .select({
+            publicCount: orm.sql<number>`COUNT(*) FILTER (WHERE is_public = true)`.mapWith(Number),
+            privateCount: orm.sql<number>`COUNT(*) FILTER (WHERE is_public = false)`.mapWith(Number),
+          })
+          .from(schema.decks)
+          .where(orm.eq(schema.decks.userId, userId)),
+      ]);
 
       if (!user) {
         logger.error({ requestId, path }, "User not found.");
         throw new TRPCError({ code: "NOT_FOUND", message: "User not found." });
       }
-
-      const deckCounts = await db
-        .select({
-          publicCount: orm.sql<number>`COUNT(*) FILTER (WHERE is_public = true)`.mapWith(Number),
-          privateCount: orm.sql<number>`COUNT(*) FILTER (WHERE is_public = false)`.mapWith(Number),
-        })
-        .from(schema.decks)
-        .where(orm.eq(schema.decks.userId, userId));
 
       const { publicCount, privateCount } = deckCounts[0] ?? { publicCount: 0, privateCount: 0 };
 

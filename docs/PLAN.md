@@ -1502,7 +1502,7 @@ When asked to execute this task:
 - [x] `apps/web/src/features/deck/router/procedures/add-url-to-deck.ts` ✅ (optimized)
 - [x] `apps/web/src/features/deck/router/procedures/remove-url-from-deck.ts` ✅ (optimized)
 - [x] `apps/web/src/features/deck/router/procedures/create-deck.ts` ✅ (optimized)
-- [ ] `apps/web/src/features/deck/router/procedures/update-deck.ts`
+- [x] `apps/web/src/features/deck/router/procedures/update-deck.ts` ✅ (optimized)
 - [ ] `apps/web/src/features/deck/router/procedures/toggle-follow-deck.ts`
 - [ ] `apps/web/src/features/deck/router/procedures/schedule-deck-deletion.ts`
 - [ ] `apps/web/src/features/deck/router/procedures/restore-deck.ts`
@@ -1554,6 +1554,7 @@ When auditing each procedure, check:
 | 2025-01-02 | `add-url-to-deck.ts` | Parallelize deck + userUrl verification queries | None |
 | 2025-01-02 | `remove-url-from-deck.ts` | Parallelize deck + deckUrl verification queries | None |
 | 2025-01-02 | `create-deck.ts` | Parallelize user plan, deck counts, and slug check queries (3→1 round trip) | None |
+| 2025-01-02 | `update-deck.ts` | Add column selection; parallelize user plan + deck counts queries | None |
 
 ---
 
