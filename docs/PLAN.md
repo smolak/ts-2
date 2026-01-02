@@ -1517,7 +1517,7 @@ When asked to execute this task:
 - [x] `apps/web/src/features/tag/router/procedures/get-deck-tags.ts` ✅ (optimized, file renamed from get-user-tags.ts)
 - [x] `apps/web/src/features/tag/router/procedures/create-tag.ts` ✅ (optimized)
 - [x] `apps/web/src/features/tag/router/procedures/update-tag.ts` ✅ (optimized)
-- [ ] `apps/web/src/features/tag/router/procedures/delete-tag.ts`
+- [x] `apps/web/src/features/tag/router/procedures/delete-tag.ts` ✅ (already optimized)
 
 #### URL Procedures
 - [ ] `apps/web/src/features/url/router/procedures/update-user-url.ts`
@@ -1563,6 +1563,7 @@ When auditing each procedure, check:
 | 2025-01-02 | `get-deck-tags.ts` | Parallelize deck verification + tags fetch; renamed from get-user-tags.ts | None |
 | 2025-01-02 | `create-tag.ts` | Parallelize deck + tag existence checks; add column selection | None |
 | 2025-01-02 | `update-tag.ts` | Add column selection to tag uniqueness check | None |
+| 2025-01-02 | `delete-tag.ts` | Already optimized - no changes needed | None |
 
 ---
 
