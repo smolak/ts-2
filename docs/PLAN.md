@@ -1495,8 +1495,8 @@ When asked to execute this task:
 ### Procedures to Audit
 
 #### Deck Procedures
-- [ ] `apps/web/src/features/deck/router/procedures/get-deck-urls.ts` ✅ (already optimized)
-- [ ] `apps/web/src/features/deck/router/procedures/get-deck-by-slug.ts`
+- [x] `apps/web/src/features/deck/router/procedures/get-deck-urls.ts` ✅ (already optimized)
+- [x] `apps/web/src/features/deck/router/procedures/get-deck-by-slug.ts` ✅ (optimized)
 - [ ] `apps/web/src/features/deck/router/procedures/get-user-decks.ts`
 - [ ] `apps/web/src/features/deck/router/procedures/get-public-decks.ts`
 - [ ] `apps/web/src/features/deck/router/procedures/add-url-to-deck.ts`
@@ -1548,7 +1548,7 @@ When auditing each procedure, check:
 | Date | Procedure | Changes | Migration |
 |------|-----------|---------|-----------|
 | 2024-12-28 | `get-deck-urls.ts` | 5 optimizations | `0009_add_index_for_cursor_based_pagination.sql` |
-| | | | |
+| 2025-01-02 | `get-deck-by-slug.ts` | Parallelize userProfile + viewer queries; add column selection to deck query | None |
 
 ---
 

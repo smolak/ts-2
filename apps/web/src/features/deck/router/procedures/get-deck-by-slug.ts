@@ -35,34 +35,41 @@ export const getDeckBySlug = publicProcedure
 
     logger.info({ requestId, path, username, slug }, "Fetching deck by slug.");
 
-    // 1. Find the user profile by username
-    const userProfile = await db.query.userProfiles.findFirst({
-      where: (profiles, { eq }) => eq(profiles.usernameNormalized, username.toLowerCase()),
-      columns: { userId: true, username: true, imageUrl: true },
-    });
+    // 1. Fetch user profile and viewer in parallel (independent queries)
+    const [userProfile, viewer] = await Promise.all([
+      db.query.userProfiles.findFirst({
+        where: (profiles, { eq }) => eq(profiles.usernameNormalized, username.toLowerCase()),
+        columns: { userId: true, username: true, imageUrl: true },
+      }),
+      auth.userId
+        ? db.query.users.findFirst({
+            where: (users, { eq }) => eq(users.clerkUserId, auth.userId),
+            columns: { id: true },
+          })
+        : Promise.resolve(undefined),
+    ]);
 
     if (!userProfile) {
       logger.info({ requestId, path, username }, "User profile not found.");
       return null;
     }
 
-    // 2. Get the current viewer's userId (if authenticated)
-    let viewerUserId: string | null = null;
-
-    if (auth.userId) {
-      const viewer = await db.query.users.findFirst({
-        where: (users, { eq }) => eq(users.clerkUserId, auth.userId),
-        columns: { id: true },
-      });
-
-      viewerUserId = viewer?.id ?? null;
-    }
-
+    const viewerUserId = viewer?.id ?? null;
     const isOwner = viewerUserId === userProfile.userId;
 
-    // 3. Find the deck
+    // 2. Find the deck (only select needed columns)
     const deck = await db.query.decks.findFirst({
       where: (decks, { and, eq }) => and(eq(decks.userId, userProfile.userId), eq(decks.slug, slug)),
+      columns: {
+        id: true,
+        name: true,
+        slug: true,
+        metadata: true,
+        urlsCount: true,
+        followersCount: true,
+        isPublic: true,
+        scheduledForDeletionAt: true,
+      },
     });
 
     if (!deck) {
@@ -70,19 +77,19 @@ export const getDeckBySlug = publicProcedure
       return null;
     }
 
-    // 4. Check visibility - only owner can see private decks
+    // 3. Check visibility - only owner can see private decks
     if (!deck.isPublic && !isOwner) {
       logger.info({ requestId, path, username, slug }, "Deck is private and viewer is not owner.");
       return null;
     }
 
-    // 5. Hide pending-deletion decks from non-owners
+    // 4. Hide pending-deletion decks from non-owners
     if (deck.scheduledForDeletionAt && !isOwner) {
       logger.info({ requestId, path, username, slug }, "Deck is pending deletion and viewer is not owner.");
       return null;
     }
 
-    // 6. Check if viewer is following this deck
+    // 5. Check if viewer is following this deck
     let isFollowing = false;
     if (viewerUserId && !isOwner) {
       const follow = await db.query.deckFollows.findFirst({
