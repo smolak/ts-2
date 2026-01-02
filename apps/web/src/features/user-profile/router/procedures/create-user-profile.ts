@@ -39,12 +39,16 @@ export const createUserProfile = protectedProcedure
 
     logger.info({ requestId, path }, "Creating user profile initiated.");
 
-    const maybeUserProfileData = await db.query.userProfiles.findFirst({
-      columns: {
-        id: true,
-      },
-      where: (userProfiles, { eq }) => eq(userProfiles.userId, userId),
-    });
+    // Parallelize independent data fetches
+    const [maybeUserProfileData, clerkUser] = await Promise.all([
+      db.query.userProfiles.findFirst({
+        columns: { id: true },
+        where: (userProfiles, { eq }) => eq(userProfiles.userId, userId),
+      }),
+      currentUser(),
+    ]);
+
+    const clerkClient = await createClerkClient();
 
     if (maybeUserProfileData) {
       logger.error({ requestId, path }, "Failed to store the URL.");
@@ -54,9 +58,6 @@ export const createUserProfile = protectedProcedure
         message: "User profile already exists.",
       });
     }
-
-    const clerkUser = await currentUser();
-    const clerkClient = await createClerkClient();
 
     if (!clerkUser) {
       throw new TRPCError({

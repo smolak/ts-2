@@ -1526,7 +1526,7 @@ When asked to execute this task:
 #### User Profile Procedures
 - [x] `apps/web/src/features/user-profile/router/procedures/get-private-user-profile.ts` ✅ (already optimized)
 - [x] `apps/web/src/features/user-profile/router/procedures/get-public-user-profile.ts` ✅ (optimized)
-- [ ] `apps/web/src/features/user-profile/router/procedures/create-user-profile.ts`
+- [x] `apps/web/src/features/user-profile/router/procedures/create-user-profile.ts` ✅ (optimized)
 - [ ] `apps/web/src/features/user-profile/router/procedures/update-user-profile.ts`
 - [ ] `apps/web/src/features/user-profile/router/procedures/username-check.ts`
 
@@ -1571,6 +1571,7 @@ When auditing each procedure, check:
 | 2025-01-02 | `get-public-user-profile.ts` | Return null instead of throw; slim DTO to 7 columns | None |
 | 2025-01-02 | `app/[username]/page.tsx` | Refactor to use tRPC procedures (parallel calls) instead of direct db | None |
 | 2025-01-02 | `public-user-profile.dto.ts` | Remove unused toPublicUserProfileDto function | None |
+| 2025-01-02 | `create-user-profile.ts` | Parallelize profile check + currentUser data fetch calls | None |
 
 ---
 
