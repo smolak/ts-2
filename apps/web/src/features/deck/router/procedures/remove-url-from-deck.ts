@@ -1,6 +1,6 @@
+import { orm, schema } from "@repo/db/db";
 import { deckIdSchema } from "@repo/db/id/deck-id";
 import { userUrlIdSchema } from "@repo/db/id/user-url-id";
-import { orm, schema } from "@repo/db/db";
 import type { Deck } from "@repo/db/types";
 import { TRPCError } from "@trpc/server";
 import { z } from "zod";
@@ -25,12 +25,18 @@ export const removeUrlFromDeck = protectedProcedure
     async ({ input: { deckId, userUrlId }, ctx: { logger, requestId, userId, db } }) => {
       const path = "deck.removeUrlFromDeck";
 
-      // 1. Verify deck exists, belongs to user, and is not pending deletion
-      const deck = await db.query.decks.findFirst({
-        where: (decks, { and, eq, isNull }) =>
-          and(eq(decks.id, deckId), eq(decks.userId, userId), isNull(decks.scheduledForDeletionAt)),
-        columns: { id: true, urlsCount: true },
-      });
+      // 1. Verify deck ownership and URL existence in deck (parallel queries)
+      const [deck, existingDeckUrl] = await Promise.all([
+        db.query.decks.findFirst({
+          where: (decks, { and, eq, isNull }) =>
+            and(eq(decks.id, deckId), eq(decks.userId, userId), isNull(decks.scheduledForDeletionAt)),
+          columns: { id: true, urlsCount: true },
+        }),
+        db.query.deckUrls.findFirst({
+          where: (deckUrls, { and, eq }) => and(eq(deckUrls.deckId, deckId), eq(deckUrls.userUrlId, userUrlId)),
+          columns: { deckId: true },
+        }),
+      ]);
 
       if (!deck) {
         logger.error({ requestId, path, deckId }, "Deck not found, not owned by user, or pending deletion.");
@@ -40,12 +46,6 @@ export const removeUrlFromDeck = protectedProcedure
         });
       }
 
-      // 2. Check if URL is in deck
-      const existingDeckUrl = await db.query.deckUrls.findFirst({
-        where: (deckUrls, { and, eq }) => and(eq(deckUrls.deckId, deckId), eq(deckUrls.userUrlId, userUrlId)),
-        columns: { deckId: true },
-      });
-
       if (!existingDeckUrl) {
         logger.warn({ requestId, path, deckId, userUrlId }, "URL is not in this deck.");
         throw new TRPCError({
@@ -54,7 +54,7 @@ export const removeUrlFromDeck = protectedProcedure
         });
       }
 
-      // 3. Remove URL from deck and decrement count
+      // 2. Remove URL from deck and decrement count
       const { urlsCount: newUrlsCount } = await db.transaction(async (tx) => {
         const [[updatedDeck]] = await Promise.all([
           tx

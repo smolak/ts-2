@@ -1500,7 +1500,7 @@ When asked to execute this task:
 - [x] `apps/web/src/features/deck/router/procedures/get-user-decks.ts` ✅ (optimized)
 - [x] `apps/web/src/features/deck/router/procedures/get-public-decks.ts` ✅ (optimized)
 - [x] `apps/web/src/features/deck/router/procedures/add-url-to-deck.ts` ✅ (optimized)
-- [ ] `apps/web/src/features/deck/router/procedures/remove-url-from-deck.ts`
+- [x] `apps/web/src/features/deck/router/procedures/remove-url-from-deck.ts` ✅ (optimized)
 - [ ] `apps/web/src/features/deck/router/procedures/create-deck.ts`
 - [ ] `apps/web/src/features/deck/router/procedures/update-deck.ts`
 - [ ] `apps/web/src/features/deck/router/procedures/toggle-follow-deck.ts`
@@ -1552,6 +1552,7 @@ When auditing each procedure, check:
 | 2025-01-02 | `get-user-decks.ts` | Add compound index `(userId, createdAt DESC)` for filter+sort optimization | `0011_improve_index.sql` |
 | 2025-01-02 | `get-public-decks.ts` | Add column selection to limit data transfer (6 columns vs all) | None |
 | 2025-01-02 | `add-url-to-deck.ts` | Parallelize deck + userUrl verification queries | None |
+| 2025-01-02 | `remove-url-from-deck.ts` | Parallelize deck + deckUrl verification queries | None |
 
 ---
 
