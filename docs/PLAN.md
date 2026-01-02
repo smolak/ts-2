@@ -1574,6 +1574,39 @@ When auditing each procedure, check:
 
 ---
 
+## Refactoring: Use tRPC Procedures Instead of Direct DB Queries
+
+> **Status**: 🔄 To Do
+> **Identified**: 2025-01-02
+> **Pattern**: Server components and API routes should use tRPC procedures (via `api` from `@/trpc/server`) instead of direct `db.query` calls
+
+### Benefits
+- Single source of truth for query logic
+- Proper logging and request tracking
+- Consistent error handling
+- Better reusability and testability
+
+### Files to Audit
+
+#### Server Components (Priority)
+- [x] `apps/web/src/app/[username]/page.tsx` - ✅ Refactored to use `api.userProfiles.getPublicUserProfile` and `api.decks.getPublicDecks`
+- [ ] Check for other page.tsx files using direct db queries
+
+#### API Routes (v1)
+These may benefit from using tRPC callers internally:
+- [ ] `apps/web/src/app/api/v1/tag/route.ts`
+- [ ] `apps/web/src/app/api/v1/deck/route.ts`
+
+#### Feature-level API Functions
+These are called from API routes and could potentially be tRPC procedures:
+- [ ] `apps/web/src/features/url/api/v1/add-url/index.ts`
+- [ ] `apps/web/src/features/feed/queries/get-user-feed.ts`
+
+#### Utilities
+- [ ] `apps/web/src/lib/get-user-id-from-request.ts` - Uses direct db query for API key validation
+
+---
+
 ## Security Fixes (Priority)
 
 > **Status**: ✅ Complete
