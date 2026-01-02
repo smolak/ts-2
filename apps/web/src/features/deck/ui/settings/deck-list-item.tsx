@@ -4,8 +4,7 @@ import type { DeckDto } from "@repo/deck/dto/deck.dto";
 import { Badge } from "@repo/ui/components/badge";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@repo/ui/components/tooltip";
 import { Eye, EyeOff, Link2, Pencil, Trash2, Users } from "lucide-react";
-import type { FC } from "react";
-import { useState } from "react";
+import { type FC, useEffect, useState } from "react";
 
 import { ActionButton } from "./action-button";
 import { DeleteDeck } from "./delete-deck";
@@ -21,6 +20,11 @@ type CrudState = "idle" | "edit" | "delete";
 export const DeckListItem: FC<DeckListItemProps> = ({ deck, onDeckChange }) => {
   const [deckData, setDeckData] = useState(deck);
   const [state, setState] = useState<CrudState>("idle");
+
+  // Sync local state when prop changes (e.g., after refetch)
+  useEffect(() => {
+    setDeckData(deck);
+  }, [deck]);
 
   if (state === "edit") {
     return (
