@@ -1504,14 +1504,14 @@ When asked to execute this task:
 - [x] `apps/web/src/features/deck/router/procedures/create-deck.ts` ✅ (optimized)
 - [x] `apps/web/src/features/deck/router/procedures/update-deck.ts` ✅ (optimized)
 - [x] `apps/web/src/features/deck/router/procedures/toggle-follow-deck.ts` ✅ (optimized)
-- [ ] `apps/web/src/features/deck/router/procedures/schedule-deck-deletion.ts`
-- [ ] `apps/web/src/features/deck/router/procedures/restore-deck.ts`
-- [ ] `apps/web/src/features/deck/router/procedures/get-url-decks.ts`
+- [x] `apps/web/src/features/deck/router/procedures/schedule-deck-deletion.ts` ✅ (already optimized)
+- [x] `apps/web/src/features/deck/router/procedures/restore-deck.ts` ✅ (already optimized)
+- [x] `apps/web/src/features/deck/router/procedures/get-url-decks.ts` ✅ (already optimized)
 
 #### Feed Procedures
-- [ ] `apps/web/src/features/feed/queries/get-user-feed.ts`
-- [ ] `apps/web/src/features/feed/router/procedures/get-user-feed.ts`
-- [ ] `apps/web/src/features/feed/router/procedures/toggle-like-url.ts`
+- [x] `apps/web/src/features/feed/queries/get-user-feed.ts` ✅ (already optimized)
+- [x] `apps/web/src/features/feed/router/procedures/get-user-feed.ts` ✅ (already optimized)
+- [x] `apps/web/src/features/feed/router/procedures/toggle-like-url.ts` ✅ (already optimized)
 
 #### Tag Procedures
 - [ ] `apps/web/src/features/tag/router/procedures/get-deck-tags.ts`
@@ -1556,6 +1556,11 @@ When auditing each procedure, check:
 | 2025-01-02 | `create-deck.ts` | Parallelize user plan, deck counts, and slug check queries (3→1 round trip) | None |
 | 2025-01-02 | `update-deck.ts` | Add column selection; parallelize user plan + deck counts queries | None |
 | 2025-01-02 | `toggle-follow-deck.ts` | Parallelize deck + existingFollow queries | None |
+| 2025-01-02 | `schedule-deck-deletion.ts` | Already optimized - no changes needed | None |
+| 2025-01-02 | `restore-deck.ts` | Already optimized - no changes needed | None |
+| 2025-01-02 | `get-url-decks.ts` | Already optimized - JS filter acceptable for small result sets | None |
+| 2025-01-02 | `get-user-feed.ts` | Already optimized - JOINs, SQL aggregation, proper pagination | None |
+| 2025-01-02 | `toggle-like-url.ts` | Already optimized - combined query, parallel transaction ops | None |
 
 ---
 
