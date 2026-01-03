@@ -2,10 +2,9 @@
 
 import type { Deck, Tag, Url } from "@repo/db/types";
 import type { ScrappedMetadata } from "@repo/metadata-scrapper/types";
-import { Avatar, AvatarFallback, AvatarImage } from "@repo/ui/components/avatar";
-import { Badge } from "@repo/ui/components/badge";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@repo/ui/components/card";
-import { Calendar, ExternalLink, Globe, Heart, Link2Off, Tag as TagIcon } from "lucide-react";
+import { Card, CardContent } from "@repo/ui/components/card";
+import { LinkCard, type LinkCardData, LinkCardSkeleton } from "@repo/ui/components/link-card";
+import { Link2Off } from "lucide-react";
 import { type FC, useEffect, useRef } from "react";
 
 import { api, type RouterOutputs } from "@/trpc/react";
@@ -31,112 +30,30 @@ const aggregateUrls = (data: { pages: GetDeckUrlsResultMaybe[] } | undefined): D
   }, [] as DeckUrlItem[]);
 };
 
-type DeckUrlCardProps = {
-  item: DeckUrlItem;
-};
-
-const DeckUrlCard: FC<DeckUrlCardProps> = ({ item }) => {
+// Map DeckUrlItem to LinkCardData
+const toCardData = (item: DeckUrlItem): LinkCardData => {
   const metadata = getMetadata(item.metadata);
-  const urlWithoutProtocol = item.url.replace(/^https?:\/\//, "");
-  const title = metadata.title || urlWithoutProtocol;
-
-  return (
-    <Card className="overflow-hidden transition-shadow hover:shadow-md">
-      <CardHeader className="pb-2">
-        <div className="flex items-center gap-3">
-          <Avatar className="h-8 w-8">
-            <AvatarImage src={metadata.faviconUrl} alt={`${metadata.publisher} favicon`} />
-            <AvatarFallback>
-              <Globe className="h-4 w-4" />
-            </AvatarFallback>
-          </Avatar>
-          <div className="min-w-0 flex-1">
-            <CardTitle className="line-clamp-1 font-semibold text-lg">
-              <a href={item.url} target="_blank" rel="noopener noreferrer" className="hover:underline" title={title}>
-                {title}
-              </a>
-            </CardTitle>
-            <div className="flex items-center text-muted-foreground text-sm">
-              <Globe className="mr-1 h-3 w-3 flex-shrink-0" />
-              <span className="truncate" title={urlWithoutProtocol}>
-                {urlWithoutProtocol}
-              </span>
-            </div>
-          </div>
-        </div>
-      </CardHeader>
-
-      {metadata.imageUrl && (
-        <a href={item.url} target="_blank" rel="noopener noreferrer" className="block">
-          <div className="relative max-h-48 overflow-hidden">
-            <img src={metadata.imageUrl} alt={title} className="h-full w-full object-cover" loading="lazy" />
-          </div>
-        </a>
-      )}
-
-      <CardContent className="pt-3">
-        {metadata.description && (
-          <CardDescription className="mb-3 line-clamp-2">{metadata.description}</CardDescription>
-        )}
-
-        {item.tagNames.length > 0 && (
-          <div className="mb-3 flex flex-wrap gap-1">
-            {item.tagNames.map((tagName) => (
-              <Badge key={tagName} variant="secondary" className="text-xs">
-                <TagIcon className="mr-1 h-2.5 w-2.5" />
-                {tagName}
-              </Badge>
-            ))}
-          </div>
-        )}
-
-        <div className="flex items-center justify-between text-muted-foreground text-xs">
-          <div className="flex items-center gap-3">
-            <span className="flex items-center gap-1">
-              <Calendar className="h-3 w-3" />
-              {new Date(item.addedAt).toLocaleDateString()}
-            </span>
-            {item.likesCount > 0 && (
-              <span className="flex items-center gap-1">
-                <Heart className="h-3 w-3" />
-                {item.likesCount}
-              </span>
-            )}
-          </div>
-          <a
-            href={item.url}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="flex items-center gap-1 transition-colors hover:text-foreground"
-          >
-            <ExternalLink className="h-3 w-3" />
-            Visit
-          </a>
-        </div>
-      </CardContent>
-    </Card>
-  );
+  return {
+    url: item.url,
+    title: metadata.title,
+    description: metadata.description,
+    imageUrl: metadata.imageUrl,
+    faviconUrl: metadata.faviconUrl,
+    logoUrl: metadata.logoUrl,
+    author: metadata.author,
+    publisher: metadata.publisher,
+    date: metadata.date,
+    lang: metadata.lang,
+    likesCount: item.likesCount,
+    tagNames: item.tagNames,
+    addedAt: item.addedAt.toISOString(),
+  };
 };
 
 const LoadingCards: FC = () => (
   <div className="space-y-4">
     {[1, 2, 3].map((i) => (
-      <Card key={i} className="overflow-hidden">
-        <CardHeader className="pb-2">
-          <div className="flex items-center gap-3">
-            <div className="h-8 w-8 animate-pulse rounded-full bg-muted" />
-            <div className="flex-1 space-y-2">
-              <div className="h-5 w-3/4 animate-pulse rounded bg-muted" />
-              <div className="h-4 w-1/2 animate-pulse rounded bg-muted" />
-            </div>
-          </div>
-        </CardHeader>
-        <div className="h-32 w-full animate-pulse bg-muted" />
-        <CardContent className="pt-3">
-          <div className="mb-3 h-4 w-full animate-pulse rounded bg-muted" />
-          <div className="h-4 w-2/3 animate-pulse rounded bg-muted" />
-        </CardContent>
-      </Card>
+      <LinkCardSkeleton key={i} />
     ))}
   </div>
 );
@@ -218,7 +135,7 @@ export const DeckUrlList: FC<DeckUrlListProps> = ({ deckId, tagIds = [] }) => {
   return (
     <div className="space-y-4">
       {urls.map((item) => (
-        <DeckUrlCard key={item.userUrlId} item={item} />
+        <LinkCard key={item.userUrlId} data={toCardData(item)} />
       ))}
 
       {/* Infinite scroll trigger */}
