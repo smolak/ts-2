@@ -7,6 +7,7 @@ const authorSchema = trimmedStringSchema;
 const dateSchema = z.iso.datetime().trim();
 const descriptionSchema = trimmedStringSchema;
 const faviconUrlSchema = urlAddressSchema;
+const imageAltSchema = trimmedStringSchema;
 const imageUrlSchema = urlAddressSchema;
 const languageSchema = trimmedStringSchema;
 const logoUrlSchema = urlAddressSchema;
@@ -20,6 +21,7 @@ export const metadataSchema = z.object({
   date: dateSchema.optional(),
   description: descriptionSchema.optional(),
   faviconUrl: faviconUrlSchema.optional(),
+  imageAlt: imageAltSchema.optional(),
   imageUrl: imageUrlSchema.optional(),
   lang: languageSchema.optional(),
   logoUrl: logoUrlSchema.optional(),

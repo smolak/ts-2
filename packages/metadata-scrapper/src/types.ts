@@ -9,6 +9,7 @@ export type ScrappedMetadata = {
   date?: string;
   description?: string;
   faviconUrl?: string;
+  imageAlt?: string;
   imageUrl?: string;
   lang?: string;
   logoUrl?: string;

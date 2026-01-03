@@ -22,6 +22,7 @@ describe("metadata-scrapper", () => {
       description:
         "W pozytywnym sensie. Tęsknota za Ryu Hayabusą ciągnęła się wśród graczy latami. Powrót serii Ninja Gaiden to bardzo dobry znak dla fanów gier akcji. Dawniej to przygodowe slashery wyznaczały kierunki i ustalały poziom wyzwania. Potem przysz�...",
       faviconUrl: "https://www.ppe.pl/build/client/images/icons/apple-touch-icon.4bcbd398.png",
+      imageAlt: "Ninja Gaiden II: Black",
       imageUrl: "https://pliki.ppe.pl/storage/1c147774e5f7e127de7e/1c147774e5f7e127de7e.jpg",
       lang: undefined,
       logoUrl: undefined,
@@ -46,6 +47,7 @@ describe("metadata-scrapper", () => {
       description:
         'A hacker known as "p0pular.eth" has claimed a $47,000 prize by outsmarting an AI chatbot named Freysa, designed to resist any attempts to',
       faviconUrl: "https://aicyberinsights.com/wp-content/uploads/2024/04/cropped-Logo-ACI-32x32.png",
+      imageAlt: "Freysa AI chatbot interface",
       imageUrl: "https://aicyberinsights.com/wp-content/uploads/2024/12/freysa_ai.jpg",
       lang: "en",
       logoUrl: undefined,

@@ -2,7 +2,7 @@ import { getAuthor } from "./data/author";
 import { getDate } from "./data/date";
 import { getDescription } from "./data/description";
 import { getFavicon } from "./data/favicon";
-import { getImage } from "./data/image";
+import { getImageData } from "./data/image-data";
 import { getLang } from "./data/lang";
 import { getLogo } from "./data/logo";
 import { getPublisher } from "./data/publisher";
@@ -15,7 +15,6 @@ const getters: Array<[keyof ScrappedMetadata, MetadataGetter]> = [
   ["date", getDate],
   ["description", getDescription],
   ["faviconUrl", getFavicon],
-  ["imageUrl", getImage],
   ["lang", getLang],
   ["logoUrl", getLogo],
   ["publisher", getPublisher],
@@ -24,9 +23,16 @@ const getters: Array<[keyof ScrappedMetadata, MetadataGetter]> = [
 ] as const;
 
 export const scrapeMetadata = ({ document, url }: { document: Document; url: string }) => {
-  return getters.reduce((acc, [key, getter]) => {
+  const metadata = getters.reduce((acc, [key, getter]) => {
     acc[key] = getter(document, url);
 
     return acc;
   }, {} as ScrappedMetadata);
+
+  // Get image URL and alt from the same source to ensure consistency
+  const imageData = getImageData(document, url);
+  metadata.imageUrl = imageData.url;
+  metadata.imageAlt = imageData.alt;
+
+  return metadata;
 };
