@@ -13,9 +13,9 @@
     "test": "turbo run test"
   },
   "devDependencies": {
-    "@biomejs/biome": "^2.3.8",
-    "@turbo/gen": "^2.6.3",
-    "turbo": "^2.6.3",
+    "@biomejs/biome": "^2.3.10",
+    "@turbo/gen": "^2.7.2",
+    "turbo": "^2.7.2",
     "typescript": "catalog:"
   },
   "packageManager": "pnpm@10.24.0+sha512.01ff8ae71b4419903b65c60fb2dc9d34cf8bb6e06d03bde112ef38f7a34d6904c424ba66bea5cdcf12890230bf39f9580473140ed9c946fef328b6e5238a345a",
