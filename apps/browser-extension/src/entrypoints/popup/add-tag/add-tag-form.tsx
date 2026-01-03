@@ -1,11 +1,19 @@
 import { zodResolver } from "@hookform/resolvers/zod";
-import { type AddTagBody, addTagBodySchema } from "@repo/tag/api/v1/add-tag.schema";
+import { tagNameSchema } from "@repo/tag/name/tag-name.schema";
 import { Button } from "@repo/ui/components/button";
 import { Input } from "@repo/ui/components/input";
 import { cn } from "@repo/ui/lib/utils";
 import { Plus } from "lucide-react";
 import { type FC, useEffect } from "react";
 import { type FieldValues, useForm } from "react-hook-form";
+import { z } from "zod";
+
+// Form-only schema - deckId is provided via props, not the form
+const addTagFormSchema = z.object({
+  name: tagNameSchema,
+});
+
+type AddTagFormValues = z.infer<typeof addTagFormSchema>;
 
 export type Size = "default" | "small";
 
@@ -15,7 +23,7 @@ type AddTagFormProps = {
   isSubmitting?: boolean;
   size?: Size;
   errorResponse?: string;
-  defaultValues?: AddTagBody;
+  defaultValues?: AddTagFormValues;
   resetForm?: boolean;
 };
 
@@ -36,8 +44,8 @@ export const AddTagForm: FC<AddTagFormProps> = ({
     reset,
     resetField,
     setFocus,
-  } = useForm<AddTagBody>({
-    resolver: zodResolver(addTagBodySchema),
+  } = useForm<AddTagFormValues>({
+    resolver: zodResolver(addTagFormSchema),
     mode: "onChange",
     defaultValues,
   });
@@ -88,7 +96,7 @@ export const AddTagForm: FC<AddTagFormProps> = ({
         </Button>
       </div>
       {errors?.name?.message || errorResponse !== "" ? (
-        <p className="absolute mt-1 rounded-md bg-red-50 px-2 py-1 text-sm text-red-600">
+        <p className="absolute mt-1 rounded-md bg-red-50 px-2 py-1 text-red-600 text-sm">
           {errors?.name?.message || errorResponse}
         </p>
       ) : null}
