@@ -14,7 +14,7 @@ type TagPickerTagsListProps = {
 export const TagPickerTagsList: FC<TagPickerTagsListProps> = ({ className, tags, onTagSelectionChange }) => {
   return (
     <ul className={cn("flex flex-col gap-2", className)}>
-      {tags.map(({ id, name, urlsCount, selected }) => {
+      {tags.map(({ id, displayName, urlsCount, selected }) => {
         return (
           <li className="flex items-center space-x-2" key={id}>
             <Checkbox
@@ -27,7 +27,7 @@ export const TagPickerTagsList: FC<TagPickerTagsListProps> = ({ className, tags,
               htmlFor={id}
               className="flex cursor-pointer gap-2 text-sm leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
             >
-              {name}
+              {displayName}
               {urlsCount > 0 ? (
                 <span title="Number of URLs for this tag" className="font-extralight text-slate-600">
                   ({urlsCount})
