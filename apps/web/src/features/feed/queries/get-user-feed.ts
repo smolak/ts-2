@@ -13,7 +13,7 @@ type GetUserFeedQueryOptions = {
 };
 
 export const getUserFeedQuery = ({ userId, viewerId, limit, cursor, feedSource, deckId }: GetUserFeedQueryOptions) => {
-  const baseGroupBy = [
+  const groupBy = [
     schema.feeds.id,
     schema.userProfiles.username,
     schema.userProfiles.imageUrl,
@@ -26,11 +26,7 @@ export const getUserFeedQuery = ({ userId, viewerId, limit, cursor, feedSource, 
     schema.decks.id,
     schema.decks.name,
     schema.decks.slug,
-    // Note: decks.metadata is NOT in GROUP BY - we use MIN() aggregate instead
-    // since it's functionally dependent on decks.id (already grouped)
   ];
-
-  const groupBy = viewerId ? [...baseGroupBy, schema.usersUrlsInteractions.userId] : baseGroupBy;
 
   const query = db
     .select({
@@ -43,13 +39,15 @@ export const getUserFeedQuery = ({ userId, viewerId, limit, cursor, feedSource, 
       url_metadata: schema.urls.metadata,
       url_likesCount: schema.usersUrls.likesCount,
       userUrl_id: schema.feeds.userUrlId,
-      userUrl_liked: orm.sql<boolean>`COALESCE(${schema.usersUrlsInteractions.userId} IS NOT NULL, FALSE)`.as(
+      // bool_or() returns NULL when no rows match, so COALESCE is needed
+      userUrl_liked: orm.sql<boolean>`COALESCE(bool_or(${schema.usersUrlsInteractions.userId} IS NOT NULL), FALSE)`.as(
         "userUrl_liked",
       ),
       // Tags are now per deck-URL - show displayName from tags in this deck
+      // Ordered by user-defined tagOrder (DISTINCT removed - PK constraint ensures uniqueness)
       tag_names: orm.sql<
         string | null
-      >`STRING_AGG(DISTINCT ${schema.tags.displayName}, ', ' ORDER BY ${schema.tags.displayName})`,
+      >`STRING_AGG(${schema.tags.displayName}, ', ' ORDER BY ${schema.deckUrlsTags.tagOrder})`,
       deck_id: schema.decks.id,
       deck_name: schema.decks.name,
       deck_slug: schema.decks.slug,
