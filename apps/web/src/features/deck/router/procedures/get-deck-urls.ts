@@ -2,6 +2,7 @@ import { orm, schema } from "@repo/db/db";
 import { deckIdSchema } from "@repo/db/id/deck-id";
 import { tagIdSchema } from "@repo/db/id/tag-id";
 import type { Tag, Url, UserUrl } from "@repo/db/types";
+import type { DeckMetadata } from "@repo/deck/schemas/deck-metadata.schema";
 import type { Maybe } from "@repo/shared/types";
 import { z } from "zod";
 
@@ -26,6 +27,7 @@ type DeckUrlItem = {
 };
 
 type GetDeckUrlsResult = Maybe<{
+  deckMetadata: DeckMetadata;
   items: DeckUrlItem[];
   nextCursor: string | null;
 }>;
@@ -42,7 +44,7 @@ export const getDeckUrls = publicProcedure
       const [deck, viewer] = await Promise.all([
         db.query.decks.findFirst({
           where: (decks, { eq }) => eq(decks.id, deckId),
-          columns: { id: true, isPublic: true, userId: true, scheduledForDeletionAt: true },
+          columns: { id: true, isPublic: true, userId: true, scheduledForDeletionAt: true, metadata: true },
         }),
         auth.userId
           ? db.query.users.findFirst({
@@ -143,6 +145,7 @@ export const getDeckUrls = publicProcedure
       logger.info({ requestId, path, deckId, count: items.length, hasMore }, "Deck URLs fetched.");
 
       return {
+        deckMetadata: deck.metadata as DeckMetadata,
         items: items.map((item) => ({
           userUrlId: item.userUrlId,
           url: item.url,

@@ -29,6 +29,7 @@ const toCardData = (feedItem: FeedDto): LinkCardData => {
     addedAt: createdAt,
     deckName: deck?.name,
     deckSlug: deck?.slug,
+    deckColor: deck?.metadata?.color ?? undefined,
     user: {
       username: user.username,
       avatarUrl: user.imageUrl ?? undefined,

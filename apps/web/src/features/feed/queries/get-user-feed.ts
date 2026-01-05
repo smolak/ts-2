@@ -26,6 +26,8 @@ export const getUserFeedQuery = ({ userId, viewerId, limit, cursor, feedSource, 
     schema.decks.id,
     schema.decks.name,
     schema.decks.slug,
+    // Note: decks.metadata is NOT in GROUP BY - we use MIN() aggregate instead
+    // since it's functionally dependent on decks.id (already grouped)
   ];
 
   const groupBy = viewerId ? [...baseGroupBy, schema.usersUrlsInteractions.userId] : baseGroupBy;
@@ -51,6 +53,9 @@ export const getUserFeedQuery = ({ userId, viewerId, limit, cursor, feedSource, 
       deck_id: schema.decks.id,
       deck_name: schema.decks.name,
       deck_slug: schema.decks.slug,
+      // Use (array_agg(...))[1] since metadata is functionally dependent on decks.id
+      // This avoids expensive JSONB comparison in GROUP BY (MIN doesn't work on JSONB)
+      deck_metadata: orm.sql<typeof schema.decks.metadata>`(array_agg(${schema.decks.metadata}))[1]`,
     })
     .from(schema.feeds)
     // INNER JOIN: feeds.deckId is now NOT NULL, deck must exist

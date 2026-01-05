@@ -1,4 +1,5 @@
 import type { Deck, Feed, Tag, Url, UserProfile, UserUrl } from "@repo/db/types";
+import type { DeckMetadata } from "@repo/deck/schemas/deck-metadata.schema";
 import type { ScrappedMetadata } from "@repo/metadata-scrapper/types";
 import type { Maybe } from "@repo/shared/types";
 
@@ -19,6 +20,7 @@ type RawFeedEntry = {
   deck_id: Deck["id"] | null;
   deck_name: Deck["name"] | null;
   deck_slug: Deck["slug"] | null;
+  deck_metadata: Deck["metadata"] | null;
 };
 
 // Filter metadata to only include known properties from ScrappedMetadata
@@ -75,6 +77,7 @@ export const toFeedDto = (entry: RawFeedEntry): FeedDto => {
             id: entry.deck_id,
             name: entry.deck_name,
             slug: entry.deck_slug,
+            metadata: (entry.deck_metadata ?? {}) as DeckMetadata,
           }
         : null,
   };
@@ -102,5 +105,6 @@ export type FeedDto = {
     id: Deck["id"];
     name: Deck["name"];
     slug: Deck["slug"];
+    metadata: DeckMetadata;
   }>;
 };

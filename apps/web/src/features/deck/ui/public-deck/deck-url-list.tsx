@@ -12,6 +12,7 @@ import { api, type RouterOutputs } from "@/trpc/react";
 type GetDeckUrlsResultMaybe = RouterOutputs["decks"]["getDeckUrls"];
 type GetDeckUrlsResult = NonNullable<GetDeckUrlsResultMaybe>;
 type DeckUrlItem = GetDeckUrlsResult["items"][number];
+type DeckMetadata = GetDeckUrlsResult["deckMetadata"];
 
 // Helper to safely cast metadata to ScrappedMetadata
 const getMetadata = (metadata: Url["metadata"]): ScrappedMetadata => {
@@ -30,8 +31,13 @@ const aggregateUrls = (data: { pages: GetDeckUrlsResultMaybe[] } | undefined): D
   }, [] as DeckUrlItem[]);
 };
 
+// Helper to get deck metadata from the first page
+const getDeckMetadata = (data: { pages: GetDeckUrlsResultMaybe[] } | undefined): DeckMetadata | undefined => {
+  return data?.pages[0]?.deckMetadata;
+};
+
 // Map DeckUrlItem to LinkCardData
-const toCardData = (item: DeckUrlItem): LinkCardData => {
+const toCardData = (item: DeckUrlItem, deckColor?: string): LinkCardData => {
   const metadata = getMetadata(item.metadata);
   return {
     url: item.url,
@@ -47,6 +53,7 @@ const toCardData = (item: DeckUrlItem): LinkCardData => {
     likesCount: item.likesCount,
     tagNames: item.tagNames,
     addedAt: item.addedAt.toISOString(),
+    deckColor,
   };
 };
 
@@ -112,6 +119,8 @@ export const DeckUrlList: FC<DeckUrlListProps> = ({ deckId, tagIds = [] }) => {
   }
 
   const urls = aggregateUrls(data);
+  const deckMetadata = getDeckMetadata(data);
+  const deckColor = deckMetadata?.color ?? undefined;
 
   if (urls.length === 0) {
     const hasTagFilter = tagIds.length > 0;
@@ -135,7 +144,7 @@ export const DeckUrlList: FC<DeckUrlListProps> = ({ deckId, tagIds = [] }) => {
   return (
     <div className="space-y-4">
       {urls.map((item) => (
-        <LinkCard key={item.userUrlId} data={toCardData(item)} />
+        <LinkCard key={item.userUrlId} data={toCardData(item, deckColor)} />
       ))}
 
       {/* Infinite scroll trigger */}

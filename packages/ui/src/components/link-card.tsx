@@ -30,6 +30,7 @@ export interface LinkCardData {
   addedAt: string;
   deckName?: string;
   deckSlug?: string;
+  deckColor?: string;
   user?: {
     username: string;
     avatarUrl?: string;
@@ -101,6 +102,20 @@ export function LinkCard({ data, variant = "full", onLike, interactions, options
                   </>
                 )}
               </div>
+
+              {data.deckName && (
+                <div className="mt-3">
+                  <span
+                    className="rounded px-2 py-0.5 font-semibold text-xs uppercase tracking-wide"
+                    style={{
+                      backgroundColor: `${data.deckColor || "#6b7280"}20`,
+                      color: data.deckColor || "#6b7280",
+                    }}
+                  >
+                    {data.deckName}
+                  </span>
+                </div>
+              )}
             </div>
 
             {/* Options Dropdown */}

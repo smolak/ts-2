@@ -51,6 +51,13 @@ export const DeckListItem: FC<DeckListItemProps> = ({ deck, onDeckChange }) => {
         onClick={() => setState("edit")}
       >
         <div className="flex items-center gap-2">
+          {deckData.metadata?.color ? (
+            <div
+              className="size-3 shrink-0 rounded-full border border-black/10"
+              style={{ backgroundColor: deckData.metadata.color }}
+              title={`Deck color: ${deckData.metadata.color}`}
+            />
+          ) : null}
           <span className="font-medium">{deckData.name}</span>
           <Badge variant={deckData.isPublic ? "default" : "secondary"} className="gap-1 text-xs">
             {deckData.isPublic ? <Eye size={10} /> : <EyeOff size={10} />}

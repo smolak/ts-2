@@ -2,6 +2,7 @@
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import type { DeckDto } from "@repo/deck/dto/deck.dto";
+import { ColorPicker } from "@repo/ui/components/color-picker";
 import { Input } from "@repo/ui/components/input";
 import { Label } from "@repo/ui/components/label";
 import { Switch } from "@repo/ui/components/switch";
@@ -43,6 +44,9 @@ export const EditDeck: FC<EditDeckProps> = ({ deck, onSave, onCancel }) => {
       name: deck.name,
       slug: deck.slug,
       isPublic: deck.isPublic,
+      metadata: {
+        color: deck.metadata?.color ?? null,
+      },
     },
   });
 
@@ -61,6 +65,7 @@ export const EditDeck: FC<EditDeckProps> = ({ deck, onSave, onCancel }) => {
         name: data.name,
         slug: data.slug,
         isPublic: data.isPublic,
+        metadata: data.metadata ?? deck.metadata,
       });
     },
     onError: (error) => {
@@ -175,6 +180,13 @@ export const EditDeck: FC<EditDeckProps> = ({ deck, onSave, onCancel }) => {
                 </p>
               ) : null}
             </div>
+            <Controller
+              name="metadata.color"
+              control={control}
+              render={({ field }) => (
+                <ColorPicker value={field.value} onChange={field.onChange} disabled={isPending} label="Deck Color" />
+              )}
+            />
           </div>
 
           <div className="ml-4 flex flex-col text-gray-600">

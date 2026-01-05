@@ -1,6 +1,7 @@
 import { orm, schema } from "@repo/db/db";
 import type { Deck } from "@repo/db/types";
 import { canChangeDeckVisibility } from "@repo/deck/config/deck-limits";
+import type { DeckMetadata } from "@repo/deck/schemas/deck-metadata.schema";
 import { TRPCError } from "@trpc/server";
 
 import { protectedProcedure } from "@/server/api/trpc";
@@ -12,6 +13,7 @@ type UpdateDeckResult = {
   name: Deck["name"];
   slug: Deck["slug"];
   isPublic: Deck["isPublic"];
+  metadata: DeckMetadata;
 };
 
 export const updateDeck = protectedProcedure
@@ -167,9 +169,10 @@ export const updateDeck = protectedProcedure
           name: schema.decks.name,
           slug: schema.decks.slug,
           isPublic: schema.decks.isPublic,
+          metadata: schema.decks.metadata,
         });
 
-      return result;
+      return result as typeof result & { metadata: DeckMetadata };
     });
 
     if (!updatedDeck) {

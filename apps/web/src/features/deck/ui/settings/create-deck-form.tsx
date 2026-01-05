@@ -2,6 +2,7 @@
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Button } from "@repo/ui/components/button";
+import { ColorPicker } from "@repo/ui/components/color-picker";
 import { Input } from "@repo/ui/components/input";
 import { Label } from "@repo/ui/components/label";
 import { Switch } from "@repo/ui/components/switch";
@@ -46,6 +47,9 @@ export const CreateDeckForm: FC<CreateDeckFormProps> = ({
       name: "",
       slug: "",
       isPublic: true,
+      metadata: {
+        color: null,
+      },
     },
   });
 
@@ -141,6 +145,19 @@ export const CreateDeckForm: FC<CreateDeckFormProps> = ({
             {isPublic ? "Anyone can see and follow this deck" : "Only you can see this deck"}
           </span>
         </div>
+
+        <Controller
+          name="metadata.color"
+          control={control}
+          render={({ field }) => (
+            <ColorPicker
+              value={field.value}
+              onChange={field.onChange}
+              disabled={isSubmitting}
+              label="Deck Color (optional)"
+            />
+          )}
+        />
       </div>
 
       <div className="flex items-center gap-2">

@@ -48,16 +48,16 @@ export const SettingsForm: FC<SettingsFormProps> = ({ onSubmit, values }) => {
       <div>
         <label
           htmlFor="apiKey"
-          className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+          className="font-medium text-sm leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
         >
           API key
         </label>
         <div className="relative mt-1 flex rounded-md shadow-sm">
-          <span className="absolute inline-flex h-full items-center rounded-l-md px-3 text-sm text-gray-500">
+          <span className="absolute inline-flex h-full items-center rounded-l-md px-3 text-gray-500 text-sm">
             <KeyRound size={14} />
           </span>
           <Input
-            className="bg-gray-100 pl-10 w-full"
+            className="w-full bg-gray-100 pl-10"
             name="apiKey"
             type="password"
             value={apiKey}
