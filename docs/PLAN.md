@@ -2,7 +2,7 @@
 
 > **Status**: Active Development
 > **Created**: December 7, 2025
-> **Last Updated**: January 3, 2025
+> **Last Updated**: January 5, 2025
 
 ## Table of Contents
 
@@ -53,6 +53,12 @@
     - [Cleanup Tasks](#cleanup-tasks)
   - [Add `typecheck` Scripts to All Packages](#add-typecheck-scripts-to-all-packages)
   - [Generate App Rules and Regulations](#generate-app-rules-and-regulations)
+  - [Decision: Tag Ordering UX in Browser Extension](#decision-tag-ordering-ux-in-browser-extension)
+    - [Context](#context)
+    - [Current Behavior](#current-behavior)
+    - [Options](#options)
+    - [Considerations](#considerations)
+    - [Decision](#decision)
   - [References](#references)
 
 ---
@@ -477,6 +483,43 @@ Create legal documentation:
 
 ---
 
+## Decision: Tag Ordering UX in Browser Extension
+
+> **Status**: Needs Decision
+> **Priority**: Low
+
+### Context
+
+Tags have a `tagOrder` column in `deck_urls_tags` that determines display order. The feed query now uses `ORDER BY tagOrder` instead of alphabetical sorting.
+
+### Current Behavior
+
+- Tag order is determined by **selection sequence** (first click = order 1, second click = order 2)
+- No visual indicator of order in the UI
+- No way to reorder after selection (must deselect and reselect)
+- Users are unaware their click order matters
+
+### Options
+
+1. **Do nothing** - Accept implicit selection-order behavior (simplest)
+2. **Add visual order indicators** - Show numbers next to selected tags
+3. **Implement drag-and-drop** - Allow explicit reordering of selected tags
+4. **Alphabetical always** - Revert to `ORDER BY displayName` and remove `tagOrder` dependency
+
+### Considerations
+
+- Max ~10 tags per URL entry (low complexity)
+- Browser extension has limited screen space
+- Is tag order important enough to warrant UI complexity?
+
+### Decision
+
+- [ ] Determine if tag ordering matters for users
+- [ ] If yes, decide on UX approach
+- [ ] If no, consider reverting feed query to alphabetical sort
+
+---
+
 ## References
 
 - [ARCHITECTURE.md](./ARCHITECTURE.md) - System architecture
@@ -486,4 +529,4 @@ Create legal documentation:
 
 ---
 
-*Plan maintained through iterative development. Last cleanup: January 3, 2025*
+*Plan maintained through iterative development. Last cleanup: January 5, 2025*
