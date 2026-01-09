@@ -24,13 +24,17 @@ This document provides a quick reference to all project rules and where to find 
   - CRUD Hooks: Single file per feature (e.g., `userProfile.ts`)
 
 ### Testing Strategy
-- **File**: `docs/CODING-GUIDELINE.md`
-- **Section**: Testing Patterns
+- **File**: `docs/TESTING.md`
 - **Key Rules**:
   - Tests next to files: `./format-date.ts` and `./format-date.test.ts`
-  - Avoid mocks: Use dependency injection, mock only at boundaries
+  - Follow AAA pattern (Arrange-Act-Assert) with blank lines
+  - Avoid deep nesting with `describe` blocks
+  - Avoid mutable variables in tests (no `let` with `beforeEach` reassignment)
+  - Inline test setup - prefer duplication over abstraction
+  - Use dependency injection, mock only at boundaries
   - Frontend: Mock DB/outside APIs
   - Backend: Mock external APIs, email services, file storage
+  - Use `beforeEach`/`afterEach` for cleanup, not for code reuse
   - **Test Execution**: Run tests immediately after changes to test files or source files
 
 ### Naming Conventions
@@ -67,17 +71,23 @@ This document provides a quick reference to all project rules and where to find 
 - **Import Rules** ↔ **Component Organization** (file structure affects imports)
 - **Naming Conventions** ↔ **Component Organization** (naming affects file structure)
 - **Testing Strategy** ↔ **Component Organization** (test placement follows component structure)
+- **Testing Strategy** ↔ **Coding Guidelines** (test imports follow import rules)
 - **Technology Stack** ↔ **All Sections** (tech choices affect all patterns)
 
 ### File Dependencies
 ```
 docs/CODING-GUIDELINE.md
 ├── References docs/ARCHITECTURE.md for component patterns
-└── References docs/DESIGN.md for UI patterns
+├── References docs/DESIGN.md for UI patterns
+└── References docs/TESTING.md for testing patterns
 
 docs/ARCHITECTURE.md
 ├── References docs/CODING-GUIDELINE.md for import rules
 └── References docs/CODING-GUIDELINE.md for naming conventions
+
+docs/TESTING.md
+├── References docs/ARCHITECTURE.md for component organization
+└── References docs/CODING-GUIDELINE.md for general coding standards
 
 docs/DESIGN.md
 └── References docs/CODING-GUIDELINE.md for implementation patterns
@@ -114,9 +124,10 @@ pnpm run lint
 ```
 ├── .cursorrules                    # Rule references only
 ├── docs/
-│   ├── CODING-GUIDELINE.md        # Import, naming, testing, tech stack
+│   ├── CODING-GUIDELINE.md        # Import, naming, tech stack
 │   ├── ARCHITECTURE.md            # Component organization, file structure
 │   ├── DESIGN.md                  # User experience, UI patterns
+│   ├── TESTING.md                 # Testing patterns and guidelines
 │   ├── RULES-INDEX.md             # This file - quick reference
 │   └── CURSOR-RULES-VALIDATION.md # Validation system documentation
 └── scripts/
@@ -149,15 +160,15 @@ pnpm run lint
 ### By Task
 - **Setting up imports** → docs/CODING-GUIDELINE.md → Import Rules
 - **Creating components** → docs/ARCHITECTURE.md → Component Architecture
-- **Writing tests** → docs/CODING-GUIDELINE.md → Testing Patterns
-- **Running tests** → docs/CODING-GUIDELINE.md → Test Execution Rules
+- **Writing tests** → docs/TESTING.md
+- **Running tests** → docs/TESTING.md → Test Execution Rules
 - **Naming files** → docs/CODING-GUIDELINE.md → Naming Conventions
 - **Choosing technologies** → docs/CODING-GUIDELINE.md → Technology Stack
 
 ### By File Type
 - **React components** → docs/ARCHITECTURE.md + docs/CODING-GUIDELINE.md
 - **Hooks** → docs/CODING-GUIDELINE.md + docs/ARCHITECTURE.md
-- **Tests** → docs/CODING-GUIDELINE.md
+- **Tests** → docs/TESTING.md
 - **Utilities** → docs/CODING-GUIDELINE.md
 - **Types** → docs/CODING-GUIDELINE.md
 
@@ -165,7 +176,7 @@ pnpm run lint
 - **New feature** → Check all files for relevant rules
 - **Refactoring** → Focus on docs/ARCHITECTURE.md + docs/CODING-GUIDELINE.md
 - **UI changes** → Check docs/DESIGN.md + docs/CODING-GUIDELINE.md
-- **Testing** → Focus on docs/CODING-GUIDELINE.md
+- **Testing** → Focus on docs/TESTING.md
 
 ## 📝 Maintenance
 
