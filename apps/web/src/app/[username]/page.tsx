@@ -2,7 +2,7 @@ import { usernameSchema } from "@repo/user-profile/username/schemas/username.sch
 import { notFound } from "next/navigation";
 import type { ReactNode } from "react";
 import { PublicDecksGrid } from "@/features/deck/ui/public-decks-grid";
-import { InfiniteUserFeed } from "@/features/feed/ui/user-feed-list/infinite-user-feed";
+import { InfinitePublicFeed } from "@/features/feed/ui/user-feed-list/infinite-public-feed";
 import { UserProfileCard } from "@/features/user-profile/ui/user-profile-card";
 import { api } from "@/trpc/server";
 
@@ -37,7 +37,7 @@ export default async function Page({ params }: { params: Promise<{ username: str
               <PublicDecksGrid decks={decks} username={userProfile.username} />
 
               <div className="flex flex-col gap-2">
-                <InfiniteUserFeed userId={userProfile.id} viewerId={undefined} />
+                <InfinitePublicFeed userId={userProfile.id} />
               </div>
             </div>
           </div>

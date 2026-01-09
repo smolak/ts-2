@@ -66,7 +66,7 @@ type DeckContentProps = {
 export const DeckContent: FC<DeckContentProps> = ({ deckId }) => {
   const [selectedTagIds, setSelectedTagIds] = useState<Tag["id"][]>([]);
 
-  const { data: tags = [], isLoading: loadingTags } = api.tags.getDeckTags.useQuery(
+  const { data: tags = [], isLoading: loadingTags } = api.tags.getPublicDeckTags.useQuery(
     { deckId },
     { staleTime: 60000 }, // Cache for 1 minute
   );

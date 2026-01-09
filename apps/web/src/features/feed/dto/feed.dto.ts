@@ -1,7 +1,6 @@
 import type { Deck, Feed, Tag, Url, UserProfile, UserUrl } from "@repo/db/types";
 import type { DeckMetadata } from "@repo/deck/schemas/deck-metadata.schema";
 import type { ScrappedMetadata } from "@repo/metadata-scrapper/types";
-import type { Maybe } from "@repo/shared/types";
 
 type Metadata = ScrappedMetadata;
 
@@ -17,9 +16,9 @@ type RawFeedEntry = {
   url_likesCount: UserUrl["likesCount"];
   userUrl_id: UserUrl["id"];
   tag_names: string | null;
-  deck_id: Deck["id"] | null;
-  deck_name: Deck["name"] | null;
-  deck_slug: Deck["slug"] | null;
+  deck_id: Deck["id"];
+  deck_name: Deck["name"];
+  deck_slug: Deck["slug"];
   deck_metadata: Deck["metadata"] | null;
 };
 
@@ -71,15 +70,12 @@ export const toFeedDto = (entry: RawFeedEntry): FeedDto => {
       tagNames: entry.tag_names ? entry.tag_names.split(",") : [],
     },
     userUrlId: entry.userUrl_id,
-    deck:
-      entry.deck_id && entry.deck_name && entry.deck_slug
-        ? {
-            id: entry.deck_id,
-            name: entry.deck_name,
-            slug: entry.deck_slug,
-            metadata: (entry.deck_metadata ?? {}) as DeckMetadata,
-          }
-        : null,
+    deck: {
+      id: entry.deck_id,
+      name: entry.deck_name,
+      slug: entry.deck_slug,
+      metadata: (entry.deck_metadata ?? {}) as DeckMetadata,
+    },
   };
 };
 
@@ -101,10 +97,10 @@ export type FeedDto = {
     tagNames: Tag["name"][];
   };
   userUrlId: UserUrl["id"];
-  deck: Maybe<{
+  deck: {
     id: Deck["id"];
     name: Deck["name"];
     slug: Deck["slug"];
     metadata: DeckMetadata;
-  }>;
+  };
 };

@@ -47,8 +47,8 @@ export const EditFeedItemModal: FC<EditFeedItemProps> = ({ open, onOpenChange, f
   const userDecks = useDecksStore(({ decks }) => decks);
   const setShouldRefetchDecks = useDecksStore(({ setShouldRefetchDecks }) => setShouldRefetchDecks);
 
-  // Get the deck ID from the feed item (required for deck-specific tag operations)
-  const deckId = feedItem.deck?.id;
+  // Get the deck ID from the feed item
+  const deckId = feedItem.deck.id;
 
   // Query for deck's available tags
   const {
@@ -56,7 +56,7 @@ export const EditFeedItemModal: FC<EditFeedItemProps> = ({ open, onOpenChange, f
     isLoading: loadingDeckTags,
     isSuccess: deckTagsLoaded,
     isError: errorLoadingDeckTags,
-  } = api.tags.getDeckTags.useQuery({ deckId: deckId! }, { enabled: !!deckId });
+  } = api.tags.getMyDeckTags.useQuery({ deckId });
 
   // Query for URL's current tags in this deck
   const {
@@ -64,7 +64,7 @@ export const EditFeedItemModal: FC<EditFeedItemProps> = ({ open, onOpenChange, f
     isLoading: loadingUrlTags,
     isSuccess: urlTagsLoaded,
     isError: errorLoadingUrlTags,
-  } = api.tags.getDeckUrlTags.useQuery({ deckId: deckId!, userUrlId: feedItem.userUrlId }, { enabled: !!deckId });
+  } = api.tags.getDeckUrlTags.useQuery({ deckId, userUrlId: feedItem.userUrlId });
 
   const loadingTags = loadingDeckTags || loadingUrlTags;
   const tagsLoaded = deckTagsLoaded && urlTagsLoaded;
@@ -97,7 +97,7 @@ export const EditFeedItemModal: FC<EditFeedItemProps> = ({ open, onOpenChange, f
   const [saveSuccess, setSaveSuccess] = useState(false);
 
   const isLoading = loadingTags || loadingDecks;
-  const isDataLoaded = (deckId ? tagsLoaded : true) && decksLoaded;
+  const isDataLoaded = tagsLoaded && decksLoaded;
   const isUpdating = updatingDeckUrlTags || addingToDeck || removingFromDeck || isSaving;
 
   const onTagSelectionChange = useCallback(
@@ -148,14 +148,12 @@ export const EditFeedItemModal: FC<EditFeedItemProps> = ({ open, onOpenChange, f
     setSaveError(null);
 
     try {
-      // Update tags (only if we have a deck context)
-      if (deckId) {
-        updateDeckUrlTags({
-          deckId,
-          userUrlId: feedItem.userUrlId,
-          tagIds: selectedTagIds,
-        });
-      }
+      // Update tags for the deck
+      updateDeckUrlTags({
+        deckId,
+        userUrlId: feedItem.userUrlId,
+        tagIds: selectedTagIds,
+      });
 
       // Calculate deck changes
       const decksToAdd = selectedDeckIds.filter((id) => !initialDeckIds.includes(id));
@@ -217,26 +215,17 @@ export const EditFeedItemModal: FC<EditFeedItemProps> = ({ open, onOpenChange, f
 
         {isDataLoaded ? (
           <div className="flex flex-col gap-6">
-            {deckId ? (
-              <section>
-                <h3 className="mb-3 font-medium text-sm">Tags</h3>
-                {(deckTags ?? []).length === 0 ? (
-                  <p className="text-slate-500 text-sm">No tags available for this deck.</p>
-                ) : (
-                  <TagPickerTagsList
-                    tags={prepareTags({ tags: deckTags ?? [], selectedTagIds })}
-                    onTagSelectionChange={onTagSelectionChange}
-                  />
-                )}
-              </section>
-            ) : (
-              <section>
-                <h3 className="mb-3 font-medium text-sm">Tags</h3>
-                <p className="text-slate-500 text-sm">
-                  Tags are managed per deck. Add this URL to a deck to manage tags.
-                </p>
-              </section>
-            )}
+            <section>
+              <h3 className="mb-3 font-medium text-sm">Tags</h3>
+              {(deckTags ?? []).length === 0 ? (
+                <p className="text-slate-500 text-sm">No tags available for this deck.</p>
+              ) : (
+                <TagPickerTagsList
+                  tags={prepareTags({ tags: deckTags ?? [], selectedTagIds })}
+                  onTagSelectionChange={onTagSelectionChange}
+                />
+              )}
+            </section>
 
             <Separator />
 

@@ -1,20 +1,20 @@
 "use client";
 
-import type { User } from "@repo/db/types";
 import type { InfiniteData } from "@tanstack/react-query";
 import { useSearchParams } from "next/navigation";
 import type { FC } from "react";
 
+import { useUserId } from "@/features/user/hooks/use-user-id";
 import { api } from "@/trpc/react";
 
 import type { FeedDto } from "../../dto/feed.dto";
-import type { GetUserFeedResponse } from "../../router/procedures/get-user-feed";
+import type { GetMyFeedResponse } from "../../router/procedures/get-my-feed";
 import { feedSourceSchema } from "../../shared/feed-source";
 import { ErrorLoadingFeed } from "../error-loading-feed";
 import { LoadingFeed } from "../loading-feed";
 import { InfiniteFeedList } from "./infinite-feed-list";
 
-const aggregateFeeds = (data?: InfiniteData<GetUserFeedResponse>) => {
+const aggregateFeeds = (data?: InfiniteData<GetMyFeedResponse>) => {
   if (!data) {
     return [];
   }
@@ -24,25 +24,29 @@ const aggregateFeeds = (data?: InfiniteData<GetUserFeedResponse>) => {
   }, [] as FeedDto[]);
 };
 
-const getNextCursor = (data?: InfiniteData<GetUserFeedResponse>) => {
+const getNextCursor = (data?: InfiniteData<GetMyFeedResponse>) => {
   return data?.pages[data?.pages.length - 1]?.nextCursor;
 };
 
-type InfiniteUserFeedProps = {
+type InfiniteMyFeedProps = {
   from?: FeedDto["createdAt"];
-  userId: User["id"];
-  viewerId?: User["id"];
 };
 
-export const InfiniteUserFeed: FC<InfiniteUserFeedProps> = ({ userId, from, viewerId }) => {
+/**
+ * Infinite feed component for viewing the authenticated user's own feed.
+ * Shows ALL feed entries including private decks.
+ * Should only be used when the logged-in user is viewing their own feed.
+ */
+export const InfiniteMyFeed: FC<InfiniteMyFeedProps> = ({ from }) => {
+  // biome-ignore lint/style/noNonNullAssertion: Component is only rendered inside <SignedIn> (see app/page.tsx)
+  const userId = useUserId()!;
   const searchParams = useSearchParams();
   const source = feedSourceSchema.parse(searchParams.get("source"));
   const deckId = searchParams.get("deck") ?? undefined;
   const initialCursor = from ? new Date(from) : undefined;
 
-  const { data, isLoading, isError, fetchNextPage, isFetchingNextPage } = api.feeds.getUserFeed.useInfiniteQuery(
+  const { data, isLoading, isError, fetchNextPage, isFetchingNextPage } = api.feeds.getMyFeed.useInfiniteQuery(
     {
-      userId,
       feedSource: source,
       deckId,
     },
@@ -77,7 +81,7 @@ export const InfiniteUserFeed: FC<InfiniteUserFeedProps> = ({ userId, from, view
       loadMore={fetchNextPage}
       shouldLoadMore={shouldLoadMore}
       isFetching={isFetchingNextPage}
-      viewerId={viewerId}
+      viewerId={userId}
     />
   );
 };

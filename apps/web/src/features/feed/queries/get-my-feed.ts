@@ -3,16 +3,20 @@ import type { Deck, Feed, User } from "@repo/db/types";
 
 import type { FeedSourceValue } from "../shared/feed-source";
 
-type GetUserFeedQueryOptions = {
-  userId: User["id"];
-  viewerId?: User["id"];
+type GetMyFeedQueryOptions = {
+  ownerId: User["id"];
   limit: number;
   cursor?: Feed["createdAt"];
   feedSource?: FeedSourceValue;
   deckId?: Deck["id"];
 };
 
-export const getUserFeedQuery = ({ userId, viewerId, limit, cursor, feedSource, deckId }: GetUserFeedQueryOptions) => {
+/**
+ * Query for fetching the authenticated user's own feed entries (includes private decks).
+ * This should only be used when the authenticated user is viewing their own feed.
+ * The ownerId is used for both feed ownership AND viewer interaction checks.
+ */
+export const getMyFeedQuery = ({ ownerId, limit, cursor, feedSource, deckId }: GetMyFeedQueryOptions) => {
   const groupBy = [
     schema.feeds.id,
     schema.userProfiles.username,
@@ -76,20 +80,19 @@ export const getUserFeedQuery = ({ userId, viewerId, limit, cursor, feedSource, 
     .groupBy(...groupBy)
     .orderBy(orm.desc(schema.feeds.createdAt));
 
-  const userCondition = orm.eq(schema.feeds.userId, userId);
-  const authorCondition = orm.eq(schema.userProfiles.userId, userId);
+  const userCondition = orm.eq(schema.feeds.userId, ownerId);
+  const authorCondition = orm.eq(schema.userProfiles.userId, ownerId);
 
-  if (viewerId) {
-    // Note: interactionTypeId = 1 represents "LIKED" in the interaction_types table
-    query.leftJoin(
-      schema.usersUrlsInteractions,
-      orm.and(
-        orm.eq(schema.usersUrlsInteractions.userUrlId, schema.feeds.userUrlId),
-        orm.eq(schema.usersUrlsInteractions.userId, viewerId),
-        orm.eq(schema.usersUrlsInteractions.interactionTypeId, 1),
-      ),
-    );
-  }
+  // Note: interactionTypeId = 1 represents "LIKED" in the interaction_types table
+  // Owner is always the viewer, so we use ownerId for both feed ownership and interaction check
+  query.leftJoin(
+    schema.usersUrlsInteractions,
+    orm.and(
+      orm.eq(schema.usersUrlsInteractions.userUrlId, schema.feeds.userUrlId),
+      orm.eq(schema.usersUrlsInteractions.userId, ownerId),
+      orm.eq(schema.usersUrlsInteractions.interactionTypeId, 1),
+    ),
+  );
 
   // Deck filter condition - filter feed entries by specific deck
   const deckConditionWhere = deckId ? orm.eq(schema.feeds.deckId, deckId) : undefined;
@@ -118,7 +121,7 @@ export const getUserFeedQuery = ({ userId, viewerId, limit, cursor, feedSource, 
       const value = params[parseInt(index, 10) - 1];
       return typeof value === "string" ? `'${value}'` : String(value);
     });
-    console.log("getUserFeedQuery SQL:", formattedSQL);
+    console.log("getMyFeedQuery SQL:", formattedSQL);
   }
 
   return query;

@@ -1,9 +1,11 @@
 import { createTRPCRouter } from "@/server/api/trpc";
 
-import { getUserFeed } from "./procedures/get-user-feed";
+import { getMyFeed } from "./procedures/get-my-feed";
+import { getPublicFeed } from "./procedures/get-public-feed";
 import { toggleLikeUrl } from "./procedures/toggle-like-url";
 
 export const feedsRouter = createTRPCRouter({
-  getUserFeed,
+  getMyFeed,
+  getPublicFeed,
   toggleLikeUrl,
 });

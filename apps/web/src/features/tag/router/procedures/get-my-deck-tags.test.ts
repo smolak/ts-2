@@ -5,12 +5,12 @@ import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import { createCallerFactory, createTRPCRouter } from "@/server/api/trpc";
 import { createSecondTestUser, createTestContext, createTestDeck, createTestTag, type TestContext } from "@/test-utils";
 
-import { getDeckTags } from "./get-deck-tags";
+import { getMyDeckTags } from "./get-my-deck-tags";
 
-const testRouter = createTRPCRouter({ getDeckTags });
+const testRouter = createTRPCRouter({ getMyDeckTags });
 const createCaller = createCallerFactory(testRouter);
 
-describe("getDeckTags procedure", () => {
+describe("getMyDeckTags procedure", () => {
   let ctx: TestContext;
   let deck: Deck;
 
@@ -26,7 +26,7 @@ describe("getDeckTags procedure", () => {
   it("should return empty array when deck has no tags", async () => {
     const caller = createCaller(ctx.trpcContext);
 
-    const result = await caller.getDeckTags({ deckId: deck.id });
+    const result = await caller.getMyDeckTags({ deckId: deck.id });
 
     expect(result).toEqual([]);
   });
@@ -37,7 +37,7 @@ describe("getDeckTags procedure", () => {
     await createTestTag(ctx.db, deck.id, "Tag C");
     const caller = createCaller(ctx.trpcContext);
 
-    const result = await caller.getDeckTags({ deckId: deck.id });
+    const result = await caller.getMyDeckTags({ deckId: deck.id });
 
     expect(result).toHaveLength(3);
     expect(result.map((t) => t.displayName)).toContain("Tag A");
@@ -51,7 +51,7 @@ describe("getDeckTags procedure", () => {
     await createTestTag(ctx.db, deck.id, "Mango");
     const caller = createCaller(ctx.trpcContext);
 
-    const result = await caller.getDeckTags({ deckId: deck.id });
+    const result = await caller.getMyDeckTags({ deckId: deck.id });
 
     expect(result[0]?.name).toBe("apple");
     expect(result[1]?.name).toBe("mango");
@@ -64,7 +64,7 @@ describe("getDeckTags procedure", () => {
     await createTestTag(ctx.db, otherDeck.id, "Other Tag");
     const caller = createCaller(ctx.trpcContext);
 
-    const result = await caller.getDeckTags({ deckId: deck.id });
+    const result = await caller.getMyDeckTags({ deckId: deck.id });
 
     expect(result).toHaveLength(1);
     expect(result[0]?.displayName).toBe("My Tag");
@@ -75,7 +75,7 @@ describe("getDeckTags procedure", () => {
     // Use a valid format deck ID that doesn't exist (27 chars total: deck_ + 22 chars)
     const nonExistentDeckId = "deck_abcdefghijklmnopqrstuv" as Deck["id"];
 
-    await expect(caller.getDeckTags({ deckId: nonExistentDeckId })).rejects.toMatchObject({
+    await expect(caller.getMyDeckTags({ deckId: nonExistentDeckId })).rejects.toMatchObject({
       code: "NOT_FOUND",
       message: "Deck not found.",
     });
@@ -86,7 +86,7 @@ describe("getDeckTags procedure", () => {
     const otherDeck = await createTestDeck(ctx.db, otherUser.userId, "Other Deck");
     const caller = createCaller(ctx.trpcContext);
 
-    await expect(caller.getDeckTags({ deckId: otherDeck.id })).rejects.toMatchObject({
+    await expect(caller.getMyDeckTags({ deckId: otherDeck.id })).rejects.toMatchObject({
       code: "NOT_FOUND",
       message: "Deck not found.",
     });
@@ -99,7 +99,7 @@ describe("getDeckTags procedure", () => {
     await ctx.db.update(schema.tags).set({ urlsCount: 10 }).where(orm.eq(schema.tags.id, tag.id));
     const caller = createCaller(ctx.trpcContext);
 
-    const result = await caller.getDeckTags({ deckId: deck.id });
+    const result = await caller.getMyDeckTags({ deckId: deck.id });
 
     expect(result[0]?.urlsCount).toBe(10);
   });
@@ -108,7 +108,7 @@ describe("getDeckTags procedure", () => {
     await createTestTag(ctx.db, deck.id, "Complete Tag");
     const caller = createCaller(ctx.trpcContext);
 
-    const result = await caller.getDeckTags({ deckId: deck.id });
+    const result = await caller.getMyDeckTags({ deckId: deck.id });
 
     expect(result[0]).toHaveProperty("id");
     expect(result[0]).toHaveProperty("name");
@@ -123,7 +123,7 @@ describe("getDeckTags procedure", () => {
   it("should log info when fetching tags", async () => {
     const caller = createCaller(ctx.trpcContext);
 
-    await caller.getDeckTags({ deckId: deck.id });
+    await caller.getMyDeckTags({ deckId: deck.id });
 
     expect(ctx.mockLogger.info).toHaveBeenCalled();
   });

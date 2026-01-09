@@ -5,13 +5,9 @@ import { useEffect } from "react";
 import { useDecksStore } from "@/features/deck/stores/use-decks-store";
 import { api } from "@/trpc/react";
 import { FeedListFilters } from "../feed/ui/feed-list-filters";
-import { InfiniteUserFeed } from "../feed/ui/user-feed-list/infinite-user-feed";
-import { useUserId } from "../user/hooks/use-user-id";
+import { InfiniteMyFeed } from "../feed/ui/user-feed-list/infinite-my-feed";
 
 export const LoggedInUserContent = () => {
-  // biome-ignore lint/style/noNonNullAssertion: At this point in time, the user is logged in
-  const userId = useUserId()!;
-
   const {
     data: decks,
     isLoading: decksLoading,
@@ -50,7 +46,7 @@ export const LoggedInUserContent = () => {
             <FeedListFilters decks={decks} username="Me" />
           </div>
         ) : null}
-        <InfiniteUserFeed userId={userId} viewerId={userId} />
+        <InfiniteMyFeed />
       </div>
     </>
   );

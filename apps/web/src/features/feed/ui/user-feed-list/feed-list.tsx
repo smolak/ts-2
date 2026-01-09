@@ -1,14 +1,11 @@
 import type { User } from "@repo/db/types";
-import { Button } from "@repo/ui/components/button";
-import { toast } from "@repo/ui/components/sonner";
-import Link from "next/link";
 import { type FC, useCallback, useEffect, useState } from "react";
 
 import type { FeedDto } from "../../dto/feed.dto";
 import { DropdownOptions } from "./dropdown-options";
 import { EditFeedItemModal, type OnSuccess } from "./edit-feed-item-modal";
 import { FeedListItem } from "./feed-list-item";
-import { NotLikedIcon, ToggleLikeUrl } from "./toggle-like-url";
+import { LikeInteraction } from "./like-interaction";
 
 export interface FeedListProps {
   feed: ReadonlyArray<FeedDto>;
@@ -45,18 +42,6 @@ export const FeedList: FC<FeedListProps> = ({ feed, viewerId }) => {
     [editedItem, feedItems],
   );
 
-  const canLikeUrl = Boolean(viewerId);
-  const showCantLikeWithoutLoginMessage = () => {
-    toast("Want to like this URL?", {
-      description: "💡 You need to be logged in first.",
-      action: (
-        <Link href="/auth/login">
-          <Button>Login</Button>
-        </Link>
-      ),
-    });
-  };
-
   return (
     <>
       <section>
@@ -65,24 +50,7 @@ export const FeedList: FC<FeedListProps> = ({ feed, viewerId }) => {
             <li key={feedItem.id}>
               <FeedListItem
                 feedItem={feedItem}
-                interactions={
-                  canLikeUrl ? (
-                    <ToggleLikeUrl
-                      userUrlId={feedItem.userUrlId}
-                      liked={feedItem.url.liked}
-                      likes={feedItem.url.likesCount}
-                    />
-                  ) : (
-                    <button
-                      type="button"
-                      className="flex items-center gap-1.5 rounded-xl p-2 text-sm hover:bg-red-50"
-                      onClick={showCantLikeWithoutLoginMessage}
-                    >
-                      <NotLikedIcon />
-                      {feedItem.url.likesCount}
-                    </button>
-                  )
-                }
+                interactions={<LikeInteraction feedItem={feedItem} viewerId={viewerId} />}
                 optionsDropdown={
                   viewerId === feedItem.user.id ? <DropdownOptions onEditClick={() => setEditedItem(feedItem)} /> : null
                 }

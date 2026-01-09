@@ -6,16 +6,20 @@ import { z } from "zod";
 import { getDeckTags as getDeckTagsFn } from "@/features/tag/services";
 import { protectedProcedure } from "@/server/api/trpc";
 
-type GetDeckTagsResult = TagDto[];
+type GetMyDeckTagsResult = TagDto[];
 
-const getDeckTagsSchema = z.object({
+const getMyDeckTagsSchema = z.object({
   deckId: deckIdSchema,
 });
 
-export const getDeckTags = protectedProcedure
-  .input(getDeckTagsSchema)
-  .query<GetDeckTagsResult>(async ({ input: { deckId }, ctx: { logger, requestId, db, userId } }) => {
-    const path = "tag.getDeckTags";
+/**
+ * Fetches tags from a deck owned by the authenticated user.
+ * Requires authentication and verifies deck ownership.
+ */
+export const getMyDeckTags = protectedProcedure
+  .input(getMyDeckTagsSchema)
+  .query<GetMyDeckTagsResult>(async ({ input: { deckId }, ctx: { logger, requestId, db, userId } }) => {
+    const path = "tags.getMyDeckTags";
 
     logger.info({ requestId, path, deckId }, "Fetching deck's tags.");
 
