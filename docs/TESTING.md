@@ -27,6 +27,7 @@
     - [Appropriate Uses](#appropriate-uses)
     - [Why Cleanup Needs Hooks](#why-cleanup-needs-hooks)
   - [Test Execution Rules](#test-execution-rules)
+    - [Running Tests](#running-tests)
   - [Import Order in Test Files](#import-order-in-test-files)
 
 > **Reference**: This guide incorporates principles from [Kent C. Dodds' "Avoid Nesting when you're Testing"](https://kentcdodds.com/blog/avoid-nesting-when-youre-testing)
@@ -538,12 +539,50 @@ test("example", () => {
 - **When a test file is changed**: Run the specific test file immediately after making changes
 - **When a source file is changed**: Run all related test files immediately after making changes
 
-**Implementation:**
+### Running Tests
 
-- Use your IDE's test runner or terminal to run tests immediately after changes
-- For test files: `pnpm test path/to/test-file.test.ts`
-- For source files: Run all tests that import or test the changed file
-- Use watch mode during development: `pnpm test --watch`
+Tests are run from within each app or package directory, not from the root.
+
+**Running all tests in an app, e.g. "web" app:**
+
+```bash
+cd apps/web
+pnpm test
+```
+
+**Running a specific test file:**
+
+```bash
+cd apps/web
+pnpm test relative/path/to/file.test.ts
+```
+
+**Examples:**
+
+```bash
+# Run all tests in the web app
+cd apps/web
+pnpm test
+
+# Run a specific test file
+cd apps/web
+pnpm test src/features/deck/utils/format-deck.test.ts
+
+# Run tests in a package
+cd packages/crypto
+pnpm test
+
+# Run a specific test in a package
+cd packages/crypto
+pnpm test src/hash.test.ts
+```
+
+**Watch mode during development:**
+
+```bash
+cd apps/web
+pnpm test --watch
+```
 
 **Rationale:**
 
