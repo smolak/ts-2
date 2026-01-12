@@ -2,7 +2,7 @@
 
 > **Status**: Active Development
 > **Created**: December 7, 2025
-> **Last Updated**: January 5, 2025
+> **Last Updated**: January 10, 2026
 
 ## Table of Contents
 
@@ -46,6 +46,15 @@
   - [Refactor: Rename `usernameNormalized` to `slug` in User Profiles](#refactor-rename-usernamenormalized-to-slug-in-user-profiles)
   - [Refactor: Standardize `name` / `display_name` Column Convention](#refactor-standardize-name--display_name-column-convention)
   - [Cleanup: Remove Unnecessary Defensive Checks After Drizzle Inserts](#cleanup-remove-unnecessary-defensive-checks-after-drizzle-inserts)
+  - [Refactor: Add Branded Types to Entity IDs](#refactor-add-branded-types-to-entity-ids)
+    - [Problem](#problem)
+    - [Solution](#solution)
+    - [Implementation Steps](#implementation-steps)
+    - [Benefits](#benefits)
+  - [Audit: Identify Additional Branded Type Candidates](#audit-identify-additional-branded-type-candidates)
+    - [Candidates to Evaluate](#candidates-to-evaluate)
+    - [Evaluation Criteria](#evaluation-criteria)
+    - [Decision Framework](#decision-framework)
   - [Utility: International Display Name Normalization](#utility-international-display-name-normalization)
     - [Proposed Solution](#proposed-solution)
     - [Decision: Disallow Emoji in Tags](#decision-disallow-emoji-in-tags)
@@ -59,6 +68,10 @@
     - [Options](#options)
     - [Considerations](#considerations)
     - [Decision](#decision)
+  - [Development Commands](#development-commands)
+    - [Linting](#linting)
+    - [Testing](#testing)
+    - [Test Creation Workflow](#test-creation-workflow)
   - [References](#references)
 
 ---
@@ -412,6 +425,100 @@ Files to update:
 
 ---
 
+## Refactor: Add Branded Types to Entity IDs
+
+> **Status**: Planning
+> **Priority**: Medium
+
+Current ID types (`UserId`, `DeckId`, `TagId`, etc.) are just `string` aliases derived from Zod schemas. This provides no compile-time safety - you can accidentally pass a `DeckId` where a `UserId` is expected.
+
+### Problem
+
+```typescript
+// Current - compiles but is a bug
+function getDeck(userId: UserId) { ... }
+getDeck(deckId); // No error! Both are just `string`
+```
+
+### Solution
+
+Add branded types to all entity IDs using the same pattern as `NormalizedUsername`:
+
+```typescript
+declare const UserIdBrand: unique symbol;
+export type UserId = string & { readonly [UserIdBrand]: typeof UserIdBrand };
+
+export const generateUserId = (): UserId => generateId(USER_ID_PREFIX) as UserId;
+
+export const userIdSchema = z
+  .string()
+  .startsWith(USER_ID_PREFIX)
+  .length(USER_ID_LENGTH)
+  .refine((val): val is UserId => true);
+```
+
+### Implementation Steps
+
+1. Update ID files in `packages/db/src/id/`:
+   - `user-id.ts`
+   - `deck-id.ts`
+   - `tag-id.ts`
+   - `feed-id.ts`
+   - `url-id.ts`
+   - `user-url-id.ts`
+   - `user-profile-id.ts`
+   - `request-id.ts`
+
+2. Update schema columns in `packages/db/src/schema.ts` to use Drizzle's `.$type<T>()`:
+   ```typescript
+   id: char("id", { length: USER_ID_LENGTH })
+     .$type<UserId>()
+     .notNull()
+     .primaryKey()
+   ```
+
+3. Update tests and fix any type errors surfaced by the change
+
+### Benefits
+
+- Compile-time prevention of ID mix-ups
+- Self-documenting function signatures
+- Consistent with `NormalizedUsername` pattern
+
+---
+
+## Audit: Identify Additional Branded Type Candidates
+
+> **Status**: Planning
+> **Priority**: Low
+
+Review the codebase for other string values that could benefit from branded types to prevent mix-ups.
+
+### Candidates to Evaluate
+
+- [ ] **Slugs** (`deck.slug`, potential `userProfile.slug`) - prevent slug/name confusion
+- [ ] **Clerk User ID** (`clerkUserId`) - distinguish from internal `UserId`
+- [ ] **API Keys** - ensure API keys aren't confused with other tokens
+- [ ] **URL strings** - validated URLs vs raw strings
+- [ ] **Hash values** (`urlHash`, `compoundHash`) - prevent hash type confusion
+
+### Evaluation Criteria
+
+For each candidate, assess:
+1. **Risk**: How likely is a mix-up? What's the impact?
+2. **Frequency**: How often is this type passed between functions?
+3. **Effort**: How many files would need updating?
+4. **Value**: Does the compile-time safety justify the added complexity?
+
+### Decision Framework
+
+Add branded types when:
+- Mix-ups would cause silent bugs (not caught at runtime)
+- The type crosses module/feature boundaries frequently
+- Runtime validation already exists (add compile-time layer)
+
+---
+
 ## Utility: International Display Name Normalization
 
 > **Status**: Planning
@@ -520,13 +627,52 @@ Tags have a `tagOrder` column in `deck_urls_tags` that determines display order.
 
 ---
 
+## Development Commands
+
+### Linting
+
+Linting must be run from the **project root**:
+
+```bash
+# From project root - lints entire project
+pnpm lint
+```
+
+### Testing
+
+Tests are run from within each app or package directory:
+
+```bash
+# Run all tests in an app
+cd apps/web
+pnpm test
+
+# Run a specific test file
+cd apps/web
+pnpm test src/features/deck/utils/format-deck.test.ts
+```
+
+### Test Creation Workflow
+
+When creating tests, follow the strict workflow defined in `docs/TESTING.md`:
+1. Write ONE test case
+2. Run the test - verify it passes
+3. Fix any failures immediately
+4. Check for warnings/linting/errors - resolve ALL issues
+5. ONLY THEN proceed to the next test case
+
+**Never batch-create tests without running them.**
+
+---
+
 ## References
 
 - [ARCHITECTURE.md](./ARCHITECTURE.md) - System architecture
 - [CODING-GUIDELINE.md](./CODING-GUIDELINE.md) - Development standards
 - [DESIGN.md](./DESIGN.md) - UX specifications
 - [PLAN-ARCHIVE.md](./PLAN-ARCHIVE.md) - Completed work history
+- [TESTING.md](./TESTING.md) - Testing guidelines
 
 ---
 
-*Plan maintained through iterative development. Last cleanup: January 5, 2025*
+*Plan maintained through iterative development. Last cleanup: January 10, 2026*

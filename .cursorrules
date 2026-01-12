@@ -1,40 +1,34 @@
 # Cursor IDE Rules for LinkDeck
 
-## Documentation References
+## 🔴 BEFORE EXECUTING ANY PROMPT
 
-- **Quick Reference**: See docs/RULES-INDEX.md for a complete overview of all rules and where to find them
-- **Coding Standards**: See docs/CODING-GUIDELINE.md for all coding patterns, import rules, and testing strategies
-- **Architecture**: See docs/ARCHITECTURE.md for component organization, package structure, and architectural patterns
-- **Design**: See docs/DESIGN.md for user experience and feature specifications
+### Step 1: For ANY code changes (always)
+Read `docs/CODING-GUIDELINE.md` - imports, naming, conventions
 
-## Rule Sources
+### Step 2: Based on task type
+| Task Type | Also Read |
+|-----------|-----------|
+| Tests | `docs/TESTING.md` |
+| UI/UX/Visual | `docs/DESIGN.md` |
+| Features/Structure | `docs/ARCHITECTURE.md` |
 
-All rules are defined in their respective documentation files. This file only references where to find them:
+---
 
-### Import Rules
-- **Source**: docs/CODING-GUIDELINE.md
-- **Section**: Import Rules
+## ⛔ CRITICAL RULES (Cannot Skip)
 
-### Component Organization
-- **Source**: docs/ARCHITECTURE.md
-- **Section**: Component Architecture
+### Tests: One File at a Time
+1. Modify ONE test file
+2. Run checks (from root, in order):
+   - `pnpm lint`
+   - `pnpm format`
+   - `pnpm check-types`
+3. Run test (from app/package dir):
+   - `cd apps/web && pnpm test path/to/file.test.ts`
+4. Fix any issues → Only then next file
 
-### Testing Strategy
-- **Source**: docs/CODING-GUIDELINE.md
-- **Section**: Testing Patterns
+**NEVER batch-edit test files.**
 
-### Naming Conventions
-- **Source**: docs/CODING-GUIDELINE.md
-- **Section**: Naming Conventions
+---
 
-### Technology Stack
-- **Source**: docs/CODING-GUIDELINE.md
-- **Section**: Technology Stack
-
-## Validation
-
-The validation script reads rules directly from these documentation files to ensure consistency and avoid duplication.
-
-## Always Reference Documentation
-
-When making changes, always check the relevant .md files for the complete, up-to-date rules.
+## 📚 Quick Reference
+`docs/RULES-INDEX.md` - Find rules by task type

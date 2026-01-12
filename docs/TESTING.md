@@ -4,9 +4,12 @@
 
 - [Testing Guidelines - LinkDeck Platform](#testing-guidelines---linkdeck-platform)
   - [Table of Contents](#table-of-contents)
+  - [Test Creation Workflow (CRITICAL)](#test-creation-workflow-critical)
+  - [One File at a Time (CRITICAL)](#one-file-at-a-time-critical)
   - [Test File Organization](#test-file-organization)
     - [Grouping Tests by File, Not by `describe` Blocks](#grouping-tests-by-file-not-by-describe-blocks)
   - [Test Structure (AAA Pattern)](#test-structure-aaa-pattern)
+  - [Avoid Weak Property-Existence Assertions](#avoid-weak-property-existence-assertions)
   - [Avoid Nesting](#avoid-nesting)
     - [Problems with Deep Nesting](#problems-with-deep-nesting)
   - [Avoid Mutable Variables](#avoid-mutable-variables)
@@ -31,6 +34,51 @@
   - [Import Order in Test Files](#import-order-in-test-files)
 
 > **Reference**: This guide incorporates principles from [Kent C. Dodds' "Avoid Nesting when you're Testing"](https://kentcdodds.com/blog/avoid-nesting-when-youre-testing)
+
+## Test Creation Workflow (CRITICAL)
+
+**One test at a time. No exceptions.**
+
+When creating tests, follow this strict workflow for EACH individual test case:
+
+1. **Write ONE test case**
+2. **Run the test** - verify it passes
+3. **Fix any failures** - if the test fails, fix it immediately
+4. **Run again** - confirm the fix works
+5. **Check for warnings/linting/errors** - resolve ALL issues
+6. **Repeat until clean** - the test must pass with zero warnings
+7. **ONLY THEN proceed** - move to the next test case
+
+```bash
+# After writing each test:
+cd apps/web
+pnpm test path/to/file.test.ts
+
+# Check for linting issues:
+pnpm lint path/to/file.test.ts
+```
+
+**Why this matters:**
+
+- Untested tests are worse than no tests (false confidence)
+- Accumulated broken tests create massive debugging sessions
+- Each test must be verified working before moving on
+- This applies whether adding tests to the same file or a new file
+
+**This is non-negotiable.** Never batch-create tests without running them. Never assume a test passes. Always verify.
+
+## One File at a Time (CRITICAL)
+
+**Even when a task requires changes to multiple files:**
+
+1. **Modify ONE file**
+2. **Run all checks** (test, lint, format, check-types)
+3. **Fix any issues**
+4. **Only then modify the next file**
+
+**NEVER batch-edit multiple files before running checks.**
+
+This applies to all file modifications - test files, source files, configuration files. No exceptions.
 
 ## Test File Organization
 
@@ -92,6 +140,52 @@ it("should do something", () => {
 - **Assert section**: Expect statements, result verification
 - **Blank lines**: Must have blank lines between each section for readability
 - **No comments**: Do not add `// Arrange`, `// Act`, `// Assert` comments - the blank lines make it clear
+
+## Avoid Weak Property-Existence Assertions
+
+**Do not write tests that only check if properties exist.** This is a common anti-pattern that provides false confidence.
+
+**Bad:**
+
+```typescript
+it("should return deck with expected properties", async () => {
+  const result = await getDeck(deckId);
+
+  expect(result).toHaveProperty("id");
+  expect(result).toHaveProperty("name");
+  expect(result).toHaveProperty("slug");
+  expect(result).toHaveProperty("urlsCount");
+});
+```
+
+**Why this is problematic:**
+
+1. **TypeScript already validates shape**: In a typed codebase, the return type guarantees these properties exist. This test duplicates what the compiler already enforces.
+2. **`toHaveProperty` only checks existence**: The test passes even if `id` is `null`, `urlsCount` is `-999`, or `name` is an empty string. You're not verifying meaningful values.
+3. **No behavior is tested**: The test doesn't verify the function correctly queries data, transforms results, or handles edge cases.
+4. **Other tests implicitly cover this**: Any test that actually uses these properties (e.g., `expect(result.name).toBe("My Deck")`) would fail if the property didn't exist.
+
+**What to do instead:**
+
+- **Test behavior, not shape**: Write tests that verify the function does what it's supposed to do.
+- **Use `toMatchObject` with actual values** if you need to verify multiple properties:
+
+```typescript
+it("should return deck with correct data", async () => {
+  const deck = await createTestDeck(db, userId, "My Deck");
+
+  const result = await getDeck(deck.id);
+
+  expect(result).toMatchObject({
+    name: "My Deck",
+    slug: expect.any(String),
+    urlsCount: 0,
+  });
+});
+```
+
+- **Trust the type system**: If the procedure returns a typed object and compiles, the shape is correct.
+- **Delete the test entirely**: If the only thing being tested is "does this object have properties," the test adds no value.
 
 ## Avoid Nesting
 
@@ -534,10 +628,40 @@ test("example", () => {
 
 ## Test Execution Rules
 
-**Immediate Test Execution Required:**
+**Immediate Verification Required After Every File Change:**
 
-- **When a test file is changed**: Run the specific test file immediately after making changes
-- **When a source file is changed**: Run all related test files immediately after making changes
+After modifying ANY file (in any app or package), execute these steps in order:
+
+1. **Run lint on the entire project** (from root):
+   ```bash
+   pnpm lint
+   # If fixable issues exist:
+   pnpm lint --fix
+   ```
+   If lint fails: fix the issue, run lint again, verify it passes, then proceed.
+
+2. **Run format on the entire project** (from root):
+   ```bash
+   pnpm format
+   # If fixable issues exist:
+   pnpm format --fix
+   ```
+   If format fails: fix the issue, run format again, verify it passes, then proceed.
+
+3. **Run type checking on the entire project** (from root):
+   ```bash
+   pnpm check-types
+   ```
+   If type checking fails: fix the issue, run check-types again, verify it passes, then proceed.
+
+4. **Run tests for that file** (if tests exist):
+   ```bash
+   cd <app-or-package-directory>  # e.g., apps/web, packages/crypto, etc.
+   pnpm test path/to/file.test.ts
+   ```
+   If tests fail: fix the issue, run tests again, verify they pass, then proceed.
+
+**This is mandatory.** Do not proceed to the next check until the current check passes. Do not proceed to another file until all checks pass.
 
 ### Running Tests
 

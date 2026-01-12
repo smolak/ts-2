@@ -8,6 +8,7 @@
 4. [File Organization](#file-organization)
 5. [React Component Patterns](#react-component-patterns)
 6. [API Patterns (tRPC)](#api-patterns-trpc)
+   - [Logging Patterns](#logging-patterns)
 7. [Database Patterns](#database-patterns)
 8. [Error Handling](#error-handling)
 9. [Testing Patterns](#testing-patterns) _(see docs/TESTING.md)_
@@ -583,6 +584,97 @@ export const createUserSchema = z.object({
 });
 
 export type CreateUserInput = z.infer<typeof createUserSchema>;
+```
+
+### Logging Patterns
+
+All tRPC procedures follow a consistent logging pattern for observability and debugging.
+
+#### Structure
+
+```typescript
+logger.<level>({ requestId, path, ...context }, "Message.");
+```
+
+- **First argument**: Always an object with `requestId` and `path` at minimum, plus contextual data
+- **Second argument**: A descriptive message string ending with a period
+
+#### Log Levels
+
+| Level   | Purpose                      | Example                                       |
+| ------- | ---------------------------- | --------------------------------------------- |
+| `info`  | Progress tracking & success  | `"Fetching user's decks."`, `"Deck created."` |
+| `warn`  | Business rule violations     | `"Cannot follow private deck."`               |
+| `error` | Critical failures            | `"Deck not found or not owned by user."`      |
+
+#### Required Context Fields
+
+- **`requestId`**: Always include for request correlation
+- **`path`**: Procedure path (e.g., `"deck.createDeck"`)
+- **`userId`**: Include in all protected procedure logs
+
+#### Procedure Template
+
+```typescript
+export const myProcedure = protectedProcedure
+  .input(mySchema)
+  .mutation(async ({ input, ctx: { logger, requestId, userId, db } }) => {
+    const path = "feature.myProcedure";
+
+    // Error case - include userId
+    if (!resource) {
+      logger.error({ requestId, path, userId, resourceId }, "Resource not found.");
+      throw new TRPCError({ code: "NOT_FOUND", message: "Resource not found." });
+    }
+
+    // Business rule violation - use warn
+    if (!allowed) {
+      logger.warn({ requestId, path, userId, resourceId }, "Action not allowed.");
+      throw new TRPCError({ code: "BAD_REQUEST", message: "Action not allowed." });
+    }
+
+    // ... perform operation ...
+
+    logger.info({ requestId, path, userId, resourceId }, "Operation completed.");
+
+    return result;
+  });
+```
+
+#### Query Procedure Pattern
+
+```typescript
+export const getItems = protectedProcedure.query(async ({ ctx: { logger, requestId, userId, db } }) => {
+  const path = "feature.getItems";
+
+  logger.info({ requestId, path, userId }, "Fetching items.");
+
+  const items = await fetchItems(db, userId);
+
+  logger.info({ requestId, path, userId, count: items.length }, "Items fetched.");
+
+  return items;
+});
+```
+
+#### Public Procedure Pattern
+
+For public procedures without `userId`, omit it from logs but keep all other fields:
+
+```typescript
+export const getPublicResource = publicProcedure
+  .input(schema)
+  .query(async ({ input, ctx: { logger, requestId, db } }) => {
+    const path = "feature.getPublicResource";
+
+    logger.info({ requestId, path, resourceId: input.id }, "Fetching resource.");
+
+    // ... fetch logic ...
+
+    logger.info({ requestId, path, resourceId: input.id }, "Resource fetched.");
+
+    return resource;
+  });
 ```
 
 ## Database Patterns
