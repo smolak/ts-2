@@ -1,4 +1,5 @@
 import { orm, schema } from "@repo/db/db";
+import type { DeckId } from "@repo/db/id/deck-id";
 import type { Deck } from "@repo/db/types";
 import { canCreateDeck } from "@repo/deck/config/deck-limits";
 import { TRPCError } from "@trpc/server";
@@ -8,7 +9,7 @@ import { protectedProcedure } from "@/server/api/trpc";
 import { createDeckSchema } from "../../schemas/create-deck.schema";
 
 type CreateDeckResult = {
-  deckId: Deck["id"];
+  deckId: DeckId;
   slug: Deck["slug"];
 };
 

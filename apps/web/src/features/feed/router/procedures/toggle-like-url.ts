@@ -1,5 +1,5 @@
 import { orm, schema } from "@repo/db/db";
-import { userUrlIdSchema } from "@repo/db/id/user-url-id";
+import { type UserUrlId, userUrlIdSchema } from "@repo/db/id/user-url-id";
 import type { UserUrl } from "@repo/db/types";
 import { TRPCError } from "@trpc/server";
 import { z } from "zod";
@@ -13,12 +13,12 @@ export const toggleLikeUrlSchema = z.object({
 type ToggleLikeUrlResult = {
   status: "liked" | "unliked";
   likesCount: UserUrl["likesCount"];
-  userUrlId: UserUrl["id"];
+  userUrlId: UserUrlId;
 };
 
 type UrlNotFound = {
   status: "notFound";
-  userUrlId: UserUrl["id"];
+  userUrlId: UserUrlId;
 };
 
 export const toggleLikeUrl = protectedProcedure

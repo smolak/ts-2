@@ -1,3 +1,4 @@
+import type { DeckId } from "@repo/db/id/deck-id";
 import type { DeckDto } from "@repo/deck/dto/deck.dto";
 import type { FC } from "react";
 
@@ -5,8 +6,8 @@ import { DeckPickerList } from "./deck-picker-list";
 
 type DeckPickerProps = {
   decks: ReadonlyArray<DeckDto>;
-  selectedDeckIds: DeckDto["id"][];
-  onDeckSelectionChange: (id: DeckDto["id"]) => void;
+  selectedDeckIds: DeckId[];
+  onDeckSelectionChange: (id: DeckId) => void;
   description: string;
 };
 

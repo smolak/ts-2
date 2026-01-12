@@ -33,7 +33,8 @@
 
 import type { auth } from "@clerk/nextjs/server";
 import { db } from "@repo/db/db";
-import { generateRequestId } from "@repo/db/id/request-id";
+import { generateRequestId, type RequestId } from "@repo/db/id/request-id";
+import type { UserId } from "@repo/db/id/user-id";
 import { mock } from "vitest-mock-extended";
 import type { Logger } from "@/features/logger";
 import { cleanupUser, createTestUser } from "./test-db";
@@ -87,7 +88,7 @@ function createMockLogger(): Logger {
 
 /** Additional user created during a test */
 export type AdditionalTestUser = {
-  userId: string;
+  userId: UserId;
   clerkUserId: string;
 };
 
@@ -97,17 +98,17 @@ export type TestContext = {
     db: typeof db;
     auth: ClerkAuth;
     logger: Logger;
-    requestId: string;
+    requestId: RequestId;
   };
   /** The tRPC context with unauthenticated auth (for public procedures) */
   unauthTrpcContext: {
     db: typeof db;
     auth: ClerkAuth;
     logger: Logger;
-    requestId: string;
+    requestId: RequestId;
   };
   /** The test user's internal ID */
-  userId: string;
+  userId: UserId;
   /** The test user's Clerk ID */
   clerkUserId: string;
   /** Access to the mock logger for assertions */

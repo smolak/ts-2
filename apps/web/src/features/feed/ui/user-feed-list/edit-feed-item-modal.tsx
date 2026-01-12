@@ -1,4 +1,6 @@
-import type { Deck, Tag } from "@repo/db/types";
+import type { DeckId } from "@repo/db/id/deck-id";
+import type { TagId } from "@repo/db/id/tag-id";
+import type { Tag } from "@repo/db/types";
 import type { DeckDto } from "@repo/deck/dto/deck.dto";
 import type { TagDto } from "@repo/tag/dto/tag.dto";
 import { Button } from "@repo/ui/components/button";
@@ -29,19 +31,19 @@ type EditFeedItemProps = {
   feedItem: FeedDto;
 };
 
-const prepareTags = ({ tags, selectedTagIds }: { tags: TagDto[]; selectedTagIds: TagDto["id"][] }) =>
+const prepareTags = ({ tags, selectedTagIds }: { tags: TagDto[]; selectedTagIds: TagId[] }) =>
   tags.map((tag) => ({
     ...tag,
     selected: selectedTagIds.indexOf(tag.id) >= 0,
   }));
 
-const prepareDecks = ({ userDecks, selectedDeckIds }: { userDecks: DeckDto[]; selectedDeckIds: Deck["id"][] }) =>
+const prepareDecks = ({ userDecks, selectedDeckIds }: { userDecks: DeckDto[]; selectedDeckIds: DeckId[] }) =>
   userDecks.map((deck) => ({
     ...deck,
     selected: selectedDeckIds.indexOf(deck.id) >= 0,
   }));
 
-const getTagIds = (tags: { id: Tag["id"] }[]) => tags.map(({ id }) => id);
+const getTagIds = (tags: { id: TagId }[]) => tags.map(({ id }) => id);
 
 export const EditFeedItemModal: FC<EditFeedItemProps> = ({ open, onOpenChange, feedItem, onSuccess }) => {
   const userDecks = useDecksStore(({ decks }) => decks);
@@ -89,9 +91,9 @@ export const EditFeedItemModal: FC<EditFeedItemProps> = ({ open, onOpenChange, f
   const { mutateAsync: addUrlToDeck, isPending: addingToDeck } = api.decks.addUrlToDeck.useMutation();
   const { mutateAsync: removeUrlFromDeck, isPending: removingFromDeck } = api.decks.removeUrlFromDeck.useMutation();
 
-  const [selectedTagIds, setSelectedTagIds] = useState<string[]>([]);
-  const [selectedDeckIds, setSelectedDeckIds] = useState<string[]>([]);
-  const [initialDeckIds, setInitialDeckIds] = useState<string[]>([]);
+  const [selectedTagIds, setSelectedTagIds] = useState<TagId[]>([]);
+  const [selectedDeckIds, setSelectedDeckIds] = useState<DeckId[]>([]);
+  const [initialDeckIds, setInitialDeckIds] = useState<DeckId[]>([]);
   const [isSaving, setIsSaving] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
   const [saveSuccess, setSaveSuccess] = useState(false);
@@ -101,7 +103,7 @@ export const EditFeedItemModal: FC<EditFeedItemProps> = ({ open, onOpenChange, f
   const isUpdating = updatingDeckUrlTags || addingToDeck || removingFromDeck || isSaving;
 
   const onTagSelectionChange = useCallback(
-    (tagId: Tag["id"]) => {
+    (tagId: TagId) => {
       const tagListed = selectedTagIds.indexOf(tagId) !== -1;
       const newSelection = tagListed ? selectedTagIds.filter((id) => tagId !== id) : [...selectedTagIds, tagId];
 
@@ -111,7 +113,7 @@ export const EditFeedItemModal: FC<EditFeedItemProps> = ({ open, onOpenChange, f
   );
 
   const onDeckSelectionChange = useCallback(
-    (deckId: Deck["id"]) => {
+    (deckId: DeckId) => {
       const deckListed = selectedDeckIds.indexOf(deckId) !== -1;
       const newSelection = deckListed ? selectedDeckIds.filter((id) => deckId !== id) : [...selectedDeckIds, deckId];
       setSelectedDeckIds(newSelection);

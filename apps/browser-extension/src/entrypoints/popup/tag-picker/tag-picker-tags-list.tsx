@@ -1,3 +1,4 @@
+import type { TagId } from "@repo/db/id/tag-id";
 import type { TagDto } from "@repo/tag/dto/tag.dto";
 import { Checkbox } from "@repo/ui/components/checkbox";
 import { cn } from "@repo/ui/lib/utils";
@@ -8,7 +9,7 @@ type TagPickerTag = TagDto & { selected: boolean };
 type TagPickerTagsListProps = {
   className?: string;
   tags: ReadonlyArray<TagPickerTag>;
-  onTagSelectionChange: (id: TagDto["id"]) => void;
+  onTagSelectionChange: (id: TagId) => void;
 };
 
 export const TagPickerTagsList: FC<TagPickerTagsListProps> = ({ className, tags, onTagSelectionChange }) => {

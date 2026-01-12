@@ -1,6 +1,7 @@
 import type { Db } from "@repo/db/db";
 import { schema } from "@repo/db/db";
 import type { DeckId } from "@repo/db/id/deck-id";
+import type { TagId } from "@repo/db/id/tag-id";
 import type { UserId } from "@repo/db/id/user-id";
 import type { Tag } from "@repo/db/types";
 
@@ -14,7 +15,7 @@ interface CreateTagParams {
 }
 
 interface CreateTagResult {
-  tagId: Tag["id"];
+  tagId: TagId;
   name: Tag["name"];
   displayName: Tag["displayName"];
 }

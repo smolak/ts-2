@@ -1,6 +1,7 @@
 import { db, orm, schema } from "@repo/db/db";
+import type { UrlId } from "@repo/db/id/url-id";
 import type { UserId } from "@repo/db/id/user-id";
-import type { Url, UserUrl } from "@repo/db/types";
+import type { UserUrl } from "@repo/db/types";
 
 import { createCompoundHash, createUrlHash } from "./compound-hash";
 import type { AddUrlRequestBody } from "./request-body.schema";
@@ -45,7 +46,7 @@ export const addUrl: AddUrl = async ({ deckId, tagIds, metadata, userId }) => {
       });
 
   const result = await db.transaction(async (tx) => {
-    let urlId: Url["id"];
+    let urlId: UrlId;
 
     if (maybeUrl) {
       urlId = maybeUrl.id;

@@ -1,14 +1,16 @@
 import { db, orm, schema } from "@repo/db/db";
-import type { Deck, Feed, User } from "@repo/db/types";
+import type { DeckId } from "@repo/db/id/deck-id";
+import type { UserId } from "@repo/db/id/user-id";
+import type { Feed } from "@repo/db/types";
 
 import type { FeedSourceValue } from "../shared/feed-source";
 
 type GetMyFeedQueryOptions = {
-  ownerId: User["id"];
+  ownerId: UserId;
   limit: number;
   cursor?: Feed["createdAt"];
   feedSource?: FeedSourceValue;
-  deckId?: Deck["id"];
+  deckId?: DeckId;
 };
 
 /**

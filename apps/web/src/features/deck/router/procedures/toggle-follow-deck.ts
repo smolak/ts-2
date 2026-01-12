@@ -1,5 +1,5 @@
 import { orm, schema } from "@repo/db/db";
-import { deckIdSchema } from "@repo/db/id/deck-id";
+import { type DeckId, deckIdSchema } from "@repo/db/id/deck-id";
 import type { Deck } from "@repo/db/types";
 import { TRPCError } from "@trpc/server";
 import { z } from "zod";
@@ -14,7 +14,7 @@ export type ToggleFollowDeckSchema = z.infer<typeof toggleFollowDeckSchema>;
 
 type ToggleFollowDeckResult = {
   status: "following" | "unfollowed";
-  deckId: Deck["id"];
+  deckId: DeckId;
   followersCount: Deck["followersCount"];
 };
 

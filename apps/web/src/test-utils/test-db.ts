@@ -13,15 +13,15 @@
 import { type Db, orm, schema } from "@repo/db/db";
 import type { DeckId } from "@repo/db/id/deck-id";
 import type { TagId } from "@repo/db/id/tag-id";
+import type { UrlId } from "@repo/db/id/url-id";
 import type { UserId } from "@repo/db/id/user-id";
 import type { UserUrlId } from "@repo/db/id/user-url-id";
-import type { Url } from "@repo/db/types";
 import { normalizeUsername } from "@repo/user-profile/normalized-username/normalized-username";
 
 /**
  * Cleanup tags created during tests (by deck)
  */
-export async function cleanupTags(db: Db, deckId: string): Promise<void> {
+export async function cleanupTags(db: Db, deckId: DeckId): Promise<void> {
   await db.delete(schema.tags).where(orm.eq(schema.tags.deckId, deckId));
 }
 
@@ -29,7 +29,7 @@ export async function cleanupTags(db: Db, deckId: string): Promise<void> {
  * Cleanup a user and all their data
  * Follows the dependency order from schema.ts
  */
-export async function cleanupUser(db: Db, userId: string): Promise<void> {
+export async function cleanupUser(db: Db, userId: UserId): Promise<void> {
   // Level 3: Delete deepest leaf dependencies first
   // deckUrlsTags references deckUrls which references decks
   await db
@@ -195,7 +195,7 @@ export async function createTestUrl(
  * Create a test user URL association (usersUrls)
  * Links a URL to a user
  */
-export async function createTestUserUrl(db: Db, userId: UserId, urlId: Url["id"]) {
+export async function createTestUserUrl(db: Db, userId: UserId, urlId: UrlId) {
   const [userUrl] = await db
     .insert(schema.usersUrls)
     .values({

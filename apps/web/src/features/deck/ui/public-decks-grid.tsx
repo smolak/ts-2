@@ -1,5 +1,6 @@
 "use client";
 
+import type { DeckId } from "@repo/db/id/deck-id";
 import type { Deck, UserProfile } from "@repo/db/types";
 import type { DeckMetadata } from "@repo/deck/schemas/deck-metadata.schema";
 import { Badge } from "@repo/ui/components/badge";
@@ -9,7 +10,7 @@ import Link from "next/link";
 import type { FC } from "react";
 
 type PublicDeck = {
-  id: Deck["id"];
+  id: DeckId;
   name: Deck["name"];
   slug: Deck["slug"];
   metadata: DeckMetadata;

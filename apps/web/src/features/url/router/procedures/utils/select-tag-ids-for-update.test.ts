@@ -1,10 +1,11 @@
+import type { TagId } from "@repo/db/id/tag-id";
 import { describe, expect, it } from "vitest";
 import { selectTagIdsForUpdate } from "./select-tag-ids-for-update";
 
 describe("select-tag-ids-for-update", () => {
   describe("when none of the new tag IDs exist on the list of current Url tag IDs", () => {
-    const currentTagIds = ["a", "b", "c"];
-    const newTagIds = ["d", "e", "f"];
+    const currentTagIds = ["a", "b", "c"] as TagId[];
+    const newTagIds = ["d", "e", "f"] as TagId[];
 
     it("should select all new Url tag IDs as those whose number of Urls is to be incremented", () => {
       const result = selectTagIdsForUpdate({ currentTagIds, newTagIds });
@@ -20,8 +21,8 @@ describe("select-tag-ids-for-update", () => {
   });
 
   describe("when some of the new tag IDs exist on the list of current Url tag IDs", () => {
-    const currentTagIds = ["a", "b", "c"];
-    const newTagIds = ["c", "d", "e"];
+    const currentTagIds = ["a", "b", "c"] as TagId[];
+    const newTagIds = ["c", "d", "e"] as TagId[];
 
     it("should select only those new tag IDs for increment that are not on the current list", () => {
       const result = selectTagIdsForUpdate({ currentTagIds, newTagIds });
@@ -37,8 +38,8 @@ describe("select-tag-ids-for-update", () => {
   });
 
   describe("when all of the new tag IDs exist on the list of current Url tag IDs", () => {
-    const currentTagIds = ["a", "b", "c"];
-    const newTagIds = ["a", "b", "c"];
+    const currentTagIds = ["a", "b", "c"] as TagId[];
+    const newTagIds = ["a", "b", "c"] as TagId[];
 
     it("should not select any tag ID for increment (nothing changed)", () => {
       const result = selectTagIdsForUpdate({ currentTagIds, newTagIds });

@@ -1,4 +1,4 @@
-import type { User } from "@repo/db/types";
+import type { UserId } from "@repo/db/id/user-id";
 import { type FC, useEffect, useRef } from "react";
 
 import type { FeedDto } from "../../dto/feed.dto";
@@ -10,7 +10,7 @@ export interface InfiniteFeedListProps {
   loadMore: () => void;
   shouldLoadMore?: boolean;
   isFetching?: boolean;
-  viewerId?: User["id"];
+  viewerId?: UserId;
 }
 
 export const InfiniteFeedList: FC<InfiniteFeedListProps> = ({

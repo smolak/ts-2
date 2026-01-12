@@ -1,4 +1,4 @@
-import type { User } from "@repo/db/types";
+import type { UserId } from "@repo/db/id/user-id";
 import { Button } from "@repo/ui/components/button";
 import { toast } from "@repo/ui/components/sonner";
 import Link from "next/link";
@@ -9,7 +9,7 @@ import { NotLikedIcon, ToggleLikeUrl } from "./toggle-like-url";
 
 interface LikeInteractionProps {
   feedItem: FeedDto;
-  viewerId?: User["id"];
+  viewerId?: UserId;
 }
 
 const showCantLikeWithoutLoginMessage = () => {

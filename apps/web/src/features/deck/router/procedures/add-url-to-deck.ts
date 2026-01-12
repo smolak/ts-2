@@ -1,5 +1,5 @@
 import { orm, schema } from "@repo/db/db";
-import { deckIdSchema } from "@repo/db/id/deck-id";
+import { type DeckId, deckIdSchema } from "@repo/db/id/deck-id";
 import { userUrlIdSchema } from "@repo/db/id/user-url-id";
 import type { Deck } from "@repo/db/types";
 import { TRPCError } from "@trpc/server";
@@ -16,7 +16,7 @@ export type AddUrlToDeckSchema = z.infer<typeof addUrlToDeckSchema>;
 
 type AddUrlToDeckResult = {
   added: true;
-  deckId: Deck["id"];
+  deckId: DeckId;
   urlsCount: Deck["urlsCount"];
 };
 

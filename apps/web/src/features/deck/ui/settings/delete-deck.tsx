@@ -13,6 +13,7 @@ import { useForm } from "react-hook-form";
 import { api } from "@/trpc/react";
 
 import {
+  type ScheduleDeckDeletionInput,
   type ScheduleDeckDeletionSchema,
   scheduleDeckDeletionSchema,
 } from "../../schemas/schedule-deck-deletion.schema";
@@ -29,7 +30,7 @@ type DeleteDeckProps = {
 
 export const DeleteDeck: FC<DeleteDeckProps> = ({ deck, onDelete, onCancel }) => {
   const [errorResponse, setErrorResponse] = useState("");
-  const { register, handleSubmit } = useForm<ScheduleDeckDeletionSchema>({
+  const { register, handleSubmit } = useForm<ScheduleDeckDeletionInput, unknown, ScheduleDeckDeletionSchema>({
     resolver: zodResolver(scheduleDeckDeletionSchema),
     mode: "onChange",
     defaultValues: {

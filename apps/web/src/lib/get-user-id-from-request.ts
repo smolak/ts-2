@@ -1,12 +1,12 @@
 import { db } from "@repo/db/db";
 import type { RequestId } from "@repo/db/id/request-id";
-import type { User } from "@repo/db/types";
+import type { UserId } from "@repo/db/id/user-id";
 import { type ApiKey, apiKeySchema } from "@repo/user/api-key/api-key.schema";
 import { type Logger, logger } from "@/features/logger";
 
 export const getUserIdFromRequestFactory =
   (logger: Logger, getUserIdByApiKey: GetUserIdByApiKey) =>
-  async (request: Request, requestId: RequestId, actionType: string): Promise<User["id"] | null> => {
+  async (request: Request, requestId: RequestId, actionType: string): Promise<UserId | null> => {
     const apiKey = request.headers.get("authorization")?.split("Bearer ")?.[1];
     const apiKeyCheckResult = apiKeySchema.safeParse(apiKey);
 
@@ -27,7 +27,7 @@ export const getUserIdFromRequestFactory =
     return userId;
   };
 
-type GetUserIdByApiKey = (apiKey: ApiKey) => Promise<User["id"] | undefined>;
+type GetUserIdByApiKey = (apiKey: ApiKey) => Promise<UserId | undefined>;
 
 const getUserIdByApiKey: GetUserIdByApiKey = async (apiKey: ApiKey) => {
   const user = await db.query.users.findFirst({

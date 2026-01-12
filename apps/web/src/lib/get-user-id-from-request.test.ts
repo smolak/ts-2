@@ -1,3 +1,4 @@
+import { generateRequestId } from "@repo/db/id/request-id";
 import { generateApiKey } from "@repo/user/api-key/generate-api-key";
 import { describe, expect, it, vi } from "vitest";
 import { mock } from "vitest-mock-extended";
@@ -5,7 +6,7 @@ import type { Logger } from "@/features/logger";
 import { getUserIdFromRequestFactory } from "./get-user-id-from-request";
 
 describe("getUserIdFromRequest", () => {
-  const requestId = "test-request-id";
+  const requestId = generateRequestId();
   const actionType = "test-action-type";
 
   const mockLogger = mock<Logger>();

@@ -1,3 +1,4 @@
+import type { DeckId } from "@repo/db/id/deck-id";
 import type { DeckDto } from "@repo/deck/dto/deck.dto";
 import { Checkbox } from "@repo/ui/components/checkbox";
 import { cn } from "@repo/ui/lib/utils";
@@ -8,7 +9,7 @@ type DeckPickerDeck = Pick<DeckDto, "id" | "name" | "urlsCount" | "isPublic"> & 
 type DeckPickerListProps = {
   className?: string;
   decks: ReadonlyArray<DeckPickerDeck>;
-  onDeckSelectionChange: (id: DeckDto["id"]) => void;
+  onDeckSelectionChange: (id: DeckId) => void;
 };
 
 export const DeckPickerList: FC<DeckPickerListProps> = ({ className, decks, onDeckSelectionChange }) => {

@@ -143,13 +143,13 @@ import {
   varchar,
 } from "drizzle-orm/pg-core";
 import { API_KEY_LENGTH } from "./constants";
-import { DECK_ID_LENGTH, generateDeckId } from "./id/deck-id";
-import { FEED_ID_LENGTH, generateFeedId } from "./id/feed-id";
-import { generateTagId, TAG_ID_LENGTH } from "./id/tag-id";
-import { generateUrlId, URL_ID_LENGTH } from "./id/url-id";
-import { generateUserId, USER_ID_LENGTH } from "./id/user-id";
-import { generateUserProfileId, USER_PROFILE_ID_LENGTH } from "./id/user-profile-id";
-import { generateUserUrlId, USER_URL_ID_LENGTH } from "./id/user-url-id";
+import { DECK_ID_LENGTH, type DeckId, generateDeckId } from "./id/deck-id";
+import { FEED_ID_LENGTH, type FeedId, generateFeedId } from "./id/feed-id";
+import { generateTagId, TAG_ID_LENGTH, type TagId } from "./id/tag-id";
+import { generateUrlId, URL_ID_LENGTH, type UrlId } from "./id/url-id";
+import { generateUserId, USER_ID_LENGTH, type UserId } from "./id/user-id";
+import { generateUserProfileId, USER_PROFILE_ID_LENGTH, type UserProfileId } from "./id/user-profile-id";
+import { generateUserUrlId, USER_URL_ID_LENGTH, type UserUrlId } from "./id/user-url-id";
 
 /**
  * USER PLAN ENUM
@@ -173,6 +173,7 @@ export type UserPlan = (typeof userPlanEnum.enumValues)[number];
  */
 export const urls = pgTable("urls", {
   id: char("id", { length: URL_ID_LENGTH })
+    .$type<UrlId>()
     .notNull()
     .primaryKey()
     .$defaultFn(() => generateUrlId()),
@@ -230,6 +231,7 @@ export const users = pgTable(
   "users",
   {
     id: char("id", { length: USER_ID_LENGTH })
+      .$type<UserId>()
       .notNull()
       .primaryKey()
       .$defaultFn(() => generateUserId()),
@@ -247,12 +249,14 @@ export type User = InferSelectModel<typeof users>;
 
 export const userProfiles = pgTable("user_profiles", {
   id: char("id", { length: USER_PROFILE_ID_LENGTH })
+    .$type<UserProfileId>()
     .notNull()
     .primaryKey()
     .$defaultFn(() => generateUserProfileId()),
   createdAt: timestamp("created_at", { withTimezone: true }).default(sql`CURRENT_TIMESTAMP`).notNull(),
   updatedAt: timestamp("updated_at", { withTimezone: true }).$onUpdate(() => new Date()),
   userId: char("user_id", { length: USER_ID_LENGTH })
+    .$type<UserId>()
     .notNull()
     .unique()
     .references(() => users.id, { onDelete: "restrict" }),
@@ -278,15 +282,18 @@ export const usersUrls = pgTable(
   "users_urls",
   {
     id: char("id", { length: USER_URL_ID_LENGTH })
+      .$type<UserUrlId>()
       .notNull()
       .primaryKey()
       .$defaultFn(() => generateUserUrlId()),
     createdAt: timestamp("created_at", { withTimezone: true }).default(sql`CURRENT_TIMESTAMP`).notNull(),
     updatedAt: timestamp("updated_at", { withTimezone: true }).$onUpdate(() => new Date()),
     userId: char("user_id", { length: USER_ID_LENGTH })
+      .$type<UserId>()
       .notNull()
       .references(() => users.id, { onDelete: "restrict" }),
     urlId: char("url_id", { length: URL_ID_LENGTH })
+      .$type<UrlId>()
       .notNull()
       .references(() => urls.id, { onDelete: "restrict" }),
     likesCount: integer("likes_count").default(0).notNull(),
@@ -316,9 +323,11 @@ export const follows = pgTable(
   "follows",
   {
     followerId: char("follower_id", { length: USER_ID_LENGTH })
+      .$type<UserId>()
       .notNull()
       .references(() => users.id, { onDelete: "restrict" }),
     followingId: char("following_id", { length: USER_ID_LENGTH })
+      .$type<UserId>()
       .notNull()
       .references(() => users.id, { onDelete: "restrict" }),
     createdAt: timestamp("created_at", { withTimezone: true }).default(sql`CURRENT_TIMESTAMP`).notNull(),
@@ -352,10 +361,12 @@ export const decks = pgTable(
   "decks",
   {
     id: char("id", { length: DECK_ID_LENGTH })
+      .$type<DeckId>()
       .notNull()
       .primaryKey()
       .$defaultFn(() => generateDeckId()),
     userId: char("user_id", { length: USER_ID_LENGTH })
+      .$type<UserId>()
       .notNull()
       .references(() => users.id, { onDelete: "restrict" }),
 
@@ -411,10 +422,12 @@ export const tags = pgTable(
   "tags",
   {
     id: char("id", { length: TAG_ID_LENGTH })
+      .$type<TagId>()
       .notNull()
       .primaryKey()
       .$defaultFn(() => generateTagId()),
     deckId: char("deck_id", { length: DECK_ID_LENGTH })
+      .$type<DeckId>()
       .notNull()
       .references(() => decks.id, { onDelete: "cascade" }),
     createdAt: timestamp("created_at", { withTimezone: true }).default(sql`CURRENT_TIMESTAMP`).notNull(),
@@ -442,9 +455,11 @@ export const deckUrls = pgTable(
   "deck_urls",
   {
     deckId: char("deck_id", { length: DECK_ID_LENGTH })
+      .$type<DeckId>()
       .notNull()
       .references(() => decks.id, { onDelete: "restrict" }),
     userUrlId: char("user_url_id", { length: USER_URL_ID_LENGTH })
+      .$type<UserUrlId>()
       .notNull()
       .references(() => usersUrls.id, { onDelete: "restrict" }),
     addedAt: timestamp("added_at", { withTimezone: true }).default(sql`CURRENT_TIMESTAMP`).notNull(),
@@ -469,9 +484,10 @@ export type DeckUrl = InferSelectModel<typeof deckUrls>;
 export const deckUrlsTags = pgTable(
   "deck_urls_tags",
   {
-    deckId: char("deck_id", { length: DECK_ID_LENGTH }).notNull(),
-    userUrlId: char("user_url_id", { length: USER_URL_ID_LENGTH }).notNull(),
+    deckId: char("deck_id", { length: DECK_ID_LENGTH }).$type<DeckId>().notNull(),
+    userUrlId: char("user_url_id", { length: USER_URL_ID_LENGTH }).$type<UserUrlId>().notNull(),
     tagId: char("tag_id", { length: TAG_ID_LENGTH })
+      .$type<TagId>()
       .notNull()
       .references(() => tags.id, { onDelete: "cascade" }),
     tagOrder: smallint("tag_order").notNull(),
@@ -498,9 +514,11 @@ export const deckFollows = pgTable(
   "deck_follows",
   {
     deckId: char("deck_id", { length: DECK_ID_LENGTH })
+      .$type<DeckId>()
       .notNull()
       .references(() => decks.id, { onDelete: "restrict" }),
     followerId: char("follower_id", { length: USER_ID_LENGTH })
+      .$type<UserId>()
       .notNull()
       .references(() => users.id, { onDelete: "restrict" }),
     createdAt: timestamp("created_at", { withTimezone: true }).default(sql`CURRENT_TIMESTAMP`).notNull(),
@@ -529,16 +547,20 @@ export const feeds = pgTable(
   "feeds",
   {
     id: char("id", { length: FEED_ID_LENGTH })
+      .$type<FeedId>()
       .notNull()
       .primaryKey()
       .$defaultFn(() => generateFeedId()),
     userId: char("user_id", { length: USER_ID_LENGTH })
+      .$type<UserId>()
       .notNull()
       .references(() => users.id, { onDelete: "restrict" }),
     userUrlId: char("user_url_id", { length: USER_URL_ID_LENGTH })
+      .$type<UserUrlId>()
       .notNull()
       .references(() => usersUrls.id, { onDelete: "restrict" }),
     deckId: char("deck_id", { length: DECK_ID_LENGTH })
+      .$type<DeckId>()
       .notNull()
       .references(() => decks.id, { onDelete: "restrict" }),
     createdAt: timestamp("created_at", { withTimezone: true }).notNull().default(sql`CURRENT_TIMESTAMP`),
@@ -567,9 +589,11 @@ export const usersUrlsInteractions = pgTable(
   "users_urls_interactions",
   {
     userUrlId: char("user_url_id", { length: USER_URL_ID_LENGTH })
+      .$type<UserUrlId>()
       .notNull()
       .references(() => usersUrls.id, { onDelete: "restrict" }),
     userId: char("user_id", { length: USER_ID_LENGTH })
+      .$type<UserId>()
       .notNull()
       .references(() => users.id, { onDelete: "restrict" }),
     interactionTypeId: smallint("interaction_type_id")

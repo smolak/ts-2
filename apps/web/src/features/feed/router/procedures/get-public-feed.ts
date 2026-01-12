@@ -1,6 +1,6 @@
 import { db, orm, schema } from "@repo/db/db";
 import { deckIdSchema } from "@repo/db/id/deck-id";
-import { userIdSchema } from "@repo/db/id/user-id";
+import { type UserId, userIdSchema } from "@repo/db/id/user-id";
 import { TRPCError } from "@trpc/server";
 import { z } from "zod";
 
@@ -41,7 +41,7 @@ export const getPublicFeed = publicProcedure
       logger.info({ requestId, path }, "Fetching user's public feed list.");
 
       // Get viewerId if the user is authenticated (for "liked" status)
-      let viewerId: string | undefined;
+      let viewerId: UserId | undefined;
 
       if (auth.userId) {
         const [user] = await db

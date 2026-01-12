@@ -1,6 +1,6 @@
 "use client";
 
-import type { Deck } from "@repo/db/types";
+import type { DeckId } from "@repo/db/id/deck-id";
 import type { DeckDto } from "@repo/deck/dto/deck.dto";
 import { Button } from "@repo/ui/components/button";
 import {
@@ -19,16 +19,16 @@ type DeckSelectorProps = {
   decks: ReadonlyArray<DeckDto>;
 };
 
-const getSelectedDeck = (decks: ReadonlyArray<DeckDto>, searchParams: URLSearchParams): Deck["id"] | null => {
+const getSelectedDeck = (decks: ReadonlyArray<DeckDto>, searchParams: URLSearchParams): DeckId | null => {
   const deckId = searchParams.get("deck");
 
   if (!deckId) {
     return null;
   }
 
-  // Verify the deck exists in our list
-  const deckExists = decks.some((deck) => deck.id === deckId);
-  return deckExists ? deckId : null;
+  // Verify the deck exists in our list (also validates the deckId format implicitly)
+  const deck = decks.find((d) => d.id === deckId);
+  return deck?.id ?? null;
 };
 
 export const DeckSelector: FC<DeckSelectorProps> = ({ decks }) => {

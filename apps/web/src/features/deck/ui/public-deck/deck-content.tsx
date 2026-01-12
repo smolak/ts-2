@@ -1,6 +1,7 @@
 "use client";
 
-import type { Deck, Tag } from "@repo/db/types";
+import type { DeckId } from "@repo/db/id/deck-id";
+import type { TagId } from "@repo/db/id/tag-id";
 import type { TagDto } from "@repo/tag/dto/tag.dto";
 import { Badge } from "@repo/ui/components/badge";
 import { Button } from "@repo/ui/components/button";
@@ -13,8 +14,8 @@ import { DeckUrlList } from "./deck-url-list";
 
 type DeckTagFilterProps = {
   tags: TagDto[];
-  selectedTagIds: Tag["id"][];
-  onTagToggle: (tagId: Tag["id"]) => void;
+  selectedTagIds: TagId[];
+  onTagToggle: (tagId: TagId) => void;
   onClearAll: () => void;
 };
 
@@ -60,18 +61,18 @@ const DeckTagFilter: FC<DeckTagFilterProps> = ({ tags, selectedTagIds, onTagTogg
 };
 
 type DeckContentProps = {
-  deckId: Deck["id"];
+  deckId: DeckId;
 };
 
 export const DeckContent: FC<DeckContentProps> = ({ deckId }) => {
-  const [selectedTagIds, setSelectedTagIds] = useState<Tag["id"][]>([]);
+  const [selectedTagIds, setSelectedTagIds] = useState<TagId[]>([]);
 
   const { data: tags = [], isLoading: loadingTags } = api.tags.getPublicDeckTags.useQuery(
     { deckId },
     { staleTime: 60000 }, // Cache for 1 minute
   );
 
-  const handleTagToggle = useCallback((tagId: Tag["id"]) => {
+  const handleTagToggle = useCallback((tagId: TagId) => {
     setSelectedTagIds((prev) => (prev.includes(tagId) ? prev.filter((id) => id !== tagId) : [...prev, tagId]));
   }, []);
 

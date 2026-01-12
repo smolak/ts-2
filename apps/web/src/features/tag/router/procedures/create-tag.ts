@@ -1,3 +1,4 @@
+import type { TagId } from "@repo/db/id/tag-id";
 import type { Tag } from "@repo/db/types";
 import { TRPCError } from "@trpc/server";
 
@@ -8,7 +9,7 @@ import { protectedProcedure } from "@/server/api/trpc";
 import { createTagSchema } from "../../schemas/create-tag.schema";
 
 type CreateTagResult = {
-  tagId: Tag["id"];
+  tagId: TagId;
   name: Tag["name"];
   displayName: Tag["displayName"];
 };

@@ -1,4 +1,4 @@
-import type { User } from "@repo/db/types";
+import type { UserId } from "@repo/db/id/user-id";
 import { type FC, useCallback, useEffect, useState } from "react";
 
 import type { FeedDto } from "../../dto/feed.dto";
@@ -9,7 +9,7 @@ import { LikeInteraction } from "./like-interaction";
 
 export interface FeedListProps {
   feed: ReadonlyArray<FeedDto>;
-  viewerId?: User["id"];
+  viewerId?: UserId;
 }
 
 export const FeedList: FC<FeedListProps> = ({ feed, viewerId }) => {

@@ -15,7 +15,7 @@ import { Controller, useForm } from "react-hook-form";
 
 import { api } from "@/trpc/react";
 
-import { type UpdateDeckSchema, updateDeckSchema } from "../../schemas/update-deck.schema";
+import { type UpdateDeckInput, type UpdateDeckSchema, updateDeckSchema } from "../../schemas/update-deck.schema";
 import { ActionPending } from "./action-pending";
 import { CancelAction } from "./cancel-action";
 import { StickyErrorMessage } from "./sticky-error-message";
@@ -36,7 +36,7 @@ export const EditDeck: FC<EditDeckProps> = ({ deck, onSave, onCancel }) => {
     handleSubmit,
     formState: { errors },
     watch,
-  } = useForm<UpdateDeckSchema>({
+  } = useForm<UpdateDeckInput, unknown, UpdateDeckSchema>({
     resolver: zodResolver(updateDeckSchema),
     mode: "onChange",
     defaultValues: {

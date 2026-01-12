@@ -1,4 +1,6 @@
 import { orm, schema } from "@repo/db/db";
+import type { DeckId } from "@repo/db/id/deck-id";
+import type { UserId } from "@repo/db/id/user-id";
 import type { Deck } from "@repo/db/types";
 import { canChangeDeckVisibility } from "@repo/deck/config/deck-limits";
 import type { DeckMetadata } from "@repo/deck/schemas/deck-metadata.schema";
@@ -9,7 +11,7 @@ import { protectedProcedure } from "@/server/api/trpc";
 import { updateDeckSchema } from "../../schemas/update-deck.schema";
 
 type UpdateDeckResult = {
-  deckId: Deck["id"];
+  deckId: DeckId;
   name: Deck["name"];
   slug: Deck["slug"];
   isPublic: Deck["isPublic"];
@@ -112,7 +114,7 @@ export const updateDeck = protectedProcedure
 
     // 6. If deck is being made private, remove all followers
     const isBeingMadePrivate = existingDeck.isPublic && isPublic === false;
-    let followersToProcess: { followerId: string }[] = [];
+    let followersToProcess: { followerId: UserId }[] = [];
 
     if (isBeingMadePrivate) {
       // Get all followers before deletion (for profile count updates)

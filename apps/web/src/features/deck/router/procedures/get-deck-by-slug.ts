@@ -1,4 +1,6 @@
-import type { Deck, User, UserProfile } from "@repo/db/types";
+import type { DeckId } from "@repo/db/id/deck-id";
+import type { UserId } from "@repo/db/id/user-id";
+import type { Deck, UserProfile } from "@repo/db/types";
 import type { DeckMetadata } from "@repo/deck/schemas/deck-metadata.schema";
 import { deckSlugSchema } from "@repo/deck/schemas/deck-slug.schema";
 import type { Maybe } from "@repo/shared/types";
@@ -15,14 +17,14 @@ const getDeckBySlugSchema = z.object({
 export type GetDeckBySlugSchema = z.infer<typeof getDeckBySlugSchema>;
 
 type GetDeckBySlugResult = Maybe<{
-  id: Deck["id"];
+  id: DeckId;
   name: Deck["name"];
   slug: Deck["slug"];
   metadata: DeckMetadata;
   urlsCount: Deck["urlsCount"];
   followersCount: Deck["followersCount"];
   owner: {
-    userId: User["id"];
+    userId: UserId;
     username: UserProfile["username"];
     imageUrl: UserProfile["imageUrl"];
   };
