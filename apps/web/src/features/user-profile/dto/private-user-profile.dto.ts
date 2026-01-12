@@ -1,4 +1,4 @@
-import type { User, UserProfile } from "@repo/db/types";
+import type { User } from "@repo/db/types";
+import type { PublicUserProfileDto } from "./public-user-profile.dto";
 
-// TODO: check if we can take all of user profile data and just add apiKey to it
-export type PrivateUserProfileDto = Pick<UserProfile, "username" | "imageUrl"> & Pick<User, "id" | "apiKey" | "plan">;
+export type PrivateUserProfileDto = PublicUserProfileDto & Pick<User, "apiKey" | "plan">;

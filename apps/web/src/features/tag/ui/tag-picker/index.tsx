@@ -31,7 +31,7 @@ export const TagPicker: FC<TagPickerProps> = ({
   return (
     <section className="flex flex-col gap-4">
       <header className="flex items-center justify-between">
-        <h3 className="text-xs font-light text-slate-400">{description}</h3>
+        <h3 className="font-light text-slate-400 text-xs">{description}</h3>
         {showSettingsLink ? (
           <span className="flex items-center gap-2">
             <Link href="/settings/tags" className="cursor-pointer rounded p-1.5 hover:bg-slate-100">

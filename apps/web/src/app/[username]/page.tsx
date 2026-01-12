@@ -1,3 +1,4 @@
+import { normalizeUsername } from "@repo/user-profile/normalized-username/normalized-username";
 import { usernameSchema } from "@repo/user-profile/username/schemas/username.schema";
 import { notFound } from "next/navigation";
 import type { ReactNode } from "react";
@@ -14,10 +15,12 @@ export default async function Page({ params }: { params: Promise<{ username: str
     notFound();
   }
 
+  const normalizedUsername = normalizeUsername(username);
+
   // Fetch user profile and public decks in parallel
   const [userProfile, publicDecksResult] = await Promise.all([
     api.userProfiles.getPublicUserProfile({ username }),
-    api.decks.getPublicDecks({ username }),
+    api.decks.getPublicDecks({ normalizedUsername }),
   ]);
 
   if (!userProfile || !publicDecksResult) {

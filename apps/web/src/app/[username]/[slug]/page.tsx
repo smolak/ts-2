@@ -1,6 +1,6 @@
 import { deckSlugSchema } from "@repo/deck/schemas/deck-slug.schema";
+import { normalizeUsername } from "@repo/user-profile/normalized-username/normalized-username";
 import { usernameSchema } from "@repo/user-profile/username/schemas/username.schema";
-import { normalizeUsername } from "@repo/user-profile/utils/normalize-username";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import type { ReactNode } from "react";
@@ -22,7 +22,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   const { username, slug } = await params;
 
   const normalizedUsername = normalizeUsername(username);
-  const deck = await api.decks.getDeckBySlug({ username: normalizedUsername, slug });
+  const deck = await api.decks.getDeckBySlug({ normalizedUsername, slug });
 
   if (!deck) {
     return {
@@ -58,7 +58,7 @@ export default async function DeckPage({ params }: PageProps): Promise<ReactNode
   }
 
   const normalizedUsername = normalizeUsername(username);
-  const deck = await api.decks.getDeckBySlug({ username: normalizedUsername, slug });
+  const deck = await api.decks.getDeckBySlug({ normalizedUsername, slug });
 
   if (!deck) {
     notFound();

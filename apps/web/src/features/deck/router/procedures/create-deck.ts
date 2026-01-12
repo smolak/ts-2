@@ -38,12 +38,12 @@ export const createDeck = protectedProcedure
     ]);
 
     if (!user) {
-      logger.error({ requestId, path }, "User not found.");
+      logger.error({ requestId, path, userId }, "User not found.");
       throw new TRPCError({ code: "NOT_FOUND", message: "User not found." });
     }
 
     if (existingDeck) {
-      logger.error({ requestId, path }, `Deck with slug (${slug}) already exists.`);
+      logger.error({ requestId, path, userId, slug }, "Deck with this slug already exists.");
 
       throw new TRPCError({
         code: "BAD_REQUEST",
@@ -78,14 +78,14 @@ export const createDeck = protectedProcedure
       .returning({ insertedId: schema.decks.id, slug: schema.decks.slug });
 
     if (!result) {
-      logger.error({ requestId, path }, "Deck ID not retrieved for created deck.");
+      logger.error({ requestId, path, userId }, "Deck ID not retrieved for created deck.");
       throw new TRPCError({
         code: "BAD_REQUEST",
         message: "Deck could not be created.",
       });
     }
 
-    logger.info({ requestId, path, deckId: result.insertedId, name, slug }, "Deck created.");
+    logger.info({ requestId, path, userId, deckId: result.insertedId, name, slug }, "Deck created.");
 
     return { deckId: result.insertedId, slug: result.slug };
   });

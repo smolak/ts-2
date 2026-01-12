@@ -3,7 +3,8 @@ import type { TagDto } from "@repo/tag/dto/tag.dto";
 import { TRPCError } from "@trpc/server";
 import { z } from "zod";
 
-import { getDeckTags as getDeckTagsFn } from "@/features/tag/services";
+import { DeckNotFoundError } from "@/features/tag/services/errors";
+import { getDeckTags as getDeckTagsFn } from "@/features/tag/services/get-deck-tags";
 import { protectedProcedure } from "@/server/api/trpc";
 
 type GetMyDeckTagsResult = TagDto[];
@@ -30,7 +31,7 @@ export const getMyDeckTags = protectedProcedure
 
       return tags;
     } catch (error) {
-      if (error instanceof Error && error.message === "Deck not found.") {
+      if (error instanceof DeckNotFoundError) {
         logger.error({ requestId, path, deckId }, "Deck not found or not owned by user.");
         throw new TRPCError({
           code: "NOT_FOUND",

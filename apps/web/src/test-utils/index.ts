@@ -45,9 +45,22 @@
  */
 
 export {
+  type AdditionalTestUser,
   type CreateTestContextOptions,
-  createSecondTestUser,
   createTestContext,
   type TestContext,
 } from "./create-test-context";
-export { cleanupTags, cleanupUser, createTestDeck, createTestTag, createTestUser } from "./test-db";
+export {
+  cleanupTags,
+  cleanupUser,
+  createTestDeck,
+  createTestDeckUrl,
+  createTestDeckUrlTag,
+  createTestTag,
+  createTestUrl,
+  createTestUser,
+  createTestUserProfile,
+  createTestUserUrl,
+  createTestUserUrlWithUrl,
+  ensureLikedInteractionType,
+} from "./test-db";

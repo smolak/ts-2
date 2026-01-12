@@ -3,6 +3,8 @@ import type { DeckId } from "@repo/db/id/deck-id";
 import type { UserId } from "@repo/db/id/user-id";
 import type { TagDto } from "@repo/tag/dto/tag.dto";
 
+import { DeckNotFoundError } from "./errors";
+
 interface GetDeckTagsParams {
   db: Db;
   userId: UserId;
@@ -17,7 +19,7 @@ interface GetDeckTagsResult {
  * Fetches all tags for a deck after verifying ownership.
  * Used by both tRPC procedure and API route.
  *
- * @throws Error if deck not found or not owned by user
+ * @throws DeckNotFoundError if deck not found or not owned by user
  */
 export async function getDeckTags({ db, userId, deckId }: GetDeckTagsParams): Promise<GetDeckTagsResult> {
   // Verify deck ownership and fetch tags in parallel
@@ -40,7 +42,7 @@ export async function getDeckTags({ db, userId, deckId }: GetDeckTagsParams): Pr
   ]);
 
   if (!deck) {
-    throw new Error("Deck not found.");
+    throw new DeckNotFoundError();
   }
 
   return { tags };

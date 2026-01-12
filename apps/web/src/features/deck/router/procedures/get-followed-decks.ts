@@ -1,5 +1,5 @@
-import type { DeckMetadata } from "@repo/deck/schemas/deck-metadata.schema";
 import type { Deck, UserProfile } from "@repo/db/types";
+import type { DeckMetadata } from "@repo/deck/schemas/deck-metadata.schema";
 
 import { protectedProcedure } from "@/server/api/trpc";
 

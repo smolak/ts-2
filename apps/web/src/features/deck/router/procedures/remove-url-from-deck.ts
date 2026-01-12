@@ -39,7 +39,7 @@ export const removeUrlFromDeck = protectedProcedure
       ]);
 
       if (!deck) {
-        logger.error({ requestId, path, deckId }, "Deck not found, not owned by user, or pending deletion.");
+        logger.error({ requestId, path, userId, deckId }, "Deck not found, not owned by user, or pending deletion.");
         throw new TRPCError({
           code: "NOT_FOUND",
           message: "Deck not found.",
@@ -47,7 +47,7 @@ export const removeUrlFromDeck = protectedProcedure
       }
 
       if (!existingDeckUrl) {
-        logger.warn({ requestId, path, deckId, userUrlId }, "URL is not in this deck.");
+        logger.warn({ requestId, path, userId, deckId, userUrlId }, "URL is not in this deck.");
         throw new TRPCError({
           code: "BAD_REQUEST",
           message: "URL is not in this deck.",
@@ -75,7 +75,7 @@ export const removeUrlFromDeck = protectedProcedure
 
       // Note: We don't remove from feeds (historical record)
 
-      logger.info({ requestId, path, deckId, userUrlId, urlsCount: newUrlsCount }, "URL removed from deck.");
+      logger.info({ requestId, path, userId, deckId, userUrlId, urlsCount: newUrlsCount }, "URL removed from deck.");
 
       return { removed: true, urlsCount: newUrlsCount };
     },

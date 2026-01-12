@@ -6,7 +6,7 @@ import { protectedProcedure } from "@/server/api/trpc";
 
 import { scheduleDeckDeletionSchema } from "../../schemas/schedule-deck-deletion.schema";
 
-const DECK_DELETION_GRACE_PERIOD_MS = 30 * 60 * 1000; // 30 minutes
+const DECK_DELETION_GRACE_PERIOD_MS = 30 * 60 * 1_000;
 
 type ScheduleDeckDeletionResult = {
   scheduledForDeletionAt: Deck["scheduledForDeletionAt"];
@@ -25,7 +25,10 @@ export const scheduleDeckDeletion = protectedProcedure
     });
 
     if (!existingDeck) {
-      logger.error({ requestId, path, deckId }, "Deck not found, not owned by user, or already pending deletion.");
+      logger.error(
+        { requestId, path, userId, deckId },
+        "Deck not found, not owned by user, or already pending deletion.",
+      );
       throw new TRPCError({
         code: "NOT_FOUND",
         message: "Deck not found.",
@@ -40,7 +43,7 @@ export const scheduleDeckDeletion = protectedProcedure
       .set({ scheduledForDeletionAt })
       .where(orm.and(orm.eq(schema.decks.id, deckId), orm.eq(schema.decks.userId, userId)));
 
-    logger.info({ requestId, path, deckId, scheduledForDeletionAt }, "Deck scheduled for deletion.");
+    logger.info({ requestId, path, userId, deckId, scheduledForDeletionAt }, "Deck scheduled for deletion.");
 
     return { scheduledForDeletionAt };
   });

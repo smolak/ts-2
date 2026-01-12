@@ -65,12 +65,8 @@
           "name": "deck_follows_deck_id_decks_id_fk",
           "tableFrom": "deck_follows",
           "tableTo": "decks",
-          "columnsFrom": [
-            "deck_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["deck_id"],
+          "columnsTo": ["id"],
           "onDelete": "restrict",
           "onUpdate": "no action"
         },
@@ -78,12 +74,8 @@
           "name": "deck_follows_follower_id_users_id_fk",
           "tableFrom": "deck_follows",
           "tableTo": "users",
-          "columnsFrom": [
-            "follower_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["follower_id"],
+          "columnsTo": ["id"],
           "onDelete": "restrict",
           "onUpdate": "no action"
         }
@@ -91,10 +83,7 @@
       "compositePrimaryKeys": {
         "deck_follows_deck_id_follower_id_pk": {
           "name": "deck_follows_deck_id_follower_id_pk",
-          "columns": [
-            "deck_id",
-            "follower_id"
-          ]
+          "columns": ["deck_id", "follower_id"]
         }
       },
       "uniqueConstraints": {},
@@ -169,12 +158,8 @@
           "name": "deck_urls_deck_id_decks_id_fk",
           "tableFrom": "deck_urls",
           "tableTo": "decks",
-          "columnsFrom": [
-            "deck_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["deck_id"],
+          "columnsTo": ["id"],
           "onDelete": "restrict",
           "onUpdate": "no action"
         },
@@ -182,12 +167,8 @@
           "name": "deck_urls_user_url_id_users_urls_id_fk",
           "tableFrom": "deck_urls",
           "tableTo": "users_urls",
-          "columnsFrom": [
-            "user_url_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["user_url_id"],
+          "columnsTo": ["id"],
           "onDelete": "restrict",
           "onUpdate": "no action"
         }
@@ -195,10 +176,7 @@
       "compositePrimaryKeys": {
         "deck_urls_deck_id_user_url_id_pk": {
           "name": "deck_urls_deck_id_user_url_id_pk",
-          "columns": [
-            "deck_id",
-            "user_url_id"
-          ]
+          "columns": ["deck_id", "user_url_id"]
         }
       },
       "uniqueConstraints": {},
@@ -285,12 +263,8 @@
           "name": "deck_urls_tags_tag_id_tags_id_fk",
           "tableFrom": "deck_urls_tags",
           "tableTo": "tags",
-          "columnsFrom": [
-            "tag_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["tag_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -298,11 +272,7 @@
       "compositePrimaryKeys": {
         "deck_urls_tags_deck_id_user_url_id_tag_id_pk": {
           "name": "deck_urls_tags_deck_id_user_url_id_tag_id_pk",
-          "columns": [
-            "deck_id",
-            "user_url_id",
-            "tag_id"
-          ]
+          "columns": ["deck_id", "user_url_id", "tag_id"]
         }
       },
       "uniqueConstraints": {},
@@ -440,12 +410,8 @@
           "name": "decks_user_id_users_id_fk",
           "tableFrom": "decks",
           "tableTo": "users",
-          "columnsFrom": [
-            "user_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["user_id"],
+          "columnsTo": ["id"],
           "onDelete": "restrict",
           "onUpdate": "no action"
         }
@@ -455,10 +421,7 @@
         "decks_user_id_slug_unique": {
           "name": "decks_user_id_slug_unique",
           "nullsNotDistinct": false,
-          "columns": [
-            "user_id",
-            "slug"
-          ]
+          "columns": ["user_id", "slug"]
         }
       },
       "policies": {},
@@ -571,12 +534,8 @@
           "name": "feeds_user_id_users_id_fk",
           "tableFrom": "feeds",
           "tableTo": "users",
-          "columnsFrom": [
-            "user_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["user_id"],
+          "columnsTo": ["id"],
           "onDelete": "restrict",
           "onUpdate": "no action"
         },
@@ -584,12 +543,8 @@
           "name": "feeds_user_url_id_users_urls_id_fk",
           "tableFrom": "feeds",
           "tableTo": "users_urls",
-          "columnsFrom": [
-            "user_url_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["user_url_id"],
+          "columnsTo": ["id"],
           "onDelete": "restrict",
           "onUpdate": "no action"
         },
@@ -597,12 +552,8 @@
           "name": "feeds_deck_id_decks_id_fk",
           "tableFrom": "feeds",
           "tableTo": "decks",
-          "columnsFrom": [
-            "deck_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["deck_id"],
+          "columnsTo": ["id"],
           "onDelete": "restrict",
           "onUpdate": "no action"
         }
@@ -674,12 +625,8 @@
           "name": "follows_follower_id_users_id_fk",
           "tableFrom": "follows",
           "tableTo": "users",
-          "columnsFrom": [
-            "follower_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["follower_id"],
+          "columnsTo": ["id"],
           "onDelete": "restrict",
           "onUpdate": "no action"
         },
@@ -687,12 +634,8 @@
           "name": "follows_following_id_users_id_fk",
           "tableFrom": "follows",
           "tableTo": "users",
-          "columnsFrom": [
-            "following_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["following_id"],
+          "columnsTo": ["id"],
           "onDelete": "restrict",
           "onUpdate": "no action"
         }
@@ -700,10 +643,7 @@
       "compositePrimaryKeys": {
         "follows_follower_id_following_id_pk": {
           "name": "follows_follower_id_following_id_pk",
-          "columns": [
-            "follower_id",
-            "following_id"
-          ]
+          "columns": ["follower_id", "following_id"]
         }
       },
       "uniqueConstraints": {},
@@ -735,9 +675,7 @@
         "interaction_types_name_unique": {
           "name": "interaction_types_name_unique",
           "nullsNotDistinct": false,
-          "columns": [
-            "name"
-          ]
+          "columns": ["name"]
         }
       },
       "policies": {},
@@ -830,12 +768,8 @@
           "name": "tags_deck_id_decks_id_fk",
           "tableFrom": "tags",
           "tableTo": "decks",
-          "columnsFrom": [
-            "deck_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["deck_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -845,10 +779,7 @@
         "tags_deck_id_name_unique": {
           "name": "tags_deck_id_name_unique",
           "nullsNotDistinct": false,
-          "columns": [
-            "deck_id",
-            "name"
-          ]
+          "columns": ["deck_id", "name"]
         }
       },
       "policies": {},
@@ -908,12 +839,8 @@
           "name": "url_hashes_compound_hash_urls_compound_hash_fk",
           "tableFrom": "url_hashes",
           "tableTo": "urls",
-          "columnsFrom": [
-            "compound_hash"
-          ],
-          "columnsTo": [
-            "compound_hash"
-          ],
+          "columnsFrom": ["compound_hash"],
+          "columnsTo": ["compound_hash"],
           "onDelete": "restrict",
           "onUpdate": "no action"
         }
@@ -1007,9 +934,7 @@
         "urls_compound_hash_unique": {
           "name": "urls_compound_hash_unique",
           "nullsNotDistinct": false,
-          "columns": [
-            "compound_hash"
-          ]
+          "columns": ["compound_hash"]
         }
       },
       "policies": {},
@@ -1105,12 +1030,8 @@
           "name": "user_profiles_user_id_users_id_fk",
           "tableFrom": "user_profiles",
           "tableTo": "users",
-          "columnsFrom": [
-            "user_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["user_id"],
+          "columnsTo": ["id"],
           "onDelete": "restrict",
           "onUpdate": "no action"
         }
@@ -1120,23 +1041,17 @@
         "user_profiles_user_id_unique": {
           "name": "user_profiles_user_id_unique",
           "nullsNotDistinct": false,
-          "columns": [
-            "user_id"
-          ]
+          "columns": ["user_id"]
         },
         "user_profiles_username_unique": {
           "name": "user_profiles_username_unique",
           "nullsNotDistinct": false,
-          "columns": [
-            "username"
-          ]
+          "columns": ["username"]
         },
         "user_profiles_username_normalized_unique": {
           "name": "user_profiles_username_normalized_unique",
           "nullsNotDistinct": false,
-          "columns": [
-            "username_normalized"
-          ]
+          "columns": ["username_normalized"]
         }
       },
       "policies": {},
@@ -1216,9 +1131,7 @@
         "users_clerk_user_id_unique": {
           "name": "users_clerk_user_id_unique",
           "nullsNotDistinct": false,
-          "columns": [
-            "clerk_user_id"
-          ]
+          "columns": ["clerk_user_id"]
         }
       },
       "policies": {},
@@ -1305,12 +1218,8 @@
           "name": "users_urls_user_id_users_id_fk",
           "tableFrom": "users_urls",
           "tableTo": "users",
-          "columnsFrom": [
-            "user_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["user_id"],
+          "columnsTo": ["id"],
           "onDelete": "restrict",
           "onUpdate": "no action"
         },
@@ -1318,12 +1227,8 @@
           "name": "users_urls_url_id_urls_id_fk",
           "tableFrom": "users_urls",
           "tableTo": "urls",
-          "columnsFrom": [
-            "url_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["url_id"],
+          "columnsTo": ["id"],
           "onDelete": "restrict",
           "onUpdate": "no action"
         }
@@ -1393,12 +1298,8 @@
           "name": "users_urls_interactions_user_url_id_users_urls_id_fk",
           "tableFrom": "users_urls_interactions",
           "tableTo": "users_urls",
-          "columnsFrom": [
-            "user_url_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["user_url_id"],
+          "columnsTo": ["id"],
           "onDelete": "restrict",
           "onUpdate": "no action"
         },
@@ -1406,12 +1307,8 @@
           "name": "users_urls_interactions_user_id_users_id_fk",
           "tableFrom": "users_urls_interactions",
           "tableTo": "users",
-          "columnsFrom": [
-            "user_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["user_id"],
+          "columnsTo": ["id"],
           "onDelete": "restrict",
           "onUpdate": "no action"
         },
@@ -1419,12 +1316,8 @@
           "name": "users_urls_interactions_interaction_type_id_interaction_types_id_fk",
           "tableFrom": "users_urls_interactions",
           "tableTo": "interaction_types",
-          "columnsFrom": [
-            "interaction_type_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["interaction_type_id"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         }
@@ -1432,11 +1325,7 @@
       "compositePrimaryKeys": {
         "users_urls_interactions_user_url_id_user_id_interaction_type_id_pk": {
           "name": "users_urls_interactions_user_url_id_user_id_interaction_type_id_pk",
-          "columns": [
-            "user_url_id",
-            "user_id",
-            "interaction_type_id"
-          ]
+          "columns": ["user_url_id", "user_id", "interaction_type_id"]
         }
       },
       "uniqueConstraints": {},
@@ -1449,11 +1338,7 @@
     "public.user_plan": {
       "name": "user_plan",
       "schema": "public",
-      "values": [
-        "free",
-        "medium",
-        "pro"
-      ]
+      "values": ["free", "medium", "pro"]
     }
   },
   "schemas": {},

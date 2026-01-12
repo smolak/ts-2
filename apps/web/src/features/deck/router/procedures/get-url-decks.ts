@@ -20,7 +20,7 @@ export const getUrlDecks = protectedProcedure
   .query<GetUrlDecksResult>(async ({ input: { userUrlId }, ctx: { logger, requestId, userId, db } }) => {
     const path = "deck.getUrlDecks";
 
-    logger.info({ requestId, path, userUrlId }, "Fetching decks for URL.");
+    logger.info({ requestId, path, userId, userUrlId }, "Fetching decks for URL.");
 
     // Get all decks that contain this URL (only for URLs owned by the user)
     const deckUrls = await db.query.deckUrls.findMany({
@@ -40,7 +40,7 @@ export const getUrlDecks = protectedProcedure
         name: du.deck.name,
       }));
 
-    logger.info({ requestId, path, userUrlId, count: userDecks.length }, "Decks for URL fetched.");
+    logger.info({ requestId, path, userId, userUrlId, count: userDecks.length }, "Decks for URL fetched.");
 
     return userDecks;
   });

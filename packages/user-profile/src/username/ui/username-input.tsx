@@ -27,7 +27,7 @@ export const UsernameInput = () => {
         <output
           id={`${id}-description`}
           htmlFor={id}
-          className="text-muted-foreground pointer-events-none absolute inset-y-0 end-0 top-0 flex items-center justify-center pe-3 text-xs tabular-nums peer-disabled:opacity-50"
+          className="pointer-events-none absolute inset-y-0 end-0 top-0 flex items-center justify-center pe-3 text-muted-foreground text-xs tabular-nums peer-disabled:opacity-50"
           aria-live="polite"
         >
           {characterCount}/{limit}

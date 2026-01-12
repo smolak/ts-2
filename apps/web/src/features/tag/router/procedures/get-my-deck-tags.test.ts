@@ -1,9 +1,10 @@
 import { orm, schema } from "@repo/db/db";
+import { generateDeckId } from "@repo/db/id/deck-id";
 import type { Deck } from "@repo/db/types";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 
 import { createCallerFactory, createTRPCRouter } from "@/server/api/trpc";
-import { createSecondTestUser, createTestContext, createTestDeck, createTestTag, type TestContext } from "@/test-utils";
+import { createTestContext, createTestDeck, createTestTag, type TestContext } from "@/test-utils";
 
 import { getMyDeckTags } from "./get-my-deck-tags";
 
@@ -29,6 +30,11 @@ describe("getMyDeckTags procedure", () => {
     const result = await caller.getMyDeckTags({ deckId: deck.id });
 
     expect(result).toEqual([]);
+
+    expect(ctx.mockLogger.info).toHaveBeenCalledWith(
+      { requestId: ctx.trpcContext.requestId, path: "tags.getMyDeckTags", deckId: deck.id },
+      "Fetching deck's tags.",
+    );
   });
 
   it("should return all tags belonging to the deck", async () => {
@@ -72,8 +78,7 @@ describe("getMyDeckTags procedure", () => {
 
   it("should throw NOT_FOUND when deck doesn't exist", async () => {
     const caller = createCaller(ctx.trpcContext);
-    // Use a valid format deck ID that doesn't exist (27 chars total: deck_ + 22 chars)
-    const nonExistentDeckId = "deck_abcdefghijklmnopqrstuv" as Deck["id"];
+    const nonExistentDeckId = generateDeckId();
 
     await expect(caller.getMyDeckTags({ deckId: nonExistentDeckId })).rejects.toMatchObject({
       code: "NOT_FOUND",
@@ -82,7 +87,7 @@ describe("getMyDeckTags procedure", () => {
   });
 
   it("should throw NOT_FOUND when accessing another user's deck", async () => {
-    const otherUser = await createSecondTestUser(ctx.db);
+    const otherUser = await ctx.createAdditionalUser();
     const otherDeck = await createTestDeck(ctx.db, otherUser.userId, "Other Deck");
     const caller = createCaller(ctx.trpcContext);
 
@@ -90,8 +95,6 @@ describe("getMyDeckTags procedure", () => {
       code: "NOT_FOUND",
       message: "Deck not found.",
     });
-
-    await otherUser.cleanup();
   });
 
   it("should include urlsCount in returned tags", async () => {
@@ -104,27 +107,15 @@ describe("getMyDeckTags procedure", () => {
     expect(result[0]?.urlsCount).toBe(10);
   });
 
-  it("should return correct DTO shape with id, name, displayName, urlsCount", async () => {
+  it("should return tags with correct data format", async () => {
     await createTestTag(ctx.db, deck.id, "Complete Tag");
     const caller = createCaller(ctx.trpcContext);
 
     const result = await caller.getMyDeckTags({ deckId: deck.id });
 
-    expect(result[0]).toHaveProperty("id");
-    expect(result[0]).toHaveProperty("name");
-    expect(result[0]).toHaveProperty("displayName");
-    expect(result[0]).toHaveProperty("urlsCount");
     expect(result[0]?.id).toMatch(/^tag_/);
     expect(result[0]?.name).toBe("complete tag"); // Normalized
     expect(result[0]?.displayName).toBe("Complete Tag");
     expect(typeof result[0]?.urlsCount).toBe("number");
-  });
-
-  it("should log info when fetching tags", async () => {
-    const caller = createCaller(ctx.trpcContext);
-
-    await caller.getMyDeckTags({ deckId: deck.id });
-
-    expect(ctx.mockLogger.info).toHaveBeenCalled();
   });
 });

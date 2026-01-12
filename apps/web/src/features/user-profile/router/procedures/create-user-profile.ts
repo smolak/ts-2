@@ -1,8 +1,8 @@
 import { clerkClient as createClerkClient, currentUser } from "@clerk/nextjs/server";
 import { orm, schema } from "@repo/db/db";
 import { apiKeySchema } from "@repo/user/api-key/api-key.schema";
+import { normalizeUsername } from "@repo/user-profile/normalized-username/normalized-username";
 import { usernameSchema } from "@repo/user-profile/username/schemas/username.schema";
-import { normalizeUsername } from "@repo/user-profile/utils/normalize-username";
 import { TRPCError } from "@trpc/server";
 import { z } from "zod";
 import { protectedProcedure } from "@/server/api/trpc";

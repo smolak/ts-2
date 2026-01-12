@@ -29,7 +29,7 @@ export const updateDeck = protectedProcedure
     });
 
     if (!existingDeck) {
-      logger.error({ requestId, path, deckId }, "Deck not found or not owned by user.");
+      logger.error({ requestId, path, userId, deckId }, "Deck not found or not owned by user.");
       throw new TRPCError({
         code: "NOT_FOUND",
         message: "Deck not found.",
@@ -38,7 +38,7 @@ export const updateDeck = protectedProcedure
 
     // 2. Cannot update a pending-deletion deck
     if (existingDeck.scheduledForDeletionAt) {
-      logger.warn({ requestId, path, deckId }, "Cannot update a deck scheduled for deletion.");
+      logger.warn({ requestId, path, userId, deckId }, "Cannot update a deck scheduled for deletion.");
       throw new TRPCError({
         code: "BAD_REQUEST",
         message: "Cannot update a deck scheduled for deletion. Restore it first.",
@@ -62,7 +62,7 @@ export const updateDeck = protectedProcedure
       ]);
 
       if (!user) {
-        logger.error({ requestId, path }, "User not found.");
+        logger.error({ requestId, path, userId }, "User not found.");
         throw new TRPCError({ code: "NOT_FOUND", message: "User not found." });
       }
 
@@ -88,7 +88,7 @@ export const updateDeck = protectedProcedure
       });
 
       if (slugConflict) {
-        logger.error({ requestId, path }, `Deck with slug (${slug}) already exists.`);
+        logger.error({ requestId, path, userId, slug }, "Deck with this slug already exists.");
         throw new TRPCError({
           code: "BAD_REQUEST",
           message: "Deck with this slug already exists.",
@@ -125,7 +125,7 @@ export const updateDeck = protectedProcedure
       updateData.followersCount = 0;
 
       logger.info(
-        { requestId, path, deckId, followersCount: followersToProcess.length },
+        { requestId, path, userId, deckId, followersCount: followersToProcess.length },
         "Deck made private, removing all followers.",
       );
     }
@@ -152,7 +152,7 @@ export const updateDeck = protectedProcedure
               .where(orm.eq(schema.userProfiles.userId, existingDeck.userId));
 
             logger.info(
-              { requestId, path, deckOwnerId: existingDeck.userId, followerId },
+              { requestId, path, userId, deckOwnerId: existingDeck.userId, followerId },
               "Decremented deck owner's profile followers count (follower no longer follows any of their decks).",
             );
           }
@@ -176,7 +176,7 @@ export const updateDeck = protectedProcedure
     });
 
     if (!updatedDeck) {
-      logger.error({ requestId, path }, "Deck could not be updated.");
+      logger.error({ requestId, path, userId, deckId }, "Deck could not be updated.");
       throw new TRPCError({
         code: "BAD_REQUEST",
         message: "Deck could not be updated, try again.",
@@ -185,12 +185,12 @@ export const updateDeck = protectedProcedure
 
     if (isBeingMadePrivate && followersToProcess.length > 0) {
       logger.info(
-        { requestId, path, deckId: updatedDeck.deckId, removedFollowersCount: followersToProcess.length },
+        { requestId, path, userId, deckId: updatedDeck.deckId, removedFollowersCount: followersToProcess.length },
         "Deck made private, all followers removed.",
       );
     }
 
-    logger.info({ requestId, path, deckId: updatedDeck.deckId }, "Deck updated.");
+    logger.info({ requestId, path, userId, deckId: updatedDeck.deckId }, "Deck updated.");
 
     return updatedDeck;
   });

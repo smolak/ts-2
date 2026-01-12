@@ -4,7 +4,7 @@ import { TRPCError } from "@trpc/server";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 
 import { createCallerFactory, createTRPCRouter } from "@/server/api/trpc";
-import { createSecondTestUser, createTestContext, createTestDeck, createTestTag, type TestContext } from "@/test-utils";
+import { createTestContext, createTestDeck, createTestTag, type TestContext } from "@/test-utils";
 
 import { deleteTag } from "./delete-tag";
 
@@ -34,6 +34,12 @@ describe("deleteTag procedure", () => {
       where: (tags, { eq }) => eq(tags.id, tag.id),
     });
     expect(result).toBeUndefined();
+
+    // Verify logging
+    expect(ctx.mockLogger.info).toHaveBeenCalledWith(
+      { requestId: ctx.trpcContext.requestId, path: "tag.deleteTag", tagId: tag.id },
+      "Tag deleted.",
+    );
   });
 
   it("should throw NOT_FOUND when tag doesn't exist", async () => {
@@ -51,10 +57,16 @@ describe("deleteTag procedure", () => {
       expect((error as TRPCError).code).toBe("NOT_FOUND");
       expect((error as TRPCError).message).toBe("Tag not found.");
     }
+
+    // Verify logging
+    expect(ctx.mockLogger.error).toHaveBeenCalledWith(
+      { requestId: ctx.trpcContext.requestId, path: "tag.deleteTag", tagId: tagId },
+      "Tag not found or not owned by user.",
+    );
   });
 
   it("should not delete a tag in another user's deck (security test)", async () => {
-    const otherUser = await createSecondTestUser(ctx.db);
+    const otherUser = await ctx.createAdditionalUser();
     const otherDeck = await createTestDeck(ctx.db, otherUser.userId, "Other Deck");
     const otherUserTag = await createTestTag(ctx.db, otherDeck.id, "Other User Tag");
     const caller = createCaller(ctx.trpcContext);
@@ -72,32 +84,5 @@ describe("deleteTag procedure", () => {
     });
     expect(tagStillExists).toBeDefined();
     expect(tagStillExists?.id).toBe(otherUserTag.id);
-
-    await otherUser.cleanup();
-  });
-
-  it("should log info when tag is deleted successfully", async () => {
-    const tag = await createTestTag(ctx.db, deck.id, "Tag to delete");
-    const caller = createCaller(ctx.trpcContext);
-
-    await caller.deleteTag({ id: tag.id });
-
-    expect(ctx.mockLogger.info).toHaveBeenCalled();
-  });
-
-  it("should log error when tag doesn't exist", async () => {
-    // Create a tag first to get a valid format, then delete it from DB
-    const tag = await createTestTag(ctx.db, deck.id, "Tag to Delete");
-    const tagId = tag.id;
-    await ctx.db.delete(schema.tags).where(orm.eq(schema.tags.id, tagId));
-    const caller = createCaller(ctx.trpcContext);
-
-    try {
-      await caller.deleteTag({ id: tagId });
-    } catch {
-      // Expected to throw
-    }
-
-    expect(ctx.mockLogger.error).toHaveBeenCalled();
   });
 });

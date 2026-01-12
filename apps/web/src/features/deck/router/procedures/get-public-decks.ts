@@ -1,12 +1,13 @@
 import type { Deck, UserProfile } from "@repo/db/types";
 import type { DeckMetadata } from "@repo/deck/schemas/deck-metadata.schema";
 import type { Maybe } from "@repo/shared/types";
+import { normalizedUsernameSchema } from "@repo/user-profile/normalized-username/normalized-username";
 import { z } from "zod";
 
 import { publicProcedure } from "@/server/api/trpc";
 
 const getPublicDecksSchema = z.object({
-  username: z.string().min(1),
+  normalizedUsername: normalizedUsernameSchema,
 });
 
 export type GetPublicDecksSchema = z.infer<typeof getPublicDecksSchema>;
@@ -30,19 +31,19 @@ type GetPublicDecksResult = Maybe<{
 
 export const getPublicDecks = publicProcedure
   .input(getPublicDecksSchema)
-  .query<GetPublicDecksResult>(async ({ input: { username }, ctx: { logger, requestId, db } }) => {
+  .query<GetPublicDecksResult>(async ({ input: { normalizedUsername }, ctx: { logger, requestId, db } }) => {
     const path = "deck.getPublicDecks";
 
-    logger.info({ requestId, path, username }, "Fetching public decks for user.");
+    logger.info({ requestId, path, normalizedUsername }, "Fetching public decks for user.");
 
-    // 1. Find the user profile by username
+    // 1. Find the user profile by normalized username
     const userProfile = await db.query.userProfiles.findFirst({
-      where: (profiles, { eq }) => eq(profiles.usernameNormalized, username.toLowerCase()),
+      where: (profiles, { eq }) => eq(profiles.usernameNormalized, normalizedUsername),
       columns: { userId: true, username: true, imageUrl: true },
     });
 
     if (!userProfile) {
-      logger.info({ requestId, path, username }, "User profile not found.");
+      logger.info({ requestId, path, normalizedUsername }, "User profile not found.");
       return null;
     }
 
@@ -61,7 +62,7 @@ export const getPublicDecks = publicProcedure
       orderBy: (decks, { desc }) => [desc(decks.createdAt)],
     });
 
-    logger.info({ requestId, path, username, count: decks.length }, "Public decks fetched.");
+    logger.info({ requestId, path, normalizedUsername, count: decks.length }, "Public decks fetched.");
 
     return {
       decks: decks.map((deck) => ({

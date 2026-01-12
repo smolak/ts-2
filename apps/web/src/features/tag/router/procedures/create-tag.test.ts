@@ -1,3 +1,4 @@
+import { generateDeckId } from "@repo/db/id/deck-id";
 import type { Deck } from "@repo/db/types";
 import { TRPCError } from "@trpc/server";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
@@ -23,23 +24,37 @@ describe("createTag procedure", () => {
     await ctx.cleanup();
   });
 
-  it("should create a tag with valid name in deck", async () => {
+  it("should create a tag in a deck with valid name", async () => {
     const caller = createCaller(ctx.trpcContext);
 
     const result = await caller.createTag({ deckId: deck.id, name: "My New Tag" });
 
-    expect(result).toHaveProperty("tagId");
+    expect(result).toMatchObject({
+      displayName: "My New Tag",
+      name: "my new tag", // Normalized
+    });
     expect(result.tagId).toMatch(/^tag_/);
-    expect(result).toHaveProperty("displayName", "My New Tag");
-    expect(result).toHaveProperty("name", "my new tag"); // Normalized
 
     const createdTag = await ctx.db.query.tags.findFirst({
       where: (tags, { eq }) => eq(tags.id, result.tagId),
     });
-    expect(createdTag).toBeDefined();
-    expect(createdTag?.name).toBe("my new tag"); // Normalized
-    expect(createdTag?.displayName).toBe("My New Tag");
-    expect(createdTag?.deckId).toBe(deck.id);
+    expect(createdTag).toMatchObject({
+      name: "my new tag", // Normalized
+      displayName: "My New Tag",
+      deckId: deck.id,
+      urlsCount: 0,
+    });
+
+    expect(ctx.mockLogger.info).toHaveBeenCalledWith(
+      {
+        requestId: ctx.trpcContext.requestId,
+        path: "tag.createTag",
+        deckId: deck.id,
+        name: "my new tag",
+        displayName: "My New Tag",
+      },
+      "Tag created.",
+    );
   });
 
   it("should throw BAD_REQUEST when tag name already exists in deck", async () => {
@@ -56,6 +71,11 @@ describe("createTag procedure", () => {
       where: (tags, { and, eq }) => and(eq(tags.deckId, deck.id), eq(tags.name, "duplicate tag")),
     });
     expect(tagsWithName).toHaveLength(1);
+
+    expect(ctx.mockLogger.error).toHaveBeenCalledWith(
+      { requestId: ctx.trpcContext.requestId, path: "tag.createTag", deckId: deck.id, displayName: "duplicate tag" },
+      'Tag "duplicate tag" already exists in this deck.',
+    );
   });
 
   it("should allow same tag name in different decks", async () => {
@@ -65,56 +85,25 @@ describe("createTag procedure", () => {
 
     const result = await caller.createTag({ deckId: deck2.id, name: "Shared Name" });
 
-    expect(result).toHaveProperty("tagId");
+    expect(result.tagId).toMatch(/^tag_/);
 
     const secondDeckTag = await ctx.db.query.tags.findFirst({
       where: (tags, { eq }) => eq(tags.id, result.tagId),
     });
-    expect(secondDeckTag?.displayName).toBe("Shared Name");
-    expect(secondDeckTag?.deckId).toBe(deck2.id);
+    expect(secondDeckTag).toMatchObject({
+      displayName: "Shared Name",
+      deckId: deck2.id,
+    });
   });
 
   it("should throw NOT_FOUND when deck doesn't exist", async () => {
     const caller = createCaller(ctx.trpcContext);
-    // Use a valid format deck ID that doesn't exist (27 chars total: deck_ + 22 chars)
-    const nonExistentDeckId = "deck_abcdefghijklmnopqrstuv" as Deck["id"];
+    const nonExistentDeckId = generateDeckId();
 
     await expect(caller.createTag({ deckId: nonExistentDeckId, name: "Tag" })).rejects.toMatchObject({
       code: "NOT_FOUND",
       message: "Deck not found.",
     });
-  });
-
-  it("should set urlsCount to 0 for new tag", async () => {
-    const caller = createCaller(ctx.trpcContext);
-
-    const result = await caller.createTag({ deckId: deck.id, name: "New Tag" });
-
-    const createdTag = await ctx.db.query.tags.findFirst({
-      where: (tags, { eq }) => eq(tags.id, result.tagId),
-    });
-    expect(createdTag?.urlsCount).toBe(0);
-  });
-
-  it("should log info when tag is created successfully", async () => {
-    const caller = createCaller(ctx.trpcContext);
-
-    await caller.createTag({ deckId: deck.id, name: "Logged Tag" });
-
-    expect(ctx.mockLogger.info).toHaveBeenCalled();
-  });
-
-  it("should log error when tag name already exists", async () => {
-    await createTestTag(ctx.db, deck.id, "Existing Tag");
-    const caller = createCaller(ctx.trpcContext);
-
-    try {
-      await caller.createTag({ deckId: deck.id, name: "Existing Tag" });
-    } catch {
-      // Expected to throw
-    }
-
-    expect(ctx.mockLogger.error).toHaveBeenCalled();
   });
 
   it("should normalize tag name (lowercase, trimmed)", async () => {
@@ -125,7 +114,9 @@ describe("createTag procedure", () => {
     const createdTag = await ctx.db.query.tags.findFirst({
       where: (tags, { eq }) => eq(tags.id, result.tagId),
     });
-    expect(createdTag?.name).toBe("trimmed tag"); // Normalized (lowercase, trimmed)
-    expect(createdTag?.displayName).toBe("Trimmed Tag"); // Schema trims whitespace
+    expect(createdTag).toMatchObject({
+      name: "trimmed tag", // Normalized (lowercase, trimmed)
+      displayName: "Trimmed Tag", // Schema trims whitespace
+    });
   });
 });

@@ -9,6 +9,8 @@ export default defineConfig({
     globals: true,
     setupFiles: "../../packages/tests-setup/src/index.ts",
     hookTimeout: 20_000, // Increased for database connection cold starts
+    maxConcurrency: 3, // Limit concurrent tests to avoid database connection pool exhaustion
+    fileParallelism: false, // Run test files sequentially to prevent connection pool issues
   },
   resolve: {
     alias: {

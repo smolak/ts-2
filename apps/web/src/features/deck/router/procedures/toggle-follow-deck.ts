@@ -36,7 +36,7 @@ export const toggleFollowDeck = protectedProcedure
     ]);
 
     if (!deck) {
-      logger.error({ requestId, path, deckId }, "Deck not found.");
+      logger.error({ requestId, path, userId, deckId }, "Deck not found.");
       throw new TRPCError({
         code: "NOT_FOUND",
         message: "Deck not found.",
@@ -45,7 +45,7 @@ export const toggleFollowDeck = protectedProcedure
 
     // 2. Cannot follow pending-deletion decks
     if (deck.scheduledForDeletionAt) {
-      logger.warn({ requestId, path, deckId }, "Cannot follow a deck scheduled for deletion.");
+      logger.warn({ requestId, path, userId, deckId }, "Cannot follow a deck scheduled for deletion.");
       throw new TRPCError({
         code: "BAD_REQUEST",
         message: "Cannot follow a deck scheduled for deletion.",
@@ -54,7 +54,7 @@ export const toggleFollowDeck = protectedProcedure
 
     // 3. Cannot follow private decks
     if (!deck.isPublic) {
-      logger.warn({ requestId, path, deckId }, "Cannot follow private deck.");
+      logger.warn({ requestId, path, userId, deckId }, "Cannot follow private deck.");
       throw new TRPCError({
         code: "BAD_REQUEST",
         message: "Cannot follow private decks.",
@@ -63,7 +63,7 @@ export const toggleFollowDeck = protectedProcedure
 
     // 4. Cannot follow your own deck
     if (deck.userId === userId) {
-      logger.warn({ requestId, path, deckId }, "Cannot follow own deck.");
+      logger.warn({ requestId, path, userId, deckId }, "Cannot follow own deck.");
       throw new TRPCError({
         code: "BAD_REQUEST",
         message: "Cannot follow your own deck.",
@@ -101,7 +101,7 @@ export const toggleFollowDeck = protectedProcedure
             .where(orm.eq(schema.userProfiles.userId, deck.userId));
 
           logger.info(
-            { requestId, path, deckOwnerId: deck.userId },
+            { requestId, path, userId, deckOwnerId: deck.userId },
             "Decremented deck owner's profile followers count.",
           );
         }
@@ -113,7 +113,7 @@ export const toggleFollowDeck = protectedProcedure
 
       // Note: We don't remove from feeds (historical record)
 
-      logger.info({ requestId, path, deckId, followersCount: newFollowersCount }, "Deck unfollowed.");
+      logger.info({ requestId, path, userId, deckId, followersCount: newFollowersCount }, "Deck unfollowed.");
 
       return { status: "unfollowed", deckId, followersCount: newFollowersCount };
     }
@@ -145,7 +145,10 @@ export const toggleFollowDeck = protectedProcedure
           .set({ followersCount: orm.sql`${schema.userProfiles.followersCount} + 1` })
           .where(orm.eq(schema.userProfiles.userId, deck.userId));
 
-        logger.info({ requestId, path, deckOwnerId: deck.userId }, "Incremented deck owner's profile followers count.");
+        logger.info(
+          { requestId, path, userId, deckOwnerId: deck.userId },
+          "Incremented deck owner's profile followers count.",
+        );
       }
 
       // Populate feed with existing deck URLs
@@ -171,10 +174,10 @@ export const toggleFollowDeck = protectedProcedure
     });
 
     if (urlsAdded > 0) {
-      logger.info({ requestId, path, deckId, urlsAdded }, "Feed populated with existing deck URLs.");
+      logger.info({ requestId, path, userId, deckId, urlsAdded }, "Feed populated with existing deck URLs.");
     }
 
-    logger.info({ requestId, path, deckId, followersCount: newFollowersCount }, "Deck followed.");
+    logger.info({ requestId, path, userId, deckId, followersCount: newFollowersCount }, "Deck followed.");
 
     return { status: "following", deckId, followersCount: newFollowersCount };
   });

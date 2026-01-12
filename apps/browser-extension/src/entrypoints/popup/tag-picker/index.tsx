@@ -21,7 +21,7 @@ export const TagPicker: FC<TagPickerProps> = ({ tags, selectedTags, onTagSelecti
   return (
     <section className="flex flex-col gap-4">
       <header className="flex items-center justify-between">
-        <h3 className="text-xs font-light text-slate-400">{description}</h3>
+        <h3 className="font-light text-slate-400 text-xs">{description}</h3>
       </header>
       <TagPickerTagsList tags={tagPickerTags} onTagSelectionChange={onTagSelectionChange} />
     </section>

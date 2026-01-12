@@ -25,7 +25,7 @@ export const UserProfileCard: FC<UserProfileCardProps> = ({ publicUserProfileDat
             username={username}
             imageUrl={imageUrl}
             size="big"
-            className="md:-top-9 hover:ring-0 md:absolute"
+            className="hover:ring-0 md:absolute md:-top-9"
           />
           <span className="text-lg">@{username}</span>
         </CardTitle>

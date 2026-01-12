@@ -39,7 +39,7 @@ export const addUrlToDeck = protectedProcedure
     ]);
 
     if (!deck) {
-      logger.error({ requestId, path, deckId }, "Deck not found, not owned by user, or pending deletion.");
+      logger.error({ requestId, path, userId, deckId }, "Deck not found, not owned by user, or pending deletion.");
       throw new TRPCError({
         code: "NOT_FOUND",
         message: "Deck not found.",
@@ -47,7 +47,7 @@ export const addUrlToDeck = protectedProcedure
     }
 
     if (!userUrl) {
-      logger.error({ requestId, path, userUrlId }, "URL not found or not owned by user.");
+      logger.error({ requestId, path, userId, userUrlId }, "URL not found or not owned by user.");
       throw new TRPCError({
         code: "NOT_FOUND",
         message: "URL not found.",
@@ -61,7 +61,7 @@ export const addUrlToDeck = protectedProcedure
     });
 
     if (existingDeckUrl) {
-      logger.warn({ requestId, path, deckId, userUrlId }, "URL is already in this deck.");
+      logger.warn({ requestId, path, userId, deckId, userUrlId }, "URL is already in this deck.");
       throw new TRPCError({
         code: "BAD_REQUEST",
         message: "URL is already in this deck.",
@@ -104,7 +104,7 @@ export const addUrlToDeck = protectedProcedure
       return { urlsCount: newUrlsCount };
     });
 
-    logger.info({ requestId, path, deckId, userUrlId, urlsCount: result.urlsCount }, "URL added to deck.");
+    logger.info({ requestId, path, userId, deckId, userUrlId, urlsCount: result.urlsCount }, "URL added to deck.");
 
     return { added: true, deckId, urlsCount: result.urlsCount };
   });

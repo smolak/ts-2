@@ -70,7 +70,7 @@ export const DeleteDeck: FC<DeleteDeckProps> = ({ deck, onDelete, onCancel }) =>
 
   return (
     <form className="relative" onSubmit={handleSubmit(onSubmit)}>
-      <p className="-top-8 absolute rounded-md border-amber-600 border-l-4 bg-amber-50 px-2 py-1 text-amber-700 text-sm">
+      <p className="absolute -top-8 rounded-md border-amber-600 border-l-4 bg-amber-50 px-2 py-1 text-amber-700 text-sm">
         <span className="flex items-center gap-2">
           <AlertTriangle size={13} strokeWidth={2.5} />
           <span className="font-light">Deck will be scheduled for deletion. You have 30 minutes to restore it.</span>

@@ -1,11 +1,8 @@
 import { generateApiKey } from "@repo/user/api-key/generate-api-key";
 import { describe, expect, it } from "vitest";
-import type { ZodSafeParseError } from "zod";
-import {
-  type CreateUserProfileSchema,
-  createUserProfileSchema,
-  NOT_ALLOWED_NORMALIZED_USERNAMES,
-} from "./create-user-profile";
+import { z } from "zod";
+
+import { createUserProfileSchema, NOT_ALLOWED_NORMALIZED_USERNAMES } from "./create-user-profile";
 
 function generateCaseCombinations(word: string) {
   function backtrack(index: number, currentCombination: string) {
@@ -14,7 +11,7 @@ function generateCaseCombinations(word: string) {
       return;
     }
 
-    const letter = word[index]!;
+    const letter = word[index] as string;
 
     backtrack(index + 1, currentCombination + letter.toLowerCase());
     backtrack(index + 1, currentCombination + letter.toUpperCase());
@@ -40,10 +37,13 @@ describe("createUserProfileSchema", () => {
         apiKey,
       };
 
-      const result = createUserProfileSchema.safeParse(data) as ZodSafeParseError<CreateUserProfileSchema>;
+      const result = createUserProfileSchema.safeParse(data);
 
       expect(result.success).toEqual(false);
-      expect(result.error.format().username?._errors).toContain("Username not allowed.");
+
+      if (!result.success) {
+        expect(z.treeifyError(result.error).properties?.username?.errors).toContain("Username not allowed.");
+      }
     });
   });
 });

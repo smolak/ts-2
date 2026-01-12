@@ -2,12 +2,13 @@ import type { Deck, User, UserProfile } from "@repo/db/types";
 import type { DeckMetadata } from "@repo/deck/schemas/deck-metadata.schema";
 import { deckSlugSchema } from "@repo/deck/schemas/deck-slug.schema";
 import type { Maybe } from "@repo/shared/types";
+import { normalizedUsernameSchema } from "@repo/user-profile/normalized-username/normalized-username";
 import { z } from "zod";
 
 import { publicProcedure } from "@/server/api/trpc";
 
 const getDeckBySlugSchema = z.object({
-  username: z.string().min(1),
+  normalizedUsername: normalizedUsernameSchema,
   slug: deckSlugSchema,
 });
 
@@ -30,15 +31,15 @@ type GetDeckBySlugResult = Maybe<{
 
 export const getDeckBySlug = publicProcedure
   .input(getDeckBySlugSchema)
-  .query<GetDeckBySlugResult>(async ({ input: { username, slug }, ctx: { logger, requestId, db, auth } }) => {
+  .query<GetDeckBySlugResult>(async ({ input: { normalizedUsername, slug }, ctx: { logger, requestId, db, auth } }) => {
     const path = "deck.getDeckBySlug";
 
-    logger.info({ requestId, path, username, slug }, "Fetching deck by slug.");
+    logger.info({ requestId, path, normalizedUsername, slug }, "Fetching deck by slug.");
 
     // 1. Fetch user profile and viewer in parallel (independent queries)
     const [userProfile, viewer] = await Promise.all([
       db.query.userProfiles.findFirst({
-        where: (profiles, { eq }) => eq(profiles.usernameNormalized, username.toLowerCase()),
+        where: (profiles, { eq }) => eq(profiles.usernameNormalized, normalizedUsername),
         columns: { userId: true, username: true, imageUrl: true },
       }),
       auth.userId
@@ -50,7 +51,7 @@ export const getDeckBySlug = publicProcedure
     ]);
 
     if (!userProfile) {
-      logger.info({ requestId, path, username }, "User profile not found.");
+      logger.info({ requestId, path, normalizedUsername }, "User profile not found.");
       return null;
     }
 
@@ -73,19 +74,19 @@ export const getDeckBySlug = publicProcedure
     });
 
     if (!deck) {
-      logger.info({ requestId, path, username, slug }, "Deck not found.");
+      logger.info({ requestId, path, normalizedUsername, slug }, "Deck not found.");
       return null;
     }
 
     // 3. Check visibility - only owner can see private decks
     if (!deck.isPublic && !isOwner) {
-      logger.info({ requestId, path, username, slug }, "Deck is private and viewer is not owner.");
+      logger.info({ requestId, path, normalizedUsername, slug }, "Deck is private and viewer is not owner.");
       return null;
     }
 
     // 4. Hide pending-deletion decks from non-owners
     if (deck.scheduledForDeletionAt && !isOwner) {
-      logger.info({ requestId, path, username, slug }, "Deck is pending deletion and viewer is not owner.");
+      logger.info({ requestId, path, normalizedUsername, slug }, "Deck is pending deletion and viewer is not owner.");
       return null;
     }
 

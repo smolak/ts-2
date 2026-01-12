@@ -12,7 +12,11 @@
 
 import { type Db, orm, schema } from "@repo/db/db";
 import type { DeckId } from "@repo/db/id/deck-id";
+import type { TagId } from "@repo/db/id/tag-id";
 import type { UserId } from "@repo/db/id/user-id";
+import type { UserUrlId } from "@repo/db/id/user-url-id";
+import type { Url } from "@repo/db/types";
+import { normalizeUsername } from "@repo/user-profile/normalized-username/normalized-username";
 
 /**
  * Cleanup tags created during tests (by deck)
@@ -40,7 +44,18 @@ export async function cleanupUser(db: Db, userId: string): Promise<void> {
   // Level 2: Delete leaf dependencies
   await db.delete(schema.feeds).where(orm.eq(schema.feeds.userId, userId));
 
-  await db.delete(schema.usersUrlsInteractions).where(orm.eq(schema.usersUrlsInteractions.userId, userId));
+  // Delete interactions where user is the liker OR where the URL being liked belongs to this user
+  await db
+    .delete(schema.usersUrlsInteractions)
+    .where(
+      orm.or(
+        orm.eq(schema.usersUrlsInteractions.userId, userId),
+        orm.inArray(
+          schema.usersUrlsInteractions.userUrlId,
+          db.select({ id: schema.usersUrls.id }).from(schema.usersUrls).where(orm.eq(schema.usersUrls.userId, userId)),
+        ),
+      ),
+    );
 
   await db
     .delete(schema.deckUrls)
@@ -145,4 +160,140 @@ export async function createTestTag(db: Db, deckId: DeckId, displayName: string)
   }
 
   return tag;
+}
+
+/**
+ * Create a test URL in the database
+ * @param url - The URL string (defaults to test URL)
+ * @param metadata - Optional metadata object
+ */
+export async function createTestUrl(
+  db: Db,
+  url = `https://example.com/test-${Date.now()}`,
+  metadata: Record<string, unknown> = {},
+) {
+  // Generate a unique compound hash for the URL
+  const compoundHash = `test_${Date.now()}_${Math.random().toString(36).slice(2)}`.padEnd(64, "0").slice(0, 64);
+
+  const [urlRecord] = await db
+    .insert(schema.urls)
+    .values({
+      url,
+      compoundHash,
+      metadata,
+    })
+    .returning();
+
+  if (!urlRecord) {
+    throw new Error("Failed to create test URL");
+  }
+
+  return urlRecord;
+}
+
+/**
+ * Create a test user URL association (usersUrls)
+ * Links a URL to a user
+ */
+export async function createTestUserUrl(db: Db, userId: UserId, urlId: Url["id"]) {
+  const [userUrl] = await db
+    .insert(schema.usersUrls)
+    .values({
+      userId,
+      urlId,
+    })
+    .returning();
+
+  if (!userUrl) {
+    throw new Error("Failed to create test user URL");
+  }
+
+  return userUrl;
+}
+
+/**
+ * Create a test URL and associate it with a user in one call
+ * Returns both the URL and the userUrl association
+ */
+export async function createTestUserUrlWithUrl(
+  db: Db,
+  userId: UserId,
+  url = `https://example.com/test-${Date.now()}`,
+  metadata: Record<string, unknown> = {},
+) {
+  const urlRecord = await createTestUrl(db, url, metadata);
+  const userUrl = await createTestUserUrl(db, userId, urlRecord.id);
+
+  return { url: urlRecord, userUrl };
+}
+
+/**
+ * Add a URL to a deck (deckUrls junction table)
+ */
+export async function createTestDeckUrl(db: Db, deckId: DeckId, userUrlId: UserUrlId) {
+  await db.insert(schema.deckUrls).values({
+    deckId,
+    userUrlId,
+  });
+
+  // Increment deck's urlsCount
+  await db
+    .update(schema.decks)
+    .set({ urlsCount: orm.sql`${schema.decks.urlsCount} + 1` })
+    .where(orm.eq(schema.decks.id, deckId));
+}
+
+/**
+ * Associate a tag with a deck URL (deckUrlsTags junction table)
+ */
+export async function createTestDeckUrlTag(db: Db, deckId: DeckId, userUrlId: UserUrlId, tagId: TagId, tagOrder = 0) {
+  await db.insert(schema.deckUrlsTags).values({
+    deckId,
+    userUrlId,
+    tagId,
+    tagOrder,
+  });
+}
+
+/**
+ * Create a test user profile
+ */
+export async function createTestUserProfile(
+  db: Db,
+  userId: UserId,
+  username = `testuser_${Date.now()}`,
+  imageUrl: string | null = null,
+) {
+  const [profile] = await db
+    .insert(schema.userProfiles)
+    .values({
+      userId,
+      username,
+      usernameNormalized: normalizeUsername(username),
+      imageUrl,
+    })
+    .returning();
+
+  if (!profile) {
+    throw new Error("Failed to create test user profile");
+  }
+
+  return profile;
+}
+
+/**
+ * Ensure the "LIKED" interaction type exists in the database
+ * This is a lookup table that needs to be seeded for like functionality to work
+ */
+export async function ensureLikedInteractionType(db: Db) {
+  const existing = await db.query.interactionTypes.findFirst({
+    where: (interactionTypes, { eq }) => eq(interactionTypes.id, 1),
+  });
+
+  if (!existing) {
+    await db.insert(schema.interactionTypes).values({
+      id: 1,
+      name: "LIKED",
+    });
+  }
 }

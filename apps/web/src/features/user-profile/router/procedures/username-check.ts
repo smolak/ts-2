@@ -1,5 +1,5 @@
+import { normalizeUsername } from "@repo/user-profile/normalized-username/normalized-username";
 import { usernameSchema } from "@repo/user-profile/username/schemas/username.schema";
-import { normalizeUsername } from "@repo/user-profile/utils/normalize-username";
 import { z } from "zod";
 import { protectedProcedure } from "@/server/api/trpc";
 

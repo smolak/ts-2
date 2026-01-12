@@ -13,6 +13,10 @@ export const getPrivateUserProfile = protectedProcedure.query<Maybe<PrivateUserP
       columns: {
         username: true,
         imageUrl: true,
+        followingCount: true,
+        followersCount: true,
+        likesCount: true,
+        urlsCount: true,
       },
       with: {
         user: {
@@ -26,8 +30,13 @@ export const getPrivateUserProfile = protectedProcedure.query<Maybe<PrivateUserP
 
     if (maybeUserProfile) {
       return {
-        ...maybeUserProfile,
         id: userId,
+        username: maybeUserProfile.username,
+        imageUrl: maybeUserProfile.imageUrl,
+        followingCount: maybeUserProfile.followingCount,
+        followersCount: maybeUserProfile.followersCount,
+        likesCount: maybeUserProfile.likesCount,
+        urlsCount: maybeUserProfile.urlsCount,
         apiKey: maybeUserProfile.user.apiKey,
         plan: maybeUserProfile.user.plan,
       };

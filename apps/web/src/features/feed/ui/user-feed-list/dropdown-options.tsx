@@ -22,7 +22,7 @@ export const DropdownOptions: FC<DropdownOptionsProps> = ({ onEditClick }) => {
         <Button
           variant="ghost"
           size="icon"
-          className="absolute right-3 top-1 h-7 w-7 rounded text-slate-400 hover:text-slate-600"
+          className="absolute top-1 right-3 h-7 w-7 rounded text-slate-400 hover:text-slate-600"
         >
           <MoreHorizontal size={16} />
         </Button>

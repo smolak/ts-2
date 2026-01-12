@@ -34,7 +34,7 @@
 import type { auth } from "@clerk/nextjs/server";
 import { db } from "@repo/db/db";
 import { generateRequestId } from "@repo/db/id/request-id";
-import { vi } from "vitest";
+import { mock } from "vitest-mock-extended";
 import type { Logger } from "@/features/logger";
 import { cleanupUser, createTestUser } from "./test-db";
 
@@ -42,9 +42,10 @@ type ClerkAuth = Awaited<ReturnType<typeof auth>>;
 
 /**
  * Mock auth object that simulates a logged-in Clerk user
+ * Note: ClerkAuth is a complex union type, so we cast to bypass strict type checking
  */
 function createMockAuth(clerkUserId: string): ClerkAuth {
-  return {
+  return mock({
     userId: clerkUserId,
     sessionId: `sess_test_${Date.now()}`,
     sessionClaims: {},
@@ -52,21 +53,18 @@ function createMockAuth(clerkUserId: string): ClerkAuth {
     orgRole: null,
     orgSlug: null,
     orgPermissions: null,
-    has: () => false,
-    debug: () => ({}),
     isPublicRoute: false,
     isApiRoute: false,
-    protect: vi.fn(),
-    redirectToSignIn: vi.fn(),
     isAuthenticated: true,
-  } as unknown as ClerkAuth;
+  }) as unknown as ClerkAuth;
 }
 
 /**
  * Mock auth object that simulates an unauthenticated user
+ * Note: ClerkAuth is a complex union type, so we cast to bypass strict type checking
  */
 function createUnauthenticatedMockAuth(): ClerkAuth {
-  return {
+  return mock({
     userId: null,
     sessionId: null,
     sessionClaims: null,
@@ -74,39 +72,35 @@ function createUnauthenticatedMockAuth(): ClerkAuth {
     orgRole: null,
     orgSlug: null,
     orgPermissions: null,
-    has: () => false,
-    debug: () => ({}),
     isPublicRoute: false,
     isApiRoute: false,
-    protect: vi.fn(),
-    redirectToSignIn: vi.fn(),
     isAuthenticated: false,
-  } as unknown as ClerkAuth;
+  }) as unknown as ClerkAuth;
 }
 
 /**
  * Create a mock logger that captures log calls for assertions
  */
 function createMockLogger(): Logger {
-  return {
-    info: vi.fn(),
-    error: vi.fn(),
-    warn: vi.fn(),
-    debug: vi.fn(),
-    trace: vi.fn(),
-    fatal: vi.fn(),
-    child: vi.fn().mockReturnThis(),
-    level: "info",
-    silent: vi.fn(),
-    bindings: vi.fn().mockReturnValue({}),
-    flush: vi.fn(),
-    isLevelEnabled: vi.fn().mockReturnValue(true),
-  } as unknown as Logger;
+  return mock<Logger>();
 }
+
+/** Additional user created during a test */
+export type AdditionalTestUser = {
+  userId: string;
+  clerkUserId: string;
+};
 
 export type TestContext = {
   /** The tRPC context to pass to createCaller */
   trpcContext: {
+    db: typeof db;
+    auth: ClerkAuth;
+    logger: Logger;
+    requestId: string;
+  };
+  /** The tRPC context with unauthenticated auth (for public procedures) */
+  unauthTrpcContext: {
     db: typeof db;
     auth: ClerkAuth;
     logger: Logger;
@@ -122,6 +116,8 @@ export type TestContext = {
   db: typeof db;
   /** Cleanup function to call in afterEach */
   cleanup: () => Promise<void>;
+  /** Create an additional user that is auto-cleaned up */
+  createAdditionalUser: () => Promise<AdditionalTestUser>;
 };
 
 export type CreateTestContextOptions = {
@@ -146,6 +142,7 @@ export async function createTestContext(options: CreateTestContextOptions = {}):
   const user = await createTestUser(db, clerkUserId);
 
   const auth = authenticated ? createMockAuth(clerkUserId) : createUnauthenticatedMockAuth();
+  const unauthAuth = createUnauthenticatedMockAuth();
 
   const trpcContext = {
     db,
@@ -154,17 +151,42 @@ export async function createTestContext(options: CreateTestContextOptions = {}):
     requestId,
   };
 
+  const unauthTrpcContext = {
+    db,
+    auth: unauthAuth,
+    logger: mockLogger,
+    requestId,
+  };
+
+  // Track additional users for automatic cleanup
+  const additionalUsers: AdditionalTestUser[] = [];
+
+  const createAdditionalUser = async (): Promise<AdditionalTestUser> => {
+    const additionalClerkUserId = `clerk_test2_${Date.now()}_${Math.random().toString(36).slice(2)}`;
+    const additionalUser = await createTestUser(db, additionalClerkUserId);
+    const testUser = { userId: additionalUser.id, clerkUserId: additionalClerkUserId };
+    additionalUsers.push(testUser);
+    return testUser;
+  };
+
   const cleanup = async () => {
+    // Clean up additional users first (in reverse order of creation)
+    for (const additionalUser of additionalUsers.reverse()) {
+      await cleanupUser(db, additionalUser.userId);
+    }
+    // Clean up primary user
     await cleanupUser(db, user.id);
   };
 
   return {
     trpcContext,
+    unauthTrpcContext,
     userId: user.id,
     clerkUserId,
     mockLogger,
     db,
     cleanup,
+    createAdditionalUser,
   };
 }
 

@@ -1,12 +1,8 @@
 import type { Tag } from "@repo/db/types";
 import { TRPCError } from "@trpc/server";
 
-import {
-  createTag as createTagFn,
-  DeckNotFoundError,
-  TagAlreadyExistsError,
-  TagCreationError,
-} from "@/features/tag/services";
+import { createTag as createTagFn } from "@/features/tag/services/create-tag";
+import { DeckNotFoundError, TagAlreadyExistsError, TagCreationError } from "@/features/tag/services/errors";
 import { protectedProcedure } from "@/server/api/trpc";
 
 import { createTagSchema } from "../../schemas/create-tag.schema";

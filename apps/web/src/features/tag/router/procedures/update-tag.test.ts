@@ -4,7 +4,7 @@ import { TRPCError } from "@trpc/server";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 
 import { createCallerFactory, createTRPCRouter } from "@/server/api/trpc";
-import { createSecondTestUser, createTestContext, createTestDeck, createTestTag, type TestContext } from "@/test-utils";
+import { createTestContext, createTestDeck, createTestTag, type TestContext } from "@/test-utils";
 
 import { updateTag } from "./update-tag";
 
@@ -39,6 +39,18 @@ describe("updateTag procedure", () => {
     });
     expect(updatedTag?.name).toBe("updated name");
     expect(updatedTag?.displayName).toBe("Updated Name");
+
+    // Verify logging
+    expect(ctx.mockLogger.info).toHaveBeenCalledWith(
+      {
+        requestId: ctx.trpcContext.requestId,
+        path: "tag.updateTag",
+        tagId: tag.id,
+        name: "updated name",
+        displayName: "Updated Name",
+      },
+      "Tag updated.",
+    );
   });
 
   it("should throw NOT_FOUND when tag doesn't exist", async () => {
@@ -55,10 +67,16 @@ describe("updateTag procedure", () => {
       expect(error).toBeInstanceOf(TRPCError);
       expect((error as TRPCError).code).toBe("NOT_FOUND");
     }
+
+    // Verify logging
+    expect(ctx.mockLogger.error).toHaveBeenCalledWith(
+      { requestId: ctx.trpcContext.requestId, path: "tag.updateTag", tagId: tagId },
+      "Tag not found or not owned by user.",
+    );
   });
 
   it("should not update a tag in another user's deck (security test)", async () => {
-    const otherUser = await createSecondTestUser(ctx.db);
+    const otherUser = await ctx.createAdditionalUser();
     const otherDeck = await createTestDeck(ctx.db, otherUser.userId, "Other Deck");
     const otherUserTag = await createTestTag(ctx.db, otherDeck.id, "Other User Tag");
     const caller = createCaller(ctx.trpcContext);
@@ -75,8 +93,6 @@ describe("updateTag procedure", () => {
       where: (tags, { eq }) => eq(tags.id, otherUserTag.id),
     });
     expect(tagUnchanged?.displayName).toBe("Other User Tag");
-
-    await otherUser.cleanup();
   });
 
   it("should throw BAD_REQUEST when new name conflicts with existing tag in same deck", async () => {
@@ -127,31 +143,6 @@ describe("updateTag procedure", () => {
     const result = await caller.updateTag({ id: tag.id, name: "Updated Tag" });
 
     expect(result.urlsCount).toBe(5);
-  });
-
-  it("should log info when tag is updated successfully", async () => {
-    const tag = await createTestTag(ctx.db, deck.id, "Tag to Update");
-    const caller = createCaller(ctx.trpcContext);
-
-    await caller.updateTag({ id: tag.id, name: "Updated" });
-
-    expect(ctx.mockLogger.info).toHaveBeenCalled();
-  });
-
-  it("should log error when tag doesn't exist", async () => {
-    // Create a tag first to get a valid format, then delete it from DB
-    const tag = await createTestTag(ctx.db, deck.id, "Tag to Delete");
-    const tagId = tag.id;
-    await ctx.db.delete(schema.tags).where(orm.eq(schema.tags.id, tagId));
-    const caller = createCaller(ctx.trpcContext);
-
-    try {
-      await caller.updateTag({ id: tagId, name: "New Name" });
-    } catch {
-      // Expected to throw
-    }
-
-    expect(ctx.mockLogger.error).toHaveBeenCalled();
   });
 
   it("should normalize name (lowercase, trimmed)", async () => {

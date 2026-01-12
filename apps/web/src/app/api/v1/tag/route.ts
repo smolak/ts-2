@@ -6,7 +6,9 @@ import type { GetTagsSuccessResponse } from "@repo/tag/api/v1/get-tags.schema";
 import { StatusCodes } from "http-status-codes";
 
 import { logger } from "@/features/logger";
-import { createTag, DeckNotFoundError, getDeckTags, TagAlreadyExistsError } from "@/features/tag/services";
+import { createTag } from "@/features/tag/services/create-tag";
+import { DeckNotFoundError, TagAlreadyExistsError } from "@/features/tag/services/errors";
+import { getDeckTags } from "@/features/tag/services/get-deck-tags";
 import { type CorsOptions, cors } from "@/lib/cors";
 import { getUserIdFromRequest } from "@/lib/get-user-id-from-request";
 
@@ -56,7 +58,7 @@ export async function GET(request: Request) {
 
     return cors(request, response, corsOptions);
   } catch (error) {
-    if (error instanceof Error && error.message === "Deck not found.") {
+    if (error instanceof DeckNotFoundError) {
       const response = new Response("Deck not found.", { status: StatusCodes.NOT_FOUND });
       return cors(request, response, corsOptions);
     }

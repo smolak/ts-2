@@ -53,7 +53,7 @@ describe("getAuthor", () => {
     const html = `<a rel="author">Jane Doe</a>`;
     const document = createDocument(html);
 
-    expect(getAuthor(document)).toBe("Jane Doe");
+    expect(getAuthor(document, "https://example.com")).toBe("Jane Doe");
   });
 
   it("should return author from a[class*='author']", () => {

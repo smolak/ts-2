@@ -20,7 +20,7 @@ export const CopyToClipboard: FC<CopyToClipboardProps> = ({ string }) => {
   }, [copied]);
 
   return copied ? (
-    <Check size={14} strokeWidth={4} className="absolute right-3.5 top-3.5 cursor-copy text-lg text-green-700" />
+    <Check size={14} strokeWidth={4} className="absolute top-3.5 right-3.5 cursor-copy text-green-700 text-lg" />
   ) : (
     <Copy
       size={14}
@@ -28,7 +28,7 @@ export const CopyToClipboard: FC<CopyToClipboardProps> = ({ string }) => {
         copyToClipboard(string);
         setCopied(true);
       }}
-      className="absolute right-3.5 top-3.5 cursor-copy text-lg text-gray-400 hover:text-gray-700"
+      className="absolute top-3.5 right-3.5 cursor-copy text-gray-400 text-lg hover:text-gray-700"
     />
   );
 };
