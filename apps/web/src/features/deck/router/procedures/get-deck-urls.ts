@@ -1,6 +1,7 @@
 import { orm, schema } from "@repo/db/db";
 import { deckIdSchema } from "@repo/db/id/deck-id";
 import { tagIdSchema } from "@repo/db/id/tag-id";
+import type { UserUrlId } from "@repo/db/id/user-url-id";
 import type { Tag, Url, UserUrl } from "@repo/db/types";
 import type { DeckMetadata } from "@repo/deck/schemas/deck-metadata.schema";
 import type { Maybe } from "@repo/shared/types";
@@ -18,7 +19,7 @@ const getDeckUrlsSchema = z.object({
 export type GetDeckUrlsSchema = z.infer<typeof getDeckUrlsSchema>;
 
 type DeckUrlItem = {
-  userUrlId: UserUrl["id"];
+  userUrlId: UserUrlId;
   url: Url["url"];
   metadata: Url["metadata"];
   addedAt: Date;

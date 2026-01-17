@@ -1,10 +1,11 @@
+import type { DeckId } from "@repo/db/id/deck-id";
 import type { Deck, UserProfile } from "@repo/db/types";
 import type { DeckMetadata } from "@repo/deck/schemas/deck-metadata.schema";
 
 import { protectedProcedure } from "@/server/api/trpc";
 
 type FollowedDeckItem = {
-  id: Deck["id"];
+  id: DeckId;
   name: Deck["name"];
   slug: Deck["slug"];
   metadata: DeckMetadata;

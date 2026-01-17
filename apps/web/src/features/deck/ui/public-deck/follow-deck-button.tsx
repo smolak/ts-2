@@ -1,5 +1,6 @@
 "use client";
 
+import type { DeckId } from "@repo/db/id/deck-id";
 import type { Deck } from "@repo/db/types";
 import { Button } from "@repo/ui/components/button";
 import { cn } from "@repo/ui/lib/utils";
@@ -9,7 +10,7 @@ import { type FC, useState } from "react";
 import { api } from "@/trpc/react";
 
 type FollowDeckButtonProps = {
-  deckId: Deck["id"];
+  deckId: DeckId;
   initialIsFollowing: boolean;
   initialFollowersCount: Deck["followersCount"];
   onFollowChange?: (isFollowing: boolean, followersCount: number) => void;

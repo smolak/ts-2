@@ -1,6 +1,8 @@
 "use client";
 
-import type { Deck, Tag, Url } from "@repo/db/types";
+import type { DeckId } from "@repo/db/id/deck-id";
+import type { TagId } from "@repo/db/id/tag-id";
+import type { Url } from "@repo/db/types";
 import type { ScrappedMetadata } from "@repo/metadata-scrapper/types";
 import { Card, CardContent } from "@repo/ui/components/card";
 import { LinkCard, type LinkCardData, LinkCardSkeleton } from "@repo/ui/components/link-card";
@@ -66,8 +68,8 @@ const LoadingCards: FC = () => (
 );
 
 type DeckUrlListProps = {
-  deckId: Deck["id"];
-  tagIds?: Tag["id"][];
+  deckId: DeckId;
+  tagIds?: TagId[];
 };
 
 export const DeckUrlList: FC<DeckUrlListProps> = ({ deckId, tagIds = [] }) => {

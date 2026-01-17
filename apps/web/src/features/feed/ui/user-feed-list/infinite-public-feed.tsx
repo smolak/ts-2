@@ -1,6 +1,6 @@
 "use client";
 
-import type { User } from "@repo/db/types";
+import type { UserId } from "@repo/db/id/user-id";
 import type { InfiniteData } from "@tanstack/react-query";
 import { useSearchParams } from "next/navigation";
 import type { FC } from "react";
@@ -31,7 +31,7 @@ const getNextCursor = (data?: InfiniteData<GetPublicFeedResponse>) => {
 
 type InfinitePublicFeedProps = {
   from?: FeedDto["createdAt"];
-  userId: User["id"];
+  userId: UserId;
 };
 
 /**

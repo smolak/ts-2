@@ -1,3 +1,5 @@
+import type { DeckId } from "@repo/db/id/deck-id";
+import type { TagId } from "@repo/db/id/tag-id";
 import type { DeckDto } from "@repo/deck/dto/deck.dto";
 import type { ScrappedMetadata } from "@repo/metadata-scrapper/types";
 import type { Maybe } from "@repo/shared/types";
@@ -26,12 +28,12 @@ type AddUrlProps = {
 export const AddUrl: FC<AddUrlProps> = ({ apiKey, url, metadata }) => {
   const [cachedTags, setCachedTags] = useLocalStorage<TagDto[]>(TAGS_STORAGE_KEY, []);
   const [decks, setDecks] = useLocalStorage<DeckDto[]>(DECKS_STORAGE_KEY, []);
-  const [defaultDeckId, setDefaultDeckId] = useLocalStorage<DeckDto["id"] | null>(DEFAULT_DECK_ID_STORAGE_KEY, null);
+  const [defaultDeckId, setDefaultDeckId] = useLocalStorage<DeckId | null>(DEFAULT_DECK_ID_STORAGE_KEY, null);
   const { mutate, isPending, isSuccess, isError } = useAddUrl(apiKey);
   const { data: decksData, isSuccess: decksFetched } = useDecks(apiKey);
 
   // Single deck selection (required)
-  const [selectedDeckId, setSelectedDeckId] = useState<DeckDto["id"] | null>(null);
+  const [selectedDeckId, setSelectedDeckId] = useState<DeckId | null>(null);
 
   // Tags for the selected deck
   const { data: tagsData, isSuccess: tagsFetched, refetch: refetchTags } = useTags(apiKey, selectedDeckId);
@@ -50,7 +52,7 @@ export const AddUrl: FC<AddUrlProps> = ({ apiKey, url, metadata }) => {
     }
   }, [decksFetched, decksData, setDecks]);
 
-  const [selectedTags, setSelectedTags] = useState<TagDto["id"][]>([]);
+  const [selectedTags, setSelectedTags] = useState<TagId[]>([]);
 
   // Initialize selected deck with default preference
   useEffect(() => {
@@ -68,7 +70,7 @@ export const AddUrl: FC<AddUrlProps> = ({ apiKey, url, metadata }) => {
   }, [selectedDeckId]);
 
   const onTagSelectionChange = useCallback(
-    (tagId: TagDto["id"]) => {
+    (tagId: TagId) => {
       const tagListed = selectedTags.indexOf(tagId) !== -1;
       const newSelection = tagListed ? selectedTags.filter((id) => tagId !== id) : [...selectedTags, tagId];
 
@@ -78,7 +80,7 @@ export const AddUrl: FC<AddUrlProps> = ({ apiKey, url, metadata }) => {
   );
 
   const onDeckSelectionChange = useCallback(
-    (deckId: DeckDto["id"]) => {
+    (deckId: DeckId) => {
       // Single selection - toggle or select new deck
       const newDeckId = selectedDeckId === deckId ? null : deckId;
       setSelectedDeckId(newDeckId);

@@ -1,4 +1,5 @@
-import type { User, UserProfile } from "@repo/db/types";
+import type { UserId } from "@repo/db/id/user-id";
+import type { UserProfile } from "@repo/db/types";
 import type { Maybe } from "@repo/shared/types";
 import { createStore } from "zustand/vanilla";
 
@@ -7,7 +8,7 @@ export type UserState = {
   isProfileComplete: boolean;
   profile: Maybe<
     {
-      id: User["id"];
+      id: UserId;
     } & Pick<UserProfile, "imageUrl" | "username">
   >;
 };

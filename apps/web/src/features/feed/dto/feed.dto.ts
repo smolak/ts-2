@@ -1,3 +1,7 @@
+import type { DeckId } from "@repo/db/id/deck-id";
+import type { FeedId } from "@repo/db/id/feed-id";
+import type { UserId } from "@repo/db/id/user-id";
+import type { UserUrlId } from "@repo/db/id/user-url-id";
 import type { Deck, Feed, Tag, Url, UserProfile, UserUrl } from "@repo/db/types";
 import type { DeckMetadata } from "@repo/deck/schemas/deck-metadata.schema";
 import type { ScrappedMetadata } from "@repo/metadata-scrapper/types";
@@ -6,17 +10,17 @@ type Metadata = ScrappedMetadata;
 
 type RawFeedEntry = {
   user_username: UserProfile["username"];
-  user_userId: UserProfile["userId"];
+  user_userId: UserId;
   user_imageUrl: UserProfile["imageUrl"];
-  feed_id: Feed["id"];
+  feed_id: FeedId;
   feed_createdAt: Feed["createdAt"];
   userUrl_liked: boolean;
   url_url: Url["url"];
   url_metadata: unknown;
   url_likesCount: UserUrl["likesCount"];
-  userUrl_id: UserUrl["id"];
+  userUrl_id: UserUrlId;
   tag_names: string | null;
-  deck_id: Deck["id"];
+  deck_id: DeckId;
   deck_name: Deck["name"];
   deck_slug: Deck["slug"];
   deck_metadata: Deck["metadata"] | null;
@@ -82,10 +86,10 @@ export const toFeedDto = (entry: RawFeedEntry): FeedDto => {
 type ISODateString = string;
 
 export type FeedDto = {
-  id: Feed["id"];
+  id: FeedId;
   createdAt: ISODateString;
   user: {
-    id: UserProfile["userId"];
+    id: UserId;
     imageUrl: UserProfile["imageUrl"];
     username: UserProfile["username"];
   };
@@ -96,9 +100,9 @@ export type FeedDto = {
     likesCount: UserUrl["likesCount"];
     tagNames: Tag["name"][];
   };
-  userUrlId: UserUrl["id"];
+  userUrlId: UserUrlId;
   deck: {
-    id: Deck["id"];
+    id: DeckId;
     name: Deck["name"];
     slug: Deck["slug"];
     metadata: DeckMetadata;

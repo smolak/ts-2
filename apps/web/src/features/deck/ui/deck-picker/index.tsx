@@ -1,4 +1,4 @@
-import type { Deck } from "@repo/db/types";
+import type { DeckId } from "@repo/db/id/deck-id";
 import type { DeckDto } from "@repo/deck/dto/deck.dto";
 import { Settings } from "lucide-react";
 import Link from "next/link";
@@ -8,8 +8,8 @@ import { DeckPickerList } from "./deck-picker-list";
 
 type DeckPickerProps = {
   decks: ReadonlyArray<DeckDto>;
-  selectedDeckIds: Deck["id"][];
-  onDeckSelectionChange: (id: Deck["id"]) => void;
+  selectedDeckIds: DeckId[];
+  onDeckSelectionChange: (id: DeckId) => void;
   description: string;
   showSettingsLink?: boolean;
 };

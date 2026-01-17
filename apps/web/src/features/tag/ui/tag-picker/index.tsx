@@ -1,5 +1,5 @@
+import type { TagId } from "@repo/db/id/tag-id";
 import type { TagDto } from "@repo/tag/dto/tag.dto";
-import type { Tag } from "@repo/db/types";
 import { Settings } from "lucide-react";
 import Link from "next/link";
 import type { FC } from "react";
@@ -8,8 +8,8 @@ import { TagPickerTagsList } from "./tag-picker-tags-list";
 
 type TagPickerProps = {
   tags: ReadonlyArray<TagDto>;
-  selectedTags: Tag["id"][];
-  onTagSelectionChange: (id: Tag["id"]) => void;
+  selectedTags: TagId[];
+  onTagSelectionChange: (id: TagId) => void;
   description: string;
   showSettingsLink?: boolean;
 };

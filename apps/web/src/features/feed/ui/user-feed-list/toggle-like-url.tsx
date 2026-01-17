@@ -1,4 +1,4 @@
-import type { UserUrl } from "@repo/db/types";
+import type { UserUrlId } from "@repo/db/id/user-url-id";
 import { toast } from "@repo/ui/components/sonner";
 import { Heart } from "lucide-react";
 import { type FC, type ReactNode, useState } from "react";
@@ -6,7 +6,7 @@ import { type FC, type ReactNode, useState } from "react";
 import { api } from "@/trpc/react";
 
 type ToggleLikeUrlProps = {
-  userUrlId: UserUrl["id"];
+  userUrlId: UserUrlId;
   liked: boolean;
   likes: number;
 };

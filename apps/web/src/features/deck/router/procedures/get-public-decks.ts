@@ -1,3 +1,4 @@
+import type { DeckId } from "@repo/db/id/deck-id";
 import type { Deck, UserProfile } from "@repo/db/types";
 import type { DeckMetadata } from "@repo/deck/schemas/deck-metadata.schema";
 import type { Maybe } from "@repo/shared/types";
@@ -13,7 +14,7 @@ const getPublicDecksSchema = z.object({
 export type GetPublicDecksSchema = z.infer<typeof getPublicDecksSchema>;
 
 type PublicDeckItem = {
-  id: Deck["id"];
+  id: DeckId;
   name: Deck["name"];
   slug: Deck["slug"];
   metadata: DeckMetadata;

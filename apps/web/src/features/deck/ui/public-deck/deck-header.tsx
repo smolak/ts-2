@@ -1,6 +1,8 @@
 "use client";
 
-import type { Deck, User, UserProfile } from "@repo/db/types";
+import type { DeckId } from "@repo/db/id/deck-id";
+import type { UserId } from "@repo/db/id/user-id";
+import type { Deck, UserProfile } from "@repo/db/types";
 import type { DeckMetadata } from "@repo/deck/schemas/deck-metadata.schema";
 import { Badge } from "@repo/ui/components/badge";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@repo/ui/components/card";
@@ -13,14 +15,14 @@ import { UserImage } from "@/features/user/ui/user-image";
 import { FollowDeckButton } from "./follow-deck-button";
 
 type DeckOwner = {
-  userId: User["id"];
+  userId: UserId;
   username: UserProfile["username"];
   imageUrl: UserProfile["imageUrl"];
 };
 
 type DeckHeaderProps = {
   deck: {
-    id: Deck["id"];
+    id: DeckId;
     name: Deck["name"];
     slug: Deck["slug"];
     metadata: DeckMetadata;

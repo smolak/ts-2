@@ -6,3 +6,4 @@ export const scheduleDeckDeletionSchema = z.object({
 });
 
 export type ScheduleDeckDeletionSchema = z.infer<typeof scheduleDeckDeletionSchema>;
+export type ScheduleDeckDeletionInput = z.input<typeof scheduleDeckDeletionSchema>;

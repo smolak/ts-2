@@ -1,3 +1,4 @@
+import type { DeckId } from "@repo/db/id/deck-id";
 import { userUrlIdSchema } from "@repo/db/id/user-url-id";
 import type { Deck } from "@repo/db/types";
 import { z } from "zod";
@@ -11,7 +12,7 @@ const getUrlDecksSchema = z.object({
 export type GetUrlDecksSchema = z.infer<typeof getUrlDecksSchema>;
 
 type GetUrlDecksResult = Array<{
-  id: Deck["id"];
+  id: DeckId;
   name: Deck["name"];
 }>;
 
