@@ -24,6 +24,7 @@ export const UserFeedSourceSelector: FC<UserFeedSourceSelectorProps> = ({ author
 
       if (source === "default") {
         params.delete("source");
+        params.delete("deck");
       } else {
         params.set("source", source);
       }
@@ -62,7 +63,7 @@ export const UserFeedSourceSelector: FC<UserFeedSourceSelectorProps> = ({ author
             }
 
             return (
-              <TabsTrigger className="px-4" value={value} key={value}>
+              <TabsTrigger value={value} key={value}>
                 {displayLabel}
               </TabsTrigger>
             );

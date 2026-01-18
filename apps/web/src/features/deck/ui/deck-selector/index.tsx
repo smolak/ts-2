@@ -83,6 +83,7 @@ export const DeckSelector: FC<DeckSelectorProps> = ({ decks }) => {
                 <span className="flex items-center gap-2">
                   {deck.name}
                   {!deck.isPublic && <span className="text-slate-400 text-xs">(private)</span>}
+                  {deck.urlsCount > 0 && <span>({deck.urlsCount})</span>}
                 </span>
               </DropdownMenuRadioItem>
             ))}

@@ -18,7 +18,7 @@ export const Sidebar = () => {
       <div className="mb-8">
         <div className="mb-2 flex items-center gap-2">
           <LinkIcon className="h-6 w-6 text-primary" />
-          <h1 className="font-bold text-xl">LinkShare</h1>
+          <h1 className="font-bold text-xl">LinkDeck</h1>
         </div>
         <p className="text-muted-foreground text-xs">Share what inspires you</p>
       </div>
