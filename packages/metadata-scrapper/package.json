@@ -15,7 +15,7 @@
   "devDependencies": {
     "@repo/typescript-config": "workspace:*",
     "@types/jsdom": "^27.0.0",
-    "@types/lodash": "^4.17.21",
+    "@types/lodash": "^4.17.23",
     "jsdom": "^27.4.0",
     "typescript": "catalog:",
     "vitest": "catalog:"
