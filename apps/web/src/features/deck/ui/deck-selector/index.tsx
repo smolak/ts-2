@@ -58,9 +58,6 @@ export const DeckSelector: FC<DeckSelectorProps> = ({ decks }) => {
     [pathname, router, searchParams],
   );
 
-  // Only show active (non-deleted) decks
-  const activeDecks = decks.filter((deck) => deck.scheduledForDeletionAt === null);
-
   const buttonLabel = selectedDeck ? selectedDeck.name : "All Decks";
 
   return (
@@ -72,13 +69,13 @@ export const DeckSelector: FC<DeckSelectorProps> = ({ decks }) => {
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent className="w-56">
-        {activeDecks.length > 0 ? (
+        {decks.length > 0 ? (
           <DropdownMenuRadioGroup value={selectedDeckId ?? "all"} onValueChange={onDeckChange}>
             <DropdownMenuRadioItem value="all" className="cursor-pointer">
               All Decks
             </DropdownMenuRadioItem>
             <DropdownMenuSeparator />
-            {activeDecks.map((deck) => (
+            {decks.map((deck) => (
               <DropdownMenuRadioItem key={deck.id} value={deck.id} className="cursor-pointer">
                 <span className="flex items-center gap-2">
                   {deck.name}

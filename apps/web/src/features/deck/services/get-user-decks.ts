@@ -14,6 +14,6 @@ interface GetUserDecksParams {
 export async function getUserDecks({ db, userId }: GetUserDecksParams): Promise<Deck[]> {
   return db.query.decks.findMany({
     where: (decks, { eq, isNull, and }) => and(eq(decks.userId, userId), isNull(decks.scheduledForDeletionAt)),
-    orderBy: (decks, { desc }) => [desc(decks.createdAt)],
+    orderBy: (decks, { asc }) => [asc(decks.name)],
   });
 }

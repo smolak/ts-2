@@ -70,10 +70,10 @@ describe("getUserDecks service", () => {
     expect(result[0]?.name).toBe("Active Deck");
   });
 
-  it("should order decks by createdAt descending (newest first)", async () => {
-    await createTestDeck(ctx.db, ctx.userId, "First Deck");
-    await createTestDeck(ctx.db, ctx.userId, "Second Deck");
-    await createTestDeck(ctx.db, ctx.userId, "Third Deck");
+  it("should order decks by name ascending", async () => {
+    await createTestDeck(ctx.db, ctx.userId, "Cdeck");
+    await createTestDeck(ctx.db, ctx.userId, "Bdeck");
+    await createTestDeck(ctx.db, ctx.userId, "Adeck");
 
     const result = await getUserDecks({
       db: ctx.db,
@@ -81,8 +81,8 @@ describe("getUserDecks service", () => {
     });
 
     expect(result).toHaveLength(3);
-    expect(result[0]?.name).toBe("Third Deck");
-    expect(result[1]?.name).toBe("Second Deck");
-    expect(result[2]?.name).toBe("First Deck");
+    expect(result[0]?.name).toBe("Adeck");
+    expect(result[1]?.name).toBe("Bdeck");
+    expect(result[2]?.name).toBe("Cdeck");
   });
 });
