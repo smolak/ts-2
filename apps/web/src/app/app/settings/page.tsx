@@ -5,13 +5,13 @@ import Link from "next/link";
 export default function Page() {
   const settingsLinks = [
     {
-      href: "/settings/profile",
+      href: "/app/settings/profile",
       icon: User,
       label: "Profile",
       description: "Manage your public profile information",
     },
     {
-      href: "/settings/decks",
+      href: "/app/settings/decks",
       icon: Layers,
       label: "Decks",
       description: "Create and manage your curated link collections",
