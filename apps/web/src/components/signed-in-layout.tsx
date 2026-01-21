@@ -1,7 +1,7 @@
 import type { FC, PropsWithChildren } from "react";
 import { Sidebar } from "./sidebar";
 import { ThemeSwitcher } from "./theme-switcher";
-import { User } from "./user";
+import { UserButton } from "./user-button";
 
 export const SignedInLayout: FC<PropsWithChildren> = ({ children }) => {
   return (
@@ -11,7 +11,7 @@ export const SignedInLayout: FC<PropsWithChildren> = ({ children }) => {
       <aside className="w-80 space-y-6 p-8">
         <div className="flex flex-row items-center justify-end gap-8">
           <ThemeSwitcher />
-          <User />
+          <UserButton />
         </div>
       </aside>
     </>

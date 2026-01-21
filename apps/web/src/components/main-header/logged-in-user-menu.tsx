@@ -1,7 +1,7 @@
 "use client";
 
-import { User } from "../user";
+import { UserButton } from "../user-button";
 
 export const LoggedInUserMenu = () => {
-  return <User />;
+  return <UserButton />;
 };
