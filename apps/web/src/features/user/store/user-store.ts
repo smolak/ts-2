@@ -1,16 +1,11 @@
-import type { UserId } from "@repo/db/id/user-id";
-import type { UserProfile } from "@repo/db/types";
 import type { Maybe } from "@repo/shared/types";
 import { createStore } from "zustand/vanilla";
+import type { PrivateUserProfileDto } from "@/features/user-profile/dto/private-user-profile.dto";
 
 export type UserState = {
   isSignedIn: boolean;
   isProfileComplete: boolean;
-  profile: Maybe<
-    {
-      id: UserId;
-    } & Pick<UserProfile, "imageUrl" | "username">
-  >;
+  profile: Maybe<PrivateUserProfileDto>;
 };
 
 export type UserActions = {

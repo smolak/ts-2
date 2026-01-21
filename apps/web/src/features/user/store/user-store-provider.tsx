@@ -1,8 +1,8 @@
 "use client";
 
-import { createContext, type ReactNode, useContext, useRef } from "react";
+import { createContext, type ReactNode, useContext, useEffect, useRef } from "react";
 import { useStore } from "zustand";
-
+import { api } from "@/trpc/react";
 import { createUserStore, initUserStore, type UserStore } from "./user-store";
 
 export type UserStoreApi = ReturnType<typeof createUserStore>;
@@ -19,6 +19,16 @@ export const UserStoreProvider = ({ children }: UserStoreProviderProps) => {
   if (!store.current) {
     store.current = createUserStore(initUserStore());
   }
+
+  const { data, isLoading } = api.userProfiles.getPrivateUserProfile.useQuery(undefined, {
+    enabled: !store.current.getState().profile,
+  });
+
+  useEffect(() => {
+    if (data && !isLoading) {
+      store.current?.getState().setProfile(data);
+    }
+  }, [data, isLoading]);
 
   return <UserStoreContext.Provider value={store.current}>{children}</UserStoreContext.Provider>;
 };

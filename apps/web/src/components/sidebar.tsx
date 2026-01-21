@@ -4,12 +4,15 @@ import { cn } from "@repo/ui/lib/utils";
 import { Home, Link as LinkIcon, Settings, User } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useUser } from "@/features/user/store/user-store-provider";
 
 export const Sidebar = () => {
   const pathname = usePathname();
+  const user = useUser();
+
   const links = [
     { href: "/", icon: Home, label: "Home" },
-    { href: "/@johndoe", icon: User, label: "Profile" },
+    { href: `/${user?.username}`, icon: User, label: "Profile" },
     { href: "/settings", icon: Settings, label: "Settings" },
   ];
 
