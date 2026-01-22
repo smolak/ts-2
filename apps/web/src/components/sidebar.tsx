@@ -1,7 +1,7 @@
 "use client";
 
 import { cn } from "@repo/ui/lib/utils";
-import { Home, Link as LinkIcon, Settings, User } from "lucide-react";
+import { Home, Layers, Settings, User } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
@@ -19,10 +19,11 @@ export const Sidebar = () => {
       <div className="fixed top-5 w-52">
         <div className="mb-8">
           <div className="mb-2 flex items-center gap-2">
-            <LinkIcon className="h-6 w-6 text-primary" />
+            <span className="text-accent">
+              <Layers className="h-5 w-5 text-accent" />
+            </span>
             <h1 className="font-bold text-xl">LinkDeck</h1>
           </div>
-          <p className="text-muted-foreground text-xs">Share what inspires you</p>
         </div>
 
         <nav className="space-y-2">

@@ -9,12 +9,12 @@ export const CheckUserOnboarding: FC<PropsWithChildren> = ({ children }) => {
   const pathname = usePathname();
   const { isSignedIn, user } = useUser();
 
-  if (isSignedIn && user.publicMetadata.appUserId === undefined && pathname !== "/settings/profile") {
+  if (isSignedIn && user.publicMetadata.appUserId === undefined && pathname !== "/app/settings/profile") {
     return (
       <div>
         Welcome to [PROJECT NAME]. Before you can start using the app, you need to finish creating your profile. Head
         over to:
-        <Link href="/settings/profile">Profile Settings</Link>.
+        <Link href="/app/settings/profile">Profile Settings</Link>.
       </div>
     );
   }
