@@ -127,7 +127,7 @@ export const toggleFollowDeck = protectedProcedure
     const wasFollowingOwnerBefore = currentFollows.some((f) => f.deck.userId === deck.userId);
 
     // Follow
-    const { followersCount: newFollowersCount, urlsAdded } = await db.transaction(async (tx) => {
+    const { followersCount: newFollowersCount } = await db.transaction(async (tx) => {
       const [[updatedDeck]] = await Promise.all([
         tx
           .update(schema.decks)
@@ -151,31 +151,10 @@ export const toggleFollowDeck = protectedProcedure
         );
       }
 
-      // Populate feed with existing deck URLs
-      const deckUrls = await tx.query.deckUrls.findMany({
-        where: (deckUrls, { eq }) => eq(deckUrls.deckId, deckId),
-        columns: { userUrlId: true },
-      });
-
-      if (deckUrls.length > 0) {
-        await tx.insert(schema.feeds).values(
-          deckUrls.map((du) => ({
-            userId,
-            userUrlId: du.userUrlId,
-            deckId,
-          })),
-        );
-      }
-
       return {
         followersCount: updatedDeck?.followersCount ?? deck.followersCount + 1,
-        urlsAdded: deckUrls.length,
       };
     });
-
-    if (urlsAdded > 0) {
-      logger.info({ requestId, path, userId, deckId, urlsAdded }, "Feed populated with existing deck URLs.");
-    }
 
     logger.info({ requestId, path, userId, deckId, followersCount: newFollowersCount }, "Deck followed.");
 
