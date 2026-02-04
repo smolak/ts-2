@@ -11,7 +11,7 @@ export const WelcomeHomepageScreen = () => {
       <header className="fixed top-0 right-0 left-0 z-50 border-border border-b bg-background/80 backdrop-blur-md">
         <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-6">
           <Link href="/" className="flex items-center gap-2">
-            <Layers className="h-6 w-6 text-accent" />
+            <Layers className="h-6 w-6 text-lead" />
             <span className="font-semibold text-lg tracking-tight">LinkDeck</span>
           </Link>
           <nav className="hidden items-center gap-6 md:flex">
@@ -33,16 +33,16 @@ export const WelcomeHomepageScreen = () => {
         <section className="relative flex min-h-[calc(100vh-4rem)] flex-col items-center justify-center px-6 py-24">
           {/* Background decoration */}
           <div className="pointer-events-none absolute inset-0 overflow-hidden">
-            <div className="absolute top-1/4 left-1/2 h-96 w-96 -translate-x-1/2 rounded-full bg-accent/5 blur-3xl" />
+            <div className="absolute top-1/4 left-1/2 h-96 w-96 -translate-x-1/2 rounded-full bg-lead/5 blur-3xl" />
           </div>
 
           <div className="relative z-10 mx-auto flex max-w-3xl flex-col items-center text-center">
             <div className="mb-8 flex h-20 w-20 items-center justify-center rounded-2xl border border-border bg-card">
-              <Layers className="h-10 w-10 text-accent" />
+              <Layers className="h-10 w-10 text-lead" />
             </div>
 
             <h1 className="mb-6 text-balance font-bold text-4xl tracking-tight sm:text-5xl md:text-6xl">
-              <span className="text-accent">Link</span>Deck
+              <span className="text-lead">Link</span>Deck
             </h1>
 
             <p className="mb-12 max-w-xl text-pretty text-lg text-muted-foreground leading-relaxed sm:text-xl">
@@ -147,7 +147,7 @@ export const WelcomeHomepageScreen = () => {
       <footer className="border-border border-t px-6 py-12">
         <div className="mx-auto flex max-w-6xl flex-col items-center justify-between gap-6 sm:flex-row">
           <div className="flex items-center gap-2">
-            <Layers className="h-5 w-5 text-accent" />
+            <Layers className="h-5 w-5 text-lead" />
             <span className="font-semibold">LinkDeck</span>
           </div>
           <p className="text-muted-foreground text-sm">{new Date().getFullYear()} LinkDeck. All rights reserved.</p>
@@ -159,8 +159,8 @@ export const WelcomeHomepageScreen = () => {
 
 function FeatureCard({ icon, title, description }: { icon: React.ReactNode; title: string; description: string }) {
   return (
-    <div className="group rounded-xl border border-border bg-card p-6 transition-colors hover:border-accent/50">
-      <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-lg bg-accent/10 text-accent">{icon}</div>
+    <div className="group rounded-xl border border-border bg-card p-6 transition-colors hover:border-lead/50">
+      <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-lg bg-lead/10 text-lead">{icon}</div>
       <h3 className="mb-2 font-semibold text-lg">{title}</h3>
       <p className="text-muted-foreground text-sm leading-relaxed">{description}</p>
     </div>

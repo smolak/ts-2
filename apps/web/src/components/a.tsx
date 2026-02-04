@@ -4,7 +4,7 @@ import type { AnchorHTMLAttributes, FC } from "react";
 
 export const A: FC<LinkProps & AnchorHTMLAttributes<HTMLAnchorElement>> = ({ children, className, ...rest }) => {
   return (
-    <Link {...rest} className={cn(className, "font-medium text-blue-600 hover:underline")}>
+    <Link {...rest} className={cn(className, "font-medium text-lead hover:underline")}>
       {children}
     </Link>
   );

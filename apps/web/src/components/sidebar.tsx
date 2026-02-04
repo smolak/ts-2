@@ -1,9 +1,10 @@
 "use client";
 
 import { cn } from "@repo/ui/lib/utils";
-import { Home, Layers, Settings, User } from "lucide-react";
+import { CircleQuestionMark, Home, Layers, Settings, User } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { WEB_APP_BASE_URL } from "@/lib/constants";
 
 export const Sidebar = () => {
   const pathname = usePathname();
@@ -12,23 +13,26 @@ export const Sidebar = () => {
     { href: "/", icon: Home, label: "Home" },
     { href: "/app/profile", icon: User, label: "Profile" },
     { href: "/app/settings", icon: Settings, label: "Settings" },
+    { href: "/app/faq#how-to-add-links", icon: CircleQuestionMark, label: "How to add links?" },
   ];
+
+  console.log(pathname);
 
   return (
     <aside className="min-h-screen w-64 bg-sidebar p-6">
       <div className="fixed top-5 w-52">
         <div className="mb-8">
           <div className="mb-2 flex items-center gap-2">
-            <span className="text-accent">
-              <Layers className="h-5 w-5 text-accent" />
-            </span>
+            <Layers className="h-5 w-5 text-lead" />
             <h1 className="font-bold text-xl">LinkDeck</h1>
           </div>
         </div>
 
         <nav className="space-y-2">
           {links.map((link) => {
-            const isActive = pathname === link.href || pathname.startsWith(`${link.href}/`);
+            const linkPath = new URL(link.href, WEB_APP_BASE_URL).pathname;
+
+            const isActive = pathname === linkPath || (link.href !== "/" && pathname.startsWith(linkPath));
             return (
               <Link
                 key={link.href}

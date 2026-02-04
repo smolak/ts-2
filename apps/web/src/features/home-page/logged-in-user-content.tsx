@@ -43,10 +43,16 @@ export const LoggedInUserContent = () => {
         ) : null}
         {decksSuccess ? (
           <div className="flex flex-col gap-7">
-            <FeedListFilters decks={decks} username="Me" />
+            {decks.length > 0 ? (
+              <>
+                <FeedListFilters decks={decks} username="Me" />
+                <InfiniteMyFeed />
+              </>
+            ) : (
+              <div>No links. Add some!</div>
+            )}
           </div>
         ) : null}
-        <InfiniteMyFeed />
       </div>
     </>
   );
